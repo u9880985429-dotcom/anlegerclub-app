@@ -31,6 +31,7 @@ export {
   marketUpdates,
   lexikon,
   allLessons,
+  getFocusStockById,
 } from "./mock/content";
 
 export {
@@ -38,6 +39,7 @@ export {
   allPosts,
   allComments,
   reports,
+  moderationFlaggedComments,
   getPostsByCommunity,
   getCommunityBySlug,
   getCommunityById,
@@ -84,3 +86,31 @@ export {
   filterText,
 } from "./mock/wordfilter";
 export type { FilterResult } from "./mock/wordfilter";
+
+export {
+  daxStrategieSignale,
+  daxMillJahresRenditen,
+  daxMillEquityCurve,
+  STRATEGIE_BADGE_CLASS,
+} from "./mock/daxmillionaer";
+export type {
+  StrategieAction,
+  StrategieSignal,
+  DaxMillYearRow,
+  DaxMillEquity,
+} from "./mock/daxmillionaer";
+
+export {
+  cockpitDocuments,
+  getCockpitDocumentById,
+  getCockpitDocumentsByKind,
+} from "./mock/cockpitContent";
+export type { CockpitDocument } from "./mock/cockpitContent";
+
+export {
+  portfolioStarter,
+  portfolioTrend,
+  portfolioStillhalter,
+  getPortfolioByProduct,
+} from "./mock/portfolio";
+export type { PortfolioCapital, PortfolioSnapshot } from "./mock/portfolio";

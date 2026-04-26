@@ -8,10 +8,12 @@ import {
   getTradeById,
   type ProductSlug,
 } from "@traderiq/api";
-import { ACTION_BADGE_CLASS, ACTION_LABELS, formatGermanDate, formatRelative } from "@/lib/format";
+import { ACTION_BADGE_CLASS, ACTION_LABELS, formatGermanDate } from "@/lib/format";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
 import { CommunityComposer } from "@/components/CommunityComposer";
 import { LikeButton } from "@/components/LikeButton";
+import { CommentThread } from "@/components/CommentThread";
+import { TradeAdminToolbar } from "./TradeAdminToolbar";
 
 export const dynamic = "force-dynamic";
 
@@ -23,11 +25,13 @@ export default async function TradeDetailPage({
   params: { slug: string; id: string };
 }) {
   if (!VALID.includes(params.slug as ProductSlug)) notFound();
-  await requireProductAccess(params.slug as Exclude<ProductSlug, "all-access">);
+  const session = await requireProductAccess(params.slug as Exclude<ProductSlug, "all-access">);
   const trade = getTradeById(params.id);
   if (!trade) notFound();
   const comments = getCommentsByTrade(trade.id);
   const reactions = getReactionsByTrade(trade.id);
+
+  const isStaff = session.user.role === "STAFF" || session.user.role === "OWNER" || session.user.role === "ADMIN" || session.user.role === "MODERATOR";
 
   return (
     <>
@@ -38,7 +42,8 @@ export default async function TradeDetailPage({
         <ArrowLeft className="h-4 w-4" /> Zurück zum Depot
       </Link>
 
-      {/* Trade-Header */}
+      {isStaff && <TradeAdminToolbar tradeId={trade.id} initialVisible={true} initialTitle={trade.title} initialBody={trade.bodyMd} />}
+
       <article className="card-base p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -62,28 +67,22 @@ export default async function TradeDetailPage({
           ))}
         </div>
 
-        {/* Optionales Video zum Trade */}
         <div className="mt-6">
-          <VideoPlaceholder
-            title={`Erklärvideo zu ${trade.tickers.join(", ")}`}
-            duration="3:42"
-            seed={trade.id}
-          />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Inhalte sind nicht herunterladbar – Wasserzeichen + DRM ab Phase 3 (Mux).
-          </p>
+          <VideoPlaceholder title={`Erklärvideo zu ${trade.tickers.join(", ")}`} duration="3:42" seed={trade.id} />
+          <p className="mt-2 text-xs text-muted-foreground">Inhalte sind nicht herunterladbar – Wasserzeichen + DRM ab Phase 3 (Mux).</p>
         </div>
 
-        {/* Reaktionen */}
         <div className="mt-5 flex flex-wrap items-center gap-2">
           {reactions.map((r) => (
-            <LikeButtonCompat key={r.emoji} emoji={r.emoji} count={r.count} />
+            <span key={r.emoji} className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-1 text-xs">
+              <span>{r.emoji}</span>
+              <span className="font-mono">{r.count}</span>
+            </span>
           ))}
           <LikeButton initialCount={reactions[0]?.count ?? 0} />
         </div>
       </article>
 
-      {/* Diskussion */}
       <h2 className="mb-3 mt-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
         <MessageSquare className="h-4 w-4" /> Diskussion ({comments.length})
       </h2>
@@ -91,28 +90,14 @@ export default async function TradeDetailPage({
       <div className="mb-4">
         <CommunityComposer
           placeholder="Frage stellen oder Erfahrung teilen…"
-          contextHint="Fragen zum Signal? Schreib's – die Redaktion und andere Mitglieder helfen."
+          contextHint="Fragen zum Signal? Schreib's – die Redaktion und andere Mitglieder helfen. Du kannst auch direkt auf einzelne Antworten reagieren."
         />
       </div>
 
-      <div className="space-y-3">
-        {comments.map((c) => (
-          <article key={c.id} className="card-base p-4">
-            <div className="mb-2 flex items-center gap-2 text-xs">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold">
-                {c.authorName.split(" ").map((n) => n.charAt(0)).slice(0, 2).join("")}
-              </div>
-              <span className="font-medium">{c.authorName}</span>
-              <span className="text-muted-foreground">·</span>
-              <span className="text-muted-foreground">{formatRelative(c.createdAt)}</span>
-            </div>
-            <p className="text-sm leading-relaxed">{c.bodyMd}</p>
-            <div className="mt-2">
-              <LikeButton initialCount={Math.floor(Math.random() * 6)} />
-            </div>
-          </article>
-        ))}
-      </div>
+      <CommentThread
+        comments={comments}
+        currentUser={{ name: `${session.user.firstName} ${session.user.lastName}`, role: session.user.role }}
+      />
     </>
   );
 }
@@ -124,14 +109,4 @@ function renderMd(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/`([^`]+)`/g, '<code class="rounded bg-muted px-1 py-0.5 text-xs font-mono">$1</code>');
-}
-
-// Kompakte read-only-Anzeige für Mock-Reactions die schon existieren.
-function LikeButtonCompat({ emoji, count }: { emoji: string; count: number }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-1 text-xs">
-      <span>{emoji}</span>
-      <span className="font-mono">{count}</span>
-    </span>
-  );
 }

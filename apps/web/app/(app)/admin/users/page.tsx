@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { allSubscriptions, allUsers } from "@traderiq/api";
 import { Search, Filter, ChevronRight } from "lucide-react";
+import { RoleDropdown } from "./RoleDropdown";
 
 const STATUS_CLASS: Record<string, string> = {
   ACTIVE: "badge-profit",
@@ -74,7 +75,7 @@ export default function AdminUsersPage({
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-3">
-                    <span className="badge-base">{u.role}</span>
+                    <RoleDropdown initial={u.role} userId={u.id} />
                   </td>
                   <td className="px-4 py-3 text-xs">{sub?.productSlug ?? "—"}</td>
                   <td className="px-4 py-3">

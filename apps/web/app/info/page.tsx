@@ -65,8 +65,8 @@ export default function InfoPage() {
             />
             <Feature
               icon={Users}
-              title="Community zu jedem Trade"
-              body="Diskutiere mit anderen Mitgliedern direkt unter dem Signal. Frage Mods, lerne aus den Erfahrungen anderer."
+              title="Community bei jedem Depot"
+              body="Diskutiere zu jedem Signal mit anderen Mitgliedern und der Redaktion – plus freier Community-Bereich pro Depot."
             />
             <Feature
               icon={Bell}

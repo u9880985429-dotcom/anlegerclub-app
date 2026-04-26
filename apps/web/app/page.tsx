@@ -50,7 +50,7 @@ export default function MarketingPage() {
           />
           <Feature
             icon={Users}
-            title="Community pro Trade"
+            title="Community bei jedem Depot"
             body="Diskutiere zu jedem Signal mit anderen Mitgliedern und der Redaktion."
           />
           <Feature

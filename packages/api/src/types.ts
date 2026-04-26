@@ -74,6 +74,10 @@ export interface FocusStock {
   company: string;
   thesis: string;
   publishedAt: string;
+  /** Volltext für die Detail-Seite. */
+  longTextMd?: string;
+  videoAssetId?: string | null;
+  videoDuration?: string;
 }
 
 export interface MarketUpdate {

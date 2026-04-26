@@ -95,7 +95,32 @@ const COMMENT_TEMPLATES = [
   { author: "Klaus Berger", authorId: "u_klaus", body: "Sehe ich genauso. Bei mir war die Lernkurve in den ersten 3 Monaten am steilsten." },
   { author: "Anna Huber", authorId: "u_anna", body: "Ich warte immer 30 Min nach Eröffnung – die Volatilität direkt zur Eröffnung verfälscht oft die Stops." },
   { author: "Mira Schulz", authorId: "u_mira", body: "Im Trade Journal findest du die exakten Anpassungen mit Zeitstempel. 👍" },
-  { author: "Jonas Weiß", authorId: "u_jonas", body: "Danke für den Hinweis – kalender ist bei mir eingetragen." },
+  { author: "Jonas Weiß", authorId: "u_jonas", body: "Danke für den Hinweis – Kalender ist bei mir eingetragen." },
+];
+
+// Echte Beleidigungs-Mock-Beispiele für die Mod-Queue (intern, in der UI maskiert).
+export const moderationFlaggedComments = [
+  {
+    id: "mod_flag_1",
+    authorName: "Anonym A.",
+    raw: "Wer das immer noch nicht checkt, ist echt ein Vollidiot.",
+    masked: "Wer das immer noch nicht checkt, ist echt ein V*********t.",
+    reason: 'Beleidigung („Vollidiot")',
+  },
+  {
+    id: "mod_flag_2",
+    authorName: "Anonym B.",
+    raw: "Hört auf mit dem Schwachsinn, du Hurensohn.",
+    masked: "Hört auf mit dem Schwachsinn, du H*********n.",
+    reason: 'Schwere Beleidigung („Hurensohn")',
+  },
+  {
+    id: "mod_flag_3",
+    authorName: "Anonym C.",
+    raw: "Das ist doch komplett behindert was du schreibst.",
+    masked: "Das ist doch komplett b********t was du schreibst.",
+    reason: 'Diskriminierende Wortwahl („behindert" als Schimpfwort)',
+  },
 ];
 
 export const allComments: Comment[] = allPosts.flatMap((p, idx) =>
@@ -126,7 +151,7 @@ export const reports: Report[] = [
     reporterName: "Anna Huber",
     postId: allPosts[5]?.id ?? null,
     commentId: null,
-    reason: "Vermutete Werbung für Drittprodukt",
+    reason: "Vermutete Werbung für Drittprodukt (Telegram-Link im Post)",
     status: "OPEN",
     createdAt: "2026-04-24T14:23:00Z",
   },
@@ -135,8 +160,8 @@ export const reports: Report[] = [
     reporterId: "u_klaus",
     reporterName: "Klaus Berger",
     postId: null,
-    commentId: allComments[0]?.id ?? null,
-    reason: "Kommentar enthält Beleidigung",
+    commentId: moderationFlaggedComments[0]!.id,
+    reason: 'Beleidigung („Vollidiot") – automatisch maskiert',
     status: "OPEN",
     createdAt: "2026-04-25T09:11:00Z",
   },
@@ -144,9 +169,19 @@ export const reports: Report[] = [
     id: "rep_3",
     reporterId: "u_petra",
     reporterName: "Petra Fischer",
+    postId: null,
+    commentId: moderationFlaggedComments[1]!.id,
+    reason: 'Schwere Beleidigung („Hurensohn") – automatisch maskiert',
+    status: "OPEN",
+    createdAt: "2026-04-26T11:02:00Z",
+  },
+  {
+    id: "rep_4",
+    reporterId: "u_mira",
+    reporterName: "Mira Schulz",
     postId: allPosts[2]?.id ?? null,
     commentId: null,
-    reason: "Off-Topic",
+    reason: "Off-Topic – kein Bezug zum Trade",
     status: "RESOLVED",
     createdAt: "2026-04-22T18:45:00Z",
   },

@@ -1,13 +1,15 @@
 import Link from "next/link";
+import { ExternalLink, ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Tabs";
 import { TradeRow } from "@/components/TradeRow";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
 import { PerformanceChart } from "@/components/PerformanceChart";
+import { PortfolioDashboard } from "@/components/PortfolioDashboard";
 import { VTJEmbed } from "@/components/VTJEmbed";
 import { BrokerCard } from "@/components/BrokerCard";
-import { PitchBanner } from "@/components/PitchBanner";
 import { EditModeBar } from "@/components/EditModeBar";
+import { CommunityFeed } from "@/components/CommunityFeed";
 import { requireProductAccess } from "@/lib/access";
 import {
   STILLHALTER_PERFORMANCE,
@@ -15,15 +17,18 @@ import {
   VTJ,
   getReportsByProduct,
   getTradesByProduct,
+  getPortfolioByProduct,
 } from "@traderiq/api";
-import { ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+const ABLEFY_ARCHIVE_LINK = "https://member.geldiq.com/s/geldiq/stillhalter-depot";
 
 export default async function StillhalterDepotPage() {
   const session = await requireProductAccess("stillhalter");
   const trades = getTradesByProduct("stillhalter");
   const reports = getReportsByProduct("stillhalter");
+  const portfolio = getPortfolioByProduct("stillhalter")!;
 
   return (
     <>
@@ -35,14 +40,14 @@ export default async function StillhalterDepotPage() {
 
       <EditModeBar role={session.user.role} scope="Stillhalter Depot" />
 
-      <PitchBanner variant="strategy" className="mb-6" />
-
       <Tabs defaultValue="welcome">
         <TabsList className="flex-wrap">
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="start">Start</TabsTrigger>
           <TabsTrigger value="signale">Trade-Signale</TabsTrigger>
           <TabsTrigger value="auswertungen">Depotauswertungen</TabsTrigger>
+          <TabsTrigger value="broker">Brokerempfehlung</TabsTrigger>
+          <TabsTrigger value="community">Community</TabsTrigger>
           <TabsTrigger value="archiv">Archiv</TabsTrigger>
         </TabsList>
 
@@ -64,47 +69,32 @@ export default async function StillhalterDepotPage() {
           <div className="space-y-6">
             <article className="card-base p-6">
               <h3 className="mb-3 text-lg font-bold">Einführung ins Stillhalter Depot</h3>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                {STILLHALTER_STRATEGY}
-              </p>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{STILLHALTER_STRATEGY}</p>
             </article>
+
+            <PortfolioDashboard data={portfolio} />
 
             <PerformanceChart data={STILLHALTER_PERFORMANCE} title="Stillhalter Depot · Performance YTD 2025" />
 
             <div className="card-base p-5">
               <h3 className="mb-2 font-semibold">Performance-Reporting</h3>
-              <p className="text-sm text-muted-foreground">
-                {VTJ.description} <strong>{VTJ.affiliateNote}</strong>
-              </p>
-              <a
-                href={VTJ.affiliateUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-brand mt-4 inline-flex items-center gap-2"
-              >
+              <p className="text-sm text-muted-foreground">{VTJ.description} <strong>{VTJ.affiliateNote}</strong></p>
+              <a href={VTJ.affiliateUrl} target="_blank" rel="noreferrer" className="btn-brand mt-4 inline-flex items-center gap-2">
                 Visual Trading Journal mit Trader-IQ-Vorteil
                 <ArrowRight className="h-4 w-4" />
               </a>
             </div>
 
             <VTJEmbed title="Stillhalter Depot · Live-Trade-Journal" />
-
-            <BrokerCard />
           </div>
         </TabsContent>
 
         <TabsContent value="signale">
           <div className="space-y-4">
             {trades.map((t) => (
-              <Link
-                key={t.id}
-                href={`/depot/stillhalter/trade/${t.id}` as never}
-                className="block transition hover:opacity-90"
-              >
+              <Link key={t.id} href={`/depot/stillhalter/trade/${t.id}` as never} className="block transition hover:opacity-90">
                 <TradeRow trade={t} />
-                <div className="mt-1 px-1 text-right text-xs font-semibold text-brand hover:underline">
-                  Zum Signal →
-                </div>
+                <div className="mt-1 px-1 text-right text-xs font-semibold text-brand hover:underline">Zum Signal →</div>
               </Link>
             ))}
           </div>
@@ -124,14 +114,35 @@ export default async function StillhalterDepotPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="broker">
+          <BrokerCard />
+        </TabsContent>
+
+        <TabsContent value="community">
+          <CommunityFeed slug="stillhalter" />
+        </TabsContent>
+
         <TabsContent value="archiv">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {reports.slice(6).map((r) => (
-              <article key={r.id} className="card-base p-4">
-                <div className="text-sm font-semibold">{r.monthLabel}</div>
-                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.bodyMd.replace(/[#*`]/g, "")}</p>
-              </article>
-            ))}
+          <div className="space-y-4">
+            <div className="card-base p-5">
+              <h3 className="mb-2 font-semibold">Vollständiges Archiv</h3>
+              <p className="text-sm text-muted-foreground">Beiträge älter als 12 Monate findest du im Ablefy-Mitgliederbereich.</p>
+              <a href={ABLEFY_ARCHIVE_LINK} target="_blank" rel="noreferrer" className="btn-brand mt-4 inline-flex items-center gap-2">
+                Zum vollständigen Archiv bei Ablefy
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {reports.slice(6).map((r) => (
+                <a key={r.id} href={ABLEFY_ARCHIVE_LINK} target="_blank" rel="noreferrer" className="card-base block p-4 transition hover:border-brand/40">
+                  <div className="text-sm font-semibold">{r.monthLabel}</div>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.bodyMd.replace(/[#*`]/g, "")}</p>
+                  <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand">
+                    Bei Ablefy öffnen <ExternalLink className="h-3 w-3" />
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
         </TabsContent>
       </Tabs>

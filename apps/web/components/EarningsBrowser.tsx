@@ -31,7 +31,7 @@ export function EarningsBrowser({ entries }: EarningsBrowserProps) {
           />
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          {filtered.length} von {entries.length} Earnings · Filter: nur Aktien ≥ 20 USD, keine Pinksheets.
+          {filtered.length} von {entries.length} Werten aus dem S&P 500 (alle ≥ 20 USD).
         </p>
       </div>
 
@@ -91,11 +91,26 @@ function EarningsCard({ entry }: { entry: EarningsEntry }) {
             )}
           </div>
           <div className="mt-2 text-xs">
-            <span className="badge-base">IV {entry.impliedVolatility.toFixed(1)}%</span>
+            <IVBar value={entry.impliedVolatility} />
           </div>
         </div>
       </div>
     </article>
+  );
+}
+
+function IVBar({ value }: { value: number }) {
+  // Skala 0–80 % (über 60 % gilt als heiß).
+  const pct = Math.min(value / 80, 1) * 100;
+  const color = value < 25 ? "#10b981" : value < 45 ? "#eab308" : "#ef4444";
+  return (
+    <div className="text-right">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Implizite Volatilität</div>
+      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <div className="mt-1 font-mono text-xs" style={{ color }}>{value.toFixed(1).replace(".", ",")}%</div>
+    </div>
   );
 }
 
