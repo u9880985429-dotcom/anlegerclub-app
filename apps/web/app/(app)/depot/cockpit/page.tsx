@@ -14,7 +14,11 @@ export const dynamic = "force-dynamic";
 
 const ABLEFY_ARCHIVE_LINK = "https://member.geldiq.com/s/geldiq/trader-cockpit";
 
-export default async function CockpitPage() {
+export default async function CockpitPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const session = await requireProductAccess("cockpit");
   const tag = marketUpdates.filter((u) => u.kind === "tag");
   const woche = marketUpdates.filter((u) => u.kind === "woche");
@@ -24,6 +28,7 @@ export default async function CockpitPage() {
   const docWochenblick = cockpitDocuments.find((d) => d.kind === "wochenblick");
   const docMonatsblick = cockpitDocuments.find((d) => d.kind === "monatsblick");
   const docCalendar = cockpitDocuments.find((d) => d.kind === "calendar");
+  const activeTab = searchParams.tab ?? "welcome";
 
   return (
     <>
@@ -35,8 +40,8 @@ export default async function CockpitPage() {
 
       <EditModeBar role={session.user.role} scope="Trader Cockpit" />
 
-      <Tabs defaultValue="welcome">
-        <TabsList className="flex-wrap">
+      <Tabs defaultValue={activeTab} key={activeTab}>
+        <TabsList className="hidden">
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="perspektiven">Perspektiven</TabsTrigger>
           <TabsTrigger value="tag">Tagesblick</TabsTrigger>
@@ -154,14 +159,31 @@ export default async function CockpitPage() {
             </div>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {[...marketUpdates].reverse().slice(0, 9).map((u) => (
-                <a key={u.id} href={ABLEFY_ARCHIVE_LINK} target="_blank" rel="noreferrer" className="card-base block p-4 transition hover:border-brand/40">
-                  <span className="badge-base">{u.kind}</span>
+                <article key={u.id} className="card-base p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="badge-base">{u.kind}</span>
+                    <span className="text-[10px] text-muted-foreground">{formatGermanDate(u.publishedAt)}</span>
+                  </div>
                   <div className="mt-2 text-sm font-semibold">{u.title}</div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{u.bodyMd}</p>
-                  <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand">
-                    Bei Ablefy öffnen <ExternalLink className="h-3 w-3" />
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      href={`/cockpit/doc/${u.id}` as never}
+                      target="_blank"
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-brand transition hover:border-brand/40"
+                    >
+                      <FileText className="h-3 w-3" /> PDF öffnen
+                    </Link>
+                    <a
+                      href={ABLEFY_ARCHIVE_LINK}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground transition hover:border-brand/40 hover:text-foreground"
+                    >
+                      Ablefy <ExternalLink className="h-3 w-3" />
+                    </a>
                   </div>
-                </a>
+                </article>
               ))}
             </div>
           </div>
@@ -205,11 +227,24 @@ function UpdateGrid({ items }: { items: typeof marketUpdates }) {
   return (
     <div className="mt-6 grid gap-4 md:grid-cols-2">
       {items.map((u) => (
-        <article key={u.id} className="card-base p-5">
-          <div className="mb-2 text-xs text-muted-foreground">{formatGermanDate(u.publishedAt)}</div>
-          <h3 className="text-base font-semibold">{u.title}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">{u.bodyMd}</p>
-        </article>
+        <Link
+          key={u.id}
+          href={`/cockpit/doc/${u.id}` as never}
+          target="_blank"
+          className="card-base group block p-5 transition hover:border-brand/40"
+        >
+          <div className="mb-2 flex items-center justify-between gap-2 text-xs">
+            <span className="text-muted-foreground">{formatGermanDate(u.publishedAt)}</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">
+              <FileText className="h-3 w-3" /> PDF
+            </span>
+          </div>
+          <h3 className="text-base font-semibold group-hover:text-brand">{u.title}</h3>
+          <p className="mt-2 text-sm text-muted-foreground line-clamp-3">{u.bodyMd}</p>
+          <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand opacity-0 transition group-hover:opacity-100">
+            Als PDF öffnen <ExternalLink className="h-3 w-3" />
+          </div>
+        </Link>
       ))}
     </div>
   );

@@ -51,6 +51,20 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
+  /* Geometric low-poly background — applied globally on light theme. */
+  body {
+    background-color: #fbfbfc;
+    background-image:
+      linear-gradient(135deg, rgba(255, 116, 31, 0.04) 0%, rgba(255, 116, 31, 0) 60%),
+      linear-gradient(225deg, rgba(99, 102, 241, 0.03) 0%, rgba(99, 102, 241, 0) 55%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'><defs><linearGradient id='g1' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%23ffffff' stop-opacity='1'/><stop offset='100%25' stop-color='%23f0f0f4' stop-opacity='1'/></linearGradient></defs><rect width='1600' height='900' fill='url(%23g1)'/><g fill='none' stroke='%23e2e4ea' stroke-width='1' opacity='0.55'><polygon points='0,0 320,140 220,360'/><polygon points='320,140 620,80 540,360'/><polygon points='620,80 920,180 760,420'/><polygon points='920,180 1230,40 1180,360'/><polygon points='1230,40 1600,200 1500,420'/><polygon points='220,360 540,360 380,620'/><polygon points='540,360 760,420 620,640'/><polygon points='760,420 1180,360 980,640'/><polygon points='1180,360 1500,420 1340,640'/><polygon points='380,620 620,640 480,900'/><polygon points='620,640 980,640 800,900'/><polygon points='980,640 1340,640 1180,900'/><polygon points='1340,640 1600,640 1500,900'/></g><g fill='%23eef0f5' opacity='0.5'><polygon points='320,140 220,360 540,360'/><polygon points='760,420 980,640 1180,360'/><polygon points='480,900 800,900 620,640'/></g></svg>");
+    background-attachment: fixed;
+    background-size: cover;
+  }
+  .dark body {
+    background-color: hsl(var(--background));
+    background-image: none;
+  }
 }
 
 @layer components {

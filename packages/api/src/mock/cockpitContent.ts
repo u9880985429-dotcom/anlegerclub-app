@@ -2,6 +2,7 @@
  * Lange Cockpit-Texte für die PDF-Downloads.
  * Phase 2: aus Datenbank/Admin-Editor; Phase 3: KI-generiert via Gamma-AI.
  */
+import { marketUpdates } from "./content";
 
 export interface CockpitDocument {
   id: string;
@@ -369,7 +370,31 @@ export const cockpitDocuments: CockpitDocument[] = [
 ];
 
 export function getCockpitDocumentById(id: string): CockpitDocument | undefined {
-  return cockpitDocuments.find((d) => d.id === id);
+  const found = cockpitDocuments.find((d) => d.id === id);
+  if (found) return found;
+
+  // Fallback: derive a printable document from any market-update id (mu_t_*, mu_w_*, mu_m_*).
+  // Phase 1: Platzhalter-Texte (PLATZHALTER markiert).
+  // Phase 2/3: Gamma-AI-PDF-Pipeline füllt diese Lücken automatisch.
+  const mu = marketUpdates.find((u) => u.id === id);
+  if (!mu) return undefined;
+
+  const kind: CockpitDocument["kind"] =
+    mu.kind === "tag" ? "tagesblick" : mu.kind === "woche" ? "wochenblick" : "monatsblick";
+
+  return {
+    id: mu.id,
+    kind,
+    title: mu.title,
+    subtitle:
+      kind === "tagesblick"
+        ? "Tägliche Marktanalyse"
+        : kind === "wochenblick"
+        ? "Wochenanalyse"
+        : "Monatsanalyse",
+    date: mu.publishedAt.slice(0, 10),
+    bodyMd: `## ${mu.title}\n\n${mu.bodyMd}\n\n## Hinweis (PLATZHALTER)\n\nDieser Beitrag ist Teil unseres Cockpit-Archivs. Sobald die Gamma-AI-Pipeline (Phase 3) live ist, werden auch ältere Reports automatisch in die vollständige Long-Form-PDF überführt – inklusive Charts, Sektor-Daten und Smart-Money-Positionierung.\n\n• Datum: ${new Date(mu.publishedAt).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })}\n• Kategorie: ${kind}\n• Status: Archiv-Eintrag\n\n## Volltext bei Ablefy\n\nDer ausführliche Original-Report ist im Mitgliederbereich bei Ablefy hinterlegt. Klick auf „Bei Ablefy öffnen" im Archiv.`,
+  };
 }
 
 export function getCockpitDocumentsByKind(kind: CockpitDocument["kind"]): CockpitDocument[] {

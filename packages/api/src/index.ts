@@ -88,6 +88,15 @@ export {
 export type { FilterResult } from "./mock/wordfilter";
 
 export {
+  initialStrikes,
+  summarizeStrikes,
+  SEVERITY_LABELS,
+  SEVERITY_BADGE_CLASS,
+  STRIKE_THRESHOLDS,
+} from "./mock/strikes";
+export type { Strike, StrikeReason, StrikeSeverity, StrikeSummary } from "./mock/strikes";
+
+export {
   daxStrategieSignale,
   daxMillJahresRenditen,
   daxMillEquityCurve,

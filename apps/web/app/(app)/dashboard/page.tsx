@@ -35,8 +35,10 @@ export default async function DashboardPage() {
   const notifications = getNotificationsForUser(user.id);
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 
-  const postsToday = allPosts.filter(
-    (p) => Date.parse(p.createdAt) > Date.now() - 24 * 60 * 60 * 1000,
+  // "Neue Themen in der Community" — nur Top-Level-Posts der letzten 7 Handelstage,
+  // keine Kommentare/Replies (genau Community-Themen).
+  const newCommunityTopics = allPosts.filter(
+    (p) => p.visible && !p.pinned && isWithinLastHandelstage(p.createdAt, 7),
   ).length;
 
   const communityHighlights = (() => {
@@ -76,10 +78,10 @@ export default async function DashboardPage() {
           href="/notifications?filter=unread"
         />
         <StatLink
-          label="Posts heute"
-          value={String(postsToday)}
+          label="Neue Community-Themen (7 Handelstage)"
+          value={String(newCommunityTopics)}
           icon={MessageSquare}
-          href={`/community/${hauptdepotSlug}?filter=today`}
+          href={`/depot/${hauptdepotSlug}?tab=community`}
         />
         <StatLink
           label="Marktupdates (7 Handelstage)"
@@ -134,7 +136,7 @@ export default async function DashboardPage() {
         </div>
 
         <div>
-          <SectionTitle title="Aus der Community" href={`/community/${hauptdepotSlug}`} />
+          <SectionTitle title="Aus der Community" href={`/depot/${hauptdepotSlug}?tab=community`} />
           <div className="card-base divide-y divide-border">
             {communityHighlights.length === 0 && (
               <div className="p-5 text-sm text-muted-foreground">Noch keine Posts.</div>
@@ -142,7 +144,7 @@ export default async function DashboardPage() {
             {communityHighlights.map((p) => (
               <Link
                 key={p.id}
-                href={`/community/${hauptdepotSlug}/post/${p.id}` as never}
+                href={`/depot/${hauptdepotSlug}?tab=community#${p.id}` as never}
                 className="block p-4 transition hover:bg-accent"
               >
                 <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">

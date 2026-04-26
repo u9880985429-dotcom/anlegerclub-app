@@ -24,11 +24,16 @@ export const dynamic = "force-dynamic";
 
 const ABLEFY_ARCHIVE_LINK = "https://member.geldiq.com/s/geldiq/trend-depot-c8b71c4e";
 
-export default async function TrendDepotPage() {
+export default async function TrendDepotPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const session = await requireProductAccess("trend");
   const trades = getTradesByProduct("trend");
   const reports = getReportsByProduct("trend");
   const portfolio = getPortfolioByProduct("trend")!;
+  const activeTab = searchParams.tab ?? "welcome";
 
   return (
     <>
@@ -40,8 +45,8 @@ export default async function TrendDepotPage() {
 
       <EditModeBar role={session.user.role} scope="Trend Depot" />
 
-      <Tabs defaultValue="welcome">
-        <TabsList className="flex-wrap">
+      <Tabs defaultValue={activeTab} key={activeTab}>
+        <TabsList className="hidden">
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="start">Start</TabsTrigger>
           <TabsTrigger value="signale">Trade-Signale</TabsTrigger>

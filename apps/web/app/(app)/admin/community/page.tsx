@@ -3,6 +3,7 @@ import { CheckCircle2, EyeOff, MessageSquare, AlertTriangle, Clock, Eye, Externa
 import { PageHeader } from "@/components/PageHeader";
 import { allComments, allPosts, communities, reports, moderationFlaggedComments } from "@traderiq/api";
 import { formatRelative } from "@/lib/format";
+import { StrikeManager } from "./StrikeManager";
 
 export default function AdminCommunityPage() {
   const open = reports.filter((r) => r.status === "OPEN");
@@ -107,8 +108,16 @@ export default function AdminCommunityPage() {
         })}
       </div>
 
+      {/* Strike-Management — User-Verstöße + Eskalation */}
+      <div className="mt-10">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          User-Strikes & Sperren
+        </h2>
+        <StrikeManager />
+      </div>
+
       <div className="mt-6 rounded-md border border-dashed border-border p-4 text-xs text-muted-foreground">
-        Phase 2: Mute (1 h / 24 h / 7 d / perm) · Bulk-Aktionen · KI-basierte Werbe-/Beleidigungs-Erkennung · Wortfilter pro Community konfigurierbar.
+        Phase 2: Auto-Eskalation per KI-Klassifikation, Audit-Log-Export, Bulk-Aktionen, Wortfilter pro Community konfigurierbar.
       </div>
     </>
   );

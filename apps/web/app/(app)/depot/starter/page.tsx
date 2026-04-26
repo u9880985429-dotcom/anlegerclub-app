@@ -31,12 +31,17 @@ export const dynamic = "force-dynamic";
 
 const ABLEFY_ARCHIVE_LINK = "https://member.geldiq.com/s/geldiq/starter-depot-8740b018";
 
-export default async function StarterDepotPage() {
+export default async function StarterDepotPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const session = await requireProductAccess("starter");
   const trades = getTradesByProduct("starter");
   const reports = getReportsByProduct("starter");
   const portfolio = getPortfolioByProduct("starter")!;
   const isStarterOnly = session.user.productSlug === "starter";
+  const activeTab = searchParams.tab ?? "welcome";
 
   return (
     <>
@@ -51,8 +56,8 @@ export default async function StarterDepotPage() {
       {/* Pitches NUR im Starter-Depot */}
       <PitchBanner variant="both" className="mb-6" />
 
-      <Tabs defaultValue="welcome">
-        <TabsList className="flex-wrap">
+      <Tabs defaultValue={activeTab} key={activeTab}>
+        <TabsList className="hidden">
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="strategie">Strategie & Performance</TabsTrigger>
           <TabsTrigger value="aktiensparplan">Trade Signale Aktiensparplan</TabsTrigger>

@@ -24,11 +24,16 @@ export const dynamic = "force-dynamic";
 
 const ABLEFY_ARCHIVE_LINK = "https://member.geldiq.com/s/geldiq/stillhalter-depot";
 
-export default async function StillhalterDepotPage() {
+export default async function StillhalterDepotPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const session = await requireProductAccess("stillhalter");
   const trades = getTradesByProduct("stillhalter");
   const reports = getReportsByProduct("stillhalter");
   const portfolio = getPortfolioByProduct("stillhalter")!;
+  const activeTab = searchParams.tab ?? "welcome";
 
   return (
     <>
@@ -40,8 +45,8 @@ export default async function StillhalterDepotPage() {
 
       <EditModeBar role={session.user.role} scope="Stillhalter Depot" />
 
-      <Tabs defaultValue="welcome">
-        <TabsList className="flex-wrap">
+      <Tabs defaultValue={activeTab} key={activeTab}>
+        <TabsList className="hidden">
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="start">Start</TabsTrigger>
           <TabsTrigger value="signale">Trade-Signale</TabsTrigger>

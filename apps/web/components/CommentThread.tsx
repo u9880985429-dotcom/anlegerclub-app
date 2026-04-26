@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { CornerDownRight, Send } from "lucide-react";
-import { ALLOWED_REACTIONS, filterText } from "@traderiq/api";
+import { filterText } from "@traderiq/api";
 import type { Comment } from "@traderiq/api";
 import { LikeButton } from "./LikeButton";
 import { SmileyPicker } from "./SmileyPicker";
@@ -9,7 +9,7 @@ import { formatRelative } from "@/lib/format";
 
 interface CommentThreadProps {
   comments: Comment[];
-  /** Wer ist eingeloggt — beeinflusst Avatar-Initialen für neue Antworten. */
+  /** Eingeloggter User – Avatar-Initialen für neue Antworten. */
   currentUser: { name: string; role: string };
 }
 
@@ -52,10 +52,18 @@ export function CommentThread({ comments, currentUser }: CommentThreadProps) {
     return true;
   }
 
+  if (list.length === 0) {
+    return (
+      <div className="card-base p-6 text-center text-sm text-muted-foreground">
+        Noch keine Diskussion. Sei der Erste!
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {tree.map((c) => (
-        <CommentNode key={c.id} comment={c} depth={0} onReply={(text) => addReply(c.id, text)} />
+        <CommentNode key={c.id} comment={c} depth={0} addReply={addReply} />
       ))}
     </div>
   );
@@ -64,56 +72,61 @@ export function CommentThread({ comments, currentUser }: CommentThreadProps) {
 function CommentNode({
   comment,
   depth,
-  onReply,
+  addReply,
 }: {
   comment: LocalComment;
   depth: number;
-  onReply: (text: string) => boolean;
+  /** Reply-Funktion — jeder Knoten antwortet an seine eigene id. */
+  addReply: (parentId: string, text: string) => boolean;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
   const [text, setText] = useState("");
-  const [sentMsg, setSentMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   function handleReply(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) return;
-    const ok = onReply(text);
+    const ok = addReply(comment.id, text);
     if (!ok) {
-      setSentMsg("⚠️ Werbung blockiert. Bitte überarbeite deine Antwort.");
+      setErrorMsg("⚠️ Werbung blockiert. Bitte überarbeite deine Antwort.");
       return;
     }
     setText("");
     setReplyOpen(false);
-    setSentMsg(null);
+    setErrorMsg(null);
   }
 
   function pickEmoji(e: string) {
     setText((t) => `${t}${t.endsWith(" ") || t === "" ? "" : " "}${e} `);
   }
 
+  // Visuelle Einrückung – capped bei depth 4 für Lesbarkeit
+  const cappedDepth = Math.min(depth, 4);
+  const ml = cappedDepth * 20;
+
   return (
     <article
-      className={`card-base p-4 ${depth > 0 ? "border-l-2 border-brand/30 ml-2" : ""}`}
-      style={{ marginLeft: depth > 0 ? `${Math.min(depth, 3) * 16}px` : 0 }}
+      className={`card-base p-4 ${depth > 0 ? "border-l-2 border-brand/30" : ""}`}
+      style={{ marginLeft: ml }}
     >
-      <div className="mb-2 flex items-center gap-2 text-xs">
-        {depth > 0 && <CornerDownRight className="h-3 w-3 text-muted-foreground" />}
+      <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+        {depth > 0 && <CornerDownRight className="h-3 w-3 text-brand" />}
         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[10px] font-bold">
           {comment.authorName.split(" ").map((n) => n.charAt(0)).slice(0, 2).join("")}
         </div>
-        <span className="font-medium">{comment.authorName}</span>
+        <span className="font-semibold">{comment.authorName}</span>
         <span className="text-muted-foreground">·</span>
         <span className="text-muted-foreground">{formatRelative(comment.createdAt)}</span>
       </div>
-      <p className="text-sm leading-relaxed">{comment.bodyMd}</p>
+      <p className="text-sm leading-relaxed whitespace-pre-line">{comment.bodyMd}</p>
       <div className="mt-2 flex items-center gap-2">
-        <LikeButton initialCount={Math.floor(Math.random() * 6)} />
+        <LikeButton initialCount={Math.floor(((comment.id.charCodeAt(comment.id.length - 1) ?? 0) % 7))} />
         <button
           type="button"
           onClick={() => setReplyOpen(!replyOpen)}
           className="text-xs font-semibold text-brand hover:underline"
         >
-          Antworten
+          {replyOpen ? "Abbrechen" : `Antworten an ${comment.authorName.split(" ")[0]}`}
         </button>
       </div>
 
@@ -124,21 +137,22 @@ function CommentNode({
             onChange={(e) => setText(e.target.value)}
             className="input-base min-h-[60px] resize-y"
             placeholder={`Antwort an ${comment.authorName}…`}
+            autoFocus
           />
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-2 flex items-center justify-between gap-2">
             <SmileyPicker onPick={pickEmoji} />
             <button type="submit" disabled={!text.trim()} className="btn-brand inline-flex items-center gap-1 text-xs">
               <Send className="h-3 w-3" /> Antwort senden
             </button>
           </div>
-          {sentMsg && <div className="mt-2 text-xs text-destructive">{sentMsg}</div>}
+          {errorMsg && <div className="mt-2 text-xs text-destructive">{errorMsg}</div>}
         </form>
       )}
 
       {(comment.children ?? []).length > 0 && (
         <div className="mt-3 space-y-3">
           {(comment.children ?? []).map((c) => (
-            <CommentNode key={c.id} comment={c} depth={depth + 1} onReply={(text) => onReply(text)} />
+            <CommentNode key={c.id} comment={c} depth={depth + 1} addReply={addReply} />
           ))}
         </div>
       )}

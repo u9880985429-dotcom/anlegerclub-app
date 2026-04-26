@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ExternalLink, Mail, Bell, Smartphone, Shield, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { TutorialSettings } from "@/components/TutorialSettings";
 import { requireSession } from "@/lib/access";
 import { findSubscriptionsForUser } from "@traderiq/api";
 import { PRODUCT_LABELS, PRODUCT_LINKS } from "@/lib/copy/login-status";
@@ -88,18 +89,7 @@ export default async function SettingsPage() {
 
       {/* Onboarding repeat */}
       <Section title="Tutorial erneut ansehen">
-        <div className="grid gap-2 sm:grid-cols-2">
-          {(["starter", "trend", "stillhalter", "cockpit"] as const).map((s) => (
-            <Link
-              key={s}
-              href={`/onboarding/${s}` as never}
-              className="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3 text-sm transition hover:border-brand/40"
-            >
-              <span>{PRODUCT_LABELS[s]} – Tutorial</span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </Link>
-          ))}
-        </div>
+        <TutorialSettings userId={`${session.user.firstName}${session.user.lastName}`} />
       </Section>
 
       <Section title="Rechtliches">
