@@ -1,27 +1,25 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Bell, Users, Sparkles } from "lucide-react";
+import { ArrowRight, ShieldCheck, Bell, Users, Sparkles, PlayCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 export default function MarketingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Background glow */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[1000px] -translate-x-1/2 rounded-full bg-brand/10 blur-3xl" />
+      {/* Subtle background tint, traderiq.net inspired */}
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[1200px] -translate-x-1/2 rounded-full bg-brand/5 blur-3xl" />
 
-      <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Logo variant="dark" size="md" href={null} />
+      <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
+        <Logo variant="light" size="md" href={null} />
         <Link href="/login" className="btn-secondary">
           Anmelden
         </Link>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-12 lg:pt-20">
+      <main className="relative z-10 mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:pt-16">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="badge-brand mb-5 inline-block">Mitgliederbereich · Phase 1 · Demo</span>
+          <span className="badge-brand mb-5 inline-block">Mitgliederbereich · Trader IQ Anlegerclub</span>
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
-            Dein <span className="text-brand">Trader IQ</span> Anlegerclub.
-            <br />
-            Komplett digital.
+            Wir bilden <span className="text-brand">Investoren</span> aus.
           </h1>
           <p className="mt-6 text-lg text-muted-foreground md:text-xl">
             Trades, Marktanalysen, Videos und Community – an einem Ort. Push-Benachrichtigungen, sobald die Redaktion handelt.
@@ -31,19 +29,15 @@ export default function MarketingPage() {
               Mitgliederbereich öffnen
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <a
-              href="https://traderiq.net/"
-              target="_blank"
-              rel="noreferrer"
-              className="btn-secondary px-6 py-3 text-base"
-            >
+            <Link href="/info" className="btn-secondary inline-flex items-center gap-2 px-6 py-3 text-base">
+              <PlayCircle className="h-4 w-4 text-brand" />
               Mehr erfahren
-            </a>
+            </Link>
           </div>
         </div>
 
         {/* Feature grid */}
-        <section className="mt-24 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-20 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <Feature
             icon={Sparkles}
             title="Trade-Signale live"
@@ -56,8 +50,8 @@ export default function MarketingPage() {
           />
           <Feature
             icon={Users}
-            title="Community pro Depot"
-            body="Diskutiere mit anderen Mitgliedern, frage Mods, lerne aus den Trades anderer."
+            title="Community pro Trade"
+            body="Diskutiere zu jedem Signal mit anderen Mitgliedern und der Redaktion."
           />
           <Feature
             icon={ShieldCheck}
@@ -67,26 +61,25 @@ export default function MarketingPage() {
         </section>
 
         {/* Demo logins hint */}
-        <div className="mx-auto mt-20 max-w-2xl rounded-xl border border-dashed border-brand/40 bg-brand/5 p-6 text-sm">
+        <div className="mx-auto mt-16 max-w-2xl rounded-xl border border-dashed border-brand/40 bg-brand/5 p-6 text-sm">
           <div className="mb-3 flex items-center gap-2 font-semibold text-brand">
             <Sparkles className="h-4 w-4" />
-            Phase 1 Demo-Logins
+            Demo-Zugänge
           </div>
           <p className="text-muted-foreground">
-            Diese Musterapp läuft mit Mock-Daten. Klicke auf{" "}
+            Diese Vorschau läuft mit Mock-Daten. Klicke auf{" "}
             <Link href="/login" className="font-medium text-brand underline">
               Anmelden
             </Link>{" "}
-            – dort findest du die 4 Demo-Accounts (active / paused / expired / staff).
+            – dort findest du 4 Demo-Accounts (active / paused / expired / staff).
           </p>
         </div>
       </main>
 
       <footer className="relative z-10 border-t border-border py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Trader IQ Anlegerclub · Demo-Build · {" "}
-        <a href="mailto:info@traderiq.net" className="underline hover:text-foreground">
-          info@traderiq.net
-        </a>
+        © {new Date().getFullYear()} Trader IQ Anlegerclub ·{" "}
+        <Link href="/info" className="underline hover:text-foreground">Über uns</Link> ·{" "}
+        <a href="mailto:info@traderiq.net" className="underline hover:text-foreground">info@traderiq.net</a>
       </footer>
     </div>
   );

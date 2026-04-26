@@ -10,6 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session) redirect("/login");
 
   // Status gate (spec §5): paused/expired/refunded → /locked.
+  // ACTIVE, CANCELLED, PAID (Mitarbeiter) → app.
   const status = session.user.status;
   if (status === "PAUSED" || status === "EXPIRED" || status === "REFUNDED") {
     redirect("/locked");

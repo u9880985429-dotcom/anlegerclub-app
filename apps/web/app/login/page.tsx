@@ -39,7 +39,7 @@ function LoginInner() {
 
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-10">
         <div className="mb-8">
-          <Logo variant="dark" size="lg" href="/" />
+          <Logo variant="light" size="lg" href="/" />
         </div>
 
         <div className="card-base w-full max-w-md p-6 shadow-lg shadow-brand/5">

@@ -3,7 +3,30 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light theme = default (matches traderiq.net) */
   :root {
+    --background: 0 0% 100%;
+    --foreground: 222 18% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 18% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 18% 11%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 40%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 222 18% 11%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 22 100% 56%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --radius: 0.625rem;
+
+    --header-height: 4rem;
+  }
+
+  /* Dark mode (kept for users who explicitly toggle) */
+  .dark {
     --background: 220 13% 5%;
     --foreground: 0 0% 98%;
     --card: 220 13% 8%;
@@ -19,31 +42,12 @@
     --ring: 22 100% 56%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --radius: 0.625rem;
-  }
-
-  .light {
-    --background: 0 0% 100%;
-    --foreground: 220 13% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 13% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 8%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 45%;
-    --accent: 220 14% 96%;
-    --accent-foreground: 220 13% 8%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 22 100% 56%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
   }
 
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
@@ -77,4 +81,12 @@
   .badge-loss {
     @apply inline-flex items-center rounded-md bg-loss/15 px-2 py-0.5 text-xs font-semibold text-loss;
   }
+  /* Touch targets ≥44px on mobile */
+  @media (pointer: coarse) {
+    .btn-brand, .btn-secondary, .btn-ghost { @apply min-h-[44px]; }
+  }
 }
+
+/* Hide scrollbars on mobile bottom nav */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

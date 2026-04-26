@@ -1,15 +1,17 @@
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Tabs";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
+import { EarningsBrowser } from "@/components/EarningsBrowser";
+import { EditModeBar } from "@/components/EditModeBar";
 import { requireProductAccess } from "@/lib/access";
-import { lexikon, marketUpdates } from "@traderiq/api";
+import { lexikon, marketUpdates, upcomingEarnings } from "@traderiq/api";
 import { formatGermanDate } from "@/lib/format";
 import { Calendar, FileText, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function CockpitPage() {
-  await requireProductAccess("cockpit");
+  const session = await requireProductAccess("cockpit");
   const tag = marketUpdates.filter((u) => u.kind === "tag");
   const woche = marketUpdates.filter((u) => u.kind === "woche");
   const monat = marketUpdates.filter((u) => u.kind === "monat");
@@ -19,16 +21,19 @@ export default async function CockpitPage() {
       <PageHeader
         eyebrow="Trader Cockpit"
         title="Trader Cockpit"
-        description="Marktradar – Perspektiven, Tagesblicke, Wochenblicke und Monatsanalysen kompakt."
+        description="Marktradar – Perspektiven, Tagesblicke, Wochenblicke, Monatsanalysen, Earnings-Kalender und Lexikon."
       />
 
+      <EditModeBar role={session.user.role} scope="Trader Cockpit" />
+
       <Tabs defaultValue="welcome">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="perspektiven">Perspektiven</TabsTrigger>
           <TabsTrigger value="tag">Tagesblick</TabsTrigger>
           <TabsTrigger value="woche">Wochenblick</TabsTrigger>
           <TabsTrigger value="monat">Monatsblick</TabsTrigger>
+          <TabsTrigger value="earnings">Anstehende Earnings</TabsTrigger>
           <TabsTrigger value="calendar">Calendar</TabsTrigger>
           <TabsTrigger value="lexikon">Lexikon</TabsTrigger>
           <TabsTrigger value="archiv">Archiv</TabsTrigger>
@@ -42,10 +47,9 @@ export default async function CockpitPage() {
             <div className="card-base p-5">
               <h3 className="mb-2 font-semibold">Willkommen im Cockpit</h3>
               <p className="text-sm text-muted-foreground">
-                9:34 Min Tour durch alle Module – Marktupdates, Lexikon, Economic Calendar, Perspektiven des Chefredakteurs.
+                9:34 Min Tour durch alle Module – Marktupdates, Lexikon, Economic Calendar, Earnings-Browser und Perspektiven des Chefredakteurs.
               </p>
             </div>
-            {/* Gamma-AI Slot (Phase 3 Platzhalter) */}
             <article className="card-base relative overflow-hidden p-5 lg:col-span-3">
               <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand">
                 <Sparkles className="h-3 w-3" /> Phase 3
@@ -76,14 +80,22 @@ export default async function CockpitPage() {
           </article>
         </TabsContent>
 
-        <TabsContent value="tag">
-          <UpdateGrid items={tag} />
-        </TabsContent>
-        <TabsContent value="woche">
-          <UpdateGrid items={woche} />
-        </TabsContent>
-        <TabsContent value="monat">
-          <UpdateGrid items={monat} />
+        <TabsContent value="tag"><UpdateGrid items={tag} /></TabsContent>
+        <TabsContent value="woche"><UpdateGrid items={woche} /></TabsContent>
+        <TabsContent value="monat"><UpdateGrid items={monat} /></TabsContent>
+
+        {/* Anstehende Earnings — neu */}
+        <TabsContent value="earnings">
+          <div className="card-base mb-4 p-4">
+            <h3 className="font-semibold">Anstehende US-Earnings</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Suche nach Aktien-Symbol oder Firmenname. Du siehst den Kursverlauf seit den letzten Earnings sowie die implizite Volatilität (IV) – wichtig für Optionshändler.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Phase 1: Platzhalter-Daten · Phase 2: Live-Anbindung an Earnings-API.
+            </p>
+          </div>
+          <EarningsBrowser entries={upcomingEarnings} />
         </TabsContent>
 
         <TabsContent value="calendar">
@@ -92,17 +104,19 @@ export default async function CockpitPage() {
               <Calendar className="h-5 w-5 text-brand" />
               <h3 className="font-semibold">Economic Calendar — KW 17</h3>
             </div>
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <tr><th className="py-2">Datum</th><th>Uhrzeit</th><th>Land</th><th>Event</th><th>Wichtigkeit</th></tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                <tr><td className="py-2 font-mono">28.04.</td><td>14:30</td><td>🇺🇸</td><td>BIP Q1 (Vorab)</td><td>🔴🔴🔴</td></tr>
-                <tr><td className="py-2 font-mono">29.04.</td><td>11:00</td><td>🇪🇺</td><td>Verbrauchervertrauen</td><td>🔴🔴</td></tr>
-                <tr><td className="py-2 font-mono">30.04.</td><td>20:00</td><td>🇺🇸</td><td>Fed-Zinsentscheid</td><td>🔴🔴🔴</td></tr>
-                <tr><td className="py-2 font-mono">02.05.</td><td>14:30</td><td>🇺🇸</td><td>Arbeitsmarktdaten (NFP)</td><td>🔴🔴🔴</td></tr>
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
+                  <tr><th className="py-2 pr-4">Datum</th><th className="pr-4">Uhrzeit</th><th className="pr-4">Land</th><th className="pr-4">Event</th><th>Wichtigkeit</th></tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  <tr><td className="py-2 pr-4 font-mono">28.04.</td><td className="pr-4">14:30</td><td className="pr-4">🇺🇸</td><td className="pr-4">BIP Q1 (Vorab)</td><td>🔴🔴🔴</td></tr>
+                  <tr><td className="py-2 pr-4 font-mono">29.04.</td><td className="pr-4">11:00</td><td className="pr-4">🇪🇺</td><td className="pr-4">Verbrauchervertrauen</td><td>🔴🔴</td></tr>
+                  <tr><td className="py-2 pr-4 font-mono">30.04.</td><td className="pr-4">20:00</td><td className="pr-4">🇺🇸</td><td className="pr-4">Fed-Zinsentscheid</td><td>🔴🔴🔴</td></tr>
+                  <tr><td className="py-2 pr-4 font-mono">02.05.</td><td className="pr-4">14:30</td><td className="pr-4">🇺🇸</td><td className="pr-4">Arbeitsmarktdaten (NFP)</td><td>🔴🔴🔴</td></tr>
+                </tbody>
+              </table>
+            </div>
             <p className="mt-4 text-xs text-muted-foreground">Phase 2: Live-Konsens, Vorperiode, Push-Reminder.</p>
           </div>
         </TabsContent>

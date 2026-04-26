@@ -73,7 +73,7 @@ export default async function CommunityPage({ params }: { params: { slug: string
                   </span>
                 )}
                 {!p.visible && (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-300">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">
                     <EyeOff className="h-3 w-3" /> versteckt
                   </span>
                 )}
@@ -101,7 +101,7 @@ export default async function CommunityPage({ params }: { params: { slug: string
                 {p.commentCount} Antworten
               </Link>
               {isStaff && (
-                <button className="text-amber-400 hover:underline" title="Sichtbarkeit umschalten (Demo)">
+                <button className="text-amber-700 hover:underline" title="Sichtbarkeit umschalten (Demo)">
                   {p.visible ? "Verstecken" : "Einblenden"}
                 </button>
               )}

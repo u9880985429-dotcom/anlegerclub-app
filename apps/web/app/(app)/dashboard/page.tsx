@@ -13,6 +13,7 @@ import {
   marketUpdates,
 } from "@traderiq/api";
 import { formatRelative } from "@/lib/format";
+import { isWithinLastHandelstage } from "@/lib/handelstage";
 import { ArrowRight, Bell, MessageSquare, Newspaper, TrendingUp } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -21,18 +22,22 @@ export default async function DashboardPage() {
   const session = (await getServerSession(authOptions))!;
   const user = session.user;
 
-  const recentTrades = [...allTrades]
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 4);
+  const tradesSorted = [...allTrades].sort((a, b) => (a.date < b.date ? 1 : -1));
+  const recentTrades = tradesSorted.slice(0, 4);
 
-  const newSignals = recentTrades.filter(
-    (t) => Date.parse(t.date) > Date.now() - 14 * 24 * 60 * 60 * 1000,
-  ).length;
+  // Spec-Refit: "ungelesene aus letzten 7 Handelstagen"
+  const newSignals = tradesSorted.filter((t) => isWithinLastHandelstage(t.date, 7)).length;
+  const newUpdates = marketUpdates.filter((u) => isWithinLastHandelstage(u.publishedAt, 7)).length;
 
   const hauptdepotSlug = user.productSlug === "all-access" ? "trend" : user.productSlug;
   const hauptdepotLabel = PRODUCT_LABELS[hauptdepotSlug];
 
-  const notifications = getNotificationsForUser(user.id).slice(0, 4);
+  const notifications = getNotificationsForUser(user.id);
+  const unreadCount = notifications.filter((n) => !n.readAt).length;
+
+  const postsToday = allPosts.filter(
+    (p) => Date.parse(p.createdAt) > Date.now() - 24 * 60 * 60 * 1000,
+  ).length;
 
   const communityHighlights = (() => {
     const slug = user.productSlug === "all-access" ? "trend" : user.productSlug;
@@ -55,20 +60,50 @@ export default async function DashboardPage() {
         })}
       />
 
-      {/* Quick stats */}
-      <section className="grid gap-4 md:grid-cols-4">
-        <StatCard label="Neue Signale" value={String(Math.max(newSignals, 1))} icon={TrendingUp} accent />
-        <StatCard label="Ungelesen" value={String(notifications.filter((n) => !n.readAt).length)} icon={Bell} />
-        <StatCard label="Posts heute" value="12" icon={MessageSquare} />
-        <StatCard label="Marktupdates" value={String(marketUpdates.length)} icon={Newspaper} />
+      {/* Stats — alle anklickbar */}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatLink
+          label="Neue Signale (7 Handelstage)"
+          value={String(newSignals)}
+          icon={TrendingUp}
+          href={`/depot/${hauptdepotSlug}?tab=signale`}
+          accent
+        />
+        <StatLink
+          label="Ungelesene Mitteilungen"
+          value={String(unreadCount)}
+          icon={Bell}
+          href="/notifications?filter=unread"
+        />
+        <StatLink
+          label="Posts heute"
+          value={String(postsToday)}
+          icon={MessageSquare}
+          href={`/community/${hauptdepotSlug}?filter=today`}
+        />
+        <StatLink
+          label="Marktupdates (7 Handelstage)"
+          value={String(newUpdates)}
+          icon={Newspaper}
+          href="/depot/cockpit?tab=tag"
+        />
       </section>
 
-      {/* Latest trades */}
+      {/* Latest trades — jeder Trade anklickbar */}
       <section className="mt-8">
         <SectionTitle title="Neueste Trade-Signale" href={`/depot/${hauptdepotSlug}`} />
         <div className="space-y-4">
           {recentTrades.map((t) => (
-            <TradeRow key={t.id} trade={t} />
+            <Link
+              key={t.id}
+              href={`/depot/${t.productSlug}/trade/${t.id}` as never}
+              className="block transition hover:opacity-90"
+            >
+              <TradeRow trade={t} />
+              <div className="mt-1 px-1 text-right text-xs font-semibold text-brand hover:underline">
+                Zum Signal →
+              </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -81,13 +116,13 @@ export default async function DashboardPage() {
             {notifications.length === 0 && (
               <div className="p-5 text-sm text-muted-foreground">Keine neuen Benachrichtigungen.</div>
             )}
-            {notifications.map((n) => (
+            {notifications.slice(0, 4).map((n) => (
               <Link
                 key={n.id}
                 href={(n.deeplink ?? "/notifications") as never}
                 className="flex items-start gap-3 p-4 transition hover:bg-accent"
               >
-                <div className={`mt-0.5 h-2 w-2 flex-shrink-0 rounded-full ${n.readAt ? "bg-muted-foreground/50" : "bg-brand"}`} />
+                <div className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${n.readAt ? "bg-muted-foreground/40" : "bg-brand"}`} />
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold">{n.title}</div>
                   <div className="line-clamp-1 text-xs text-muted-foreground">{n.body}</div>
@@ -127,38 +162,52 @@ export default async function DashboardPage() {
       {/* Latest market update */}
       <section className="mt-8">
         <SectionTitle title="Aktueller Marktblick" href="/depot/cockpit" />
-        <article className="card-base p-5">
+        <Link
+          href="/depot/cockpit?tab=tag"
+          className="card-base group block p-5 transition hover:border-brand/40"
+        >
           <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
             <span className="badge-brand">{latestUpdate.kind === "tag" ? "Tagesblick" : latestUpdate.kind === "woche" ? "Wochenblick" : "Monatsblick"}</span>
             <span>{formatRelative(latestUpdate.publishedAt)}</span>
           </div>
           <h3 className="text-lg font-semibold">{latestUpdate.title}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{latestUpdate.bodyMd}</p>
-        </article>
+          <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand group-hover:underline">
+            Zum Cockpit <ArrowRight className="h-3 w-3" />
+          </div>
+        </Link>
       </section>
     </>
   );
 }
 
-function StatCard({
+function StatLink({
   label,
   value,
   icon: Icon,
+  href,
   accent,
 }: {
   label: string;
   value: string;
   icon: React.ComponentType<{ className?: string }>;
+  href: string;
   accent?: boolean;
 }) {
   return (
-    <div className="card-base p-5">
+    <Link
+      href={href as never}
+      className="card-base group block p-5 transition hover:border-brand/40"
+    >
       <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md ${accent ? "bg-brand/15 text-brand" : "bg-muted text-muted-foreground"}`}>
         <Icon className="h-4 w-4" />
       </div>
       <div className="text-2xl font-bold">{value}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
-    </div>
+      <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand opacity-0 transition group-hover:opacity-100">
+        Öffnen <ArrowRight className="h-3 w-3" />
+      </div>
+    </Link>
   );
 }
 

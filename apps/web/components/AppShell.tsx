@@ -73,7 +73,7 @@ export function AppShell({ children, user }: AppShellProps) {
       {/* Sidebar (desktop) */}
       <aside className="hidden w-64 flex-shrink-0 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-16 items-center border-b border-border px-5">
-          <Logo variant="dark" size="sm" />
+          <Logo variant="light" size="sm" />
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3 text-sm">
           <NavLink href="/dashboard" icon={LayoutDashboard} active={isActive("/dashboard")}>
@@ -145,7 +145,7 @@ export function AppShell({ children, user }: AppShellProps) {
 
       {/* Mobile top bar */}
       <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 lg:hidden">
-        <Logo variant="dark" size="sm" />
+        <Logo variant="light" size="sm" />
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="rounded-md p-2 text-muted-foreground hover:bg-accent"
@@ -160,8 +160,11 @@ export function AppShell({ children, user }: AppShellProps) {
         <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8">{children}</div>
       </main>
 
-      {/* Mobile bottom nav */}
-      <nav className="sticky bottom-0 z-20 grid grid-cols-5 border-t border-border bg-card lg:hidden">
+      {/* Mobile bottom nav (with safe-area-inset for notch devices) */}
+      <nav
+        className="sticky bottom-0 z-20 grid grid-cols-5 border-t border-border bg-card lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         <MobileNavLink href="/dashboard" icon={LayoutDashboard} label="Home" active={isActive("/dashboard")} />
         <MobileNavLink
           href={hasAllAccess ? "/depot/starter" : `/depot/${user.productSlug}`}

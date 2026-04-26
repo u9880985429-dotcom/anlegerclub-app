@@ -5,18 +5,9 @@ import { Shield } from "lucide-react";
 
 const ADMIN_NAV = [
   { href: "/admin", label: "Übersicht" },
-  { href: "/admin/users", label: "Users" },
-  { href: "/admin/subscriptions", label: "Subscriptions" },
-  { href: "/admin/trades", label: "Trade-Signale" },
-  { href: "/admin/reports", label: "Auswertungen" },
-  { href: "/admin/focus", label: "Aktie im Fokus" },
-  { href: "/admin/marketupdates", label: "Marktupdates" },
-  { href: "/admin/lexikon", label: "Lexikon" },
-  { href: "/admin/videos", label: "Videos" },
-  { href: "/admin/community", label: "Community-Mod" },
-  { href: "/admin/onboarding", label: "Onboarding-Editor" },
-  { href: "/admin/pitch", label: "Pitch-Editor" },
-  { href: "/admin/notifications", label: "Notification-Templates" },
+  { href: "/admin/users", label: "Mitglieder" },
+  { href: "/admin/subscriptions", label: "Subscriptions & Einladungen" },
+  { href: "/admin/community", label: "Community-Moderation" },
   { href: "/admin/audit", label: "Audit-Log" },
 ];
 
@@ -44,6 +35,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
           ))}
         </nav>
+        <div className="mt-3 rounded-md border border-dashed border-border p-2 text-[10px] leading-snug text-muted-foreground">
+          💡 Trade-Signale, Auswertungen, Aktie im Fokus, Marktupdates, Lexikon und Videos werden im jeweiligen Depot via <strong>Bearbeitungsmodus</strong> gepflegt.
+        </div>
       </aside>
       <div className="min-w-0">{children}</div>
     </div>

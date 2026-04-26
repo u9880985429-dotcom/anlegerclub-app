@@ -16,6 +16,13 @@ export const demoUsers: User[] = [
     notifyEmail: true,
     loginCount: 42,
     onboardedFor: ["starter", "trend", "stillhalter", "cockpit"],
+    phone: "+49 151 23456789",
+    street: "Hauptstraße 12",
+    zip: "10115",
+    city: "Berlin",
+    country: "Deutschland",
+    ablefyId: "AF-USR-0001",
+    notes: "Geschäftsführer.",
   },
   {
     id: "u_lisa",
@@ -57,10 +64,11 @@ export const demoSubscriptions: Subscription[] = [
     id: "s_max",
     userId: "u_max",
     productSlug: "all-access",
-    status: "ACTIVE",
-    ablefyOrderId: "AF-2026-0001",
+    // Mitarbeiter / Geschäftsführung → "Bezahlt" Status für interne Vollzugriffe (Spec §13)
+    status: "PAID",
+    ablefyOrderId: "AF-INTERNAL-MAX",
     startedAt: "2025-08-01T00:00:00Z",
-    currentPeriodEnd: "2026-08-01T00:00:00Z",
+    currentPeriodEnd: null,
     pausedReason: null,
   },
   {
@@ -87,8 +95,8 @@ export const demoSubscriptions: Subscription[] = [
     id: "s_admin",
     userId: "u_admin",
     productSlug: "all-access",
-    status: "ACTIVE",
-    ablefyOrderId: "AF-INTERNAL",
+    status: "PAID",
+    ablefyOrderId: "AF-INTERNAL-ADMIN",
     startedAt: "2024-01-01T00:00:00Z",
     currentPeriodEnd: null,
     pausedReason: null,
@@ -223,6 +231,6 @@ export function userHasAccessTo(userId: string, productSlug: string): boolean {
   return subs.some(
     (s) =>
       (s.productSlug === productSlug || s.productSlug === "all-access") &&
-      (s.status === "ACTIVE" || s.status === "CANCELLED"),
+      (s.status === "ACTIVE" || s.status === "CANCELLED" || s.status === "PAID"),
   );
 }

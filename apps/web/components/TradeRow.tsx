@@ -26,7 +26,7 @@ export function TradeRow({ trade }: TradeRowProps) {
         </div>
       </div>
       <h3 className="mt-3 text-base font-semibold leading-snug">{trade.title}</h3>
-      <div className="prose prose-invert mt-2 max-w-none text-sm text-muted-foreground prose-strong:text-foreground prose-strong:font-semibold">
+      <div className="mt-2 max-w-none text-sm leading-relaxed text-muted-foreground [&_strong]:font-semibold [&_strong]:text-foreground">
         {trade.bodyMd.split("\n\n").map((para, i) => (
           <p key={i} dangerouslySetInnerHTML={{ __html: renderMd(para) }} />
         ))}

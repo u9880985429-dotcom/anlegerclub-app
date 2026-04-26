@@ -15,7 +15,7 @@ const SIZE_PX: Record<NonNullable<LogoProps["size"]>, { w: number; h: number }> 
   lg: { w: 220, h: 70 },
 };
 
-export function Logo({ variant = "dark", size = "md", href = "/dashboard", className }: LogoProps) {
+export function Logo({ variant = "light", size = "md", href = "/dashboard", className }: LogoProps) {
   const dims = SIZE_PX[size];
 
   let inner: React.ReactNode;

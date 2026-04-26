@@ -31,7 +31,7 @@ export default async function LockedPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-16 items-center justify-between border-b border-border px-6">
-        <Logo variant="dark" size="sm" href={null} />
+        <Logo variant="light" size="sm" href={null} />
         <LogoutButton />
       </header>
 
@@ -90,7 +90,7 @@ export default async function LockedPage() {
             </div>
           )}
 
-          <div className="mt-8 flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-amber-200">
+          <div className="mt-8 flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-amber-800">
             <AlertTriangle className="h-4 w-4 flex-shrink-0" />
             <span>
               Phase 2: Status-Sync via Ablefy-Webhooks. Aktuell zeigt die Demo den hardcoded Demo-Status für{" "}

@@ -15,6 +15,14 @@ export interface User {
   notifyEmail: boolean;
   loginCount: number;
   onboardedFor: ProductSlug[];
+  /** Felder die Ablefy in Phase 2 weiterleitet — Phase 1 als optionale Demo-Daten. */
+  phone?: string;
+  street?: string;
+  zip?: string;
+  city?: string;
+  country?: string;
+  ablefyId?: string;
+  notes?: string;
 }
 
 export interface Subscription {

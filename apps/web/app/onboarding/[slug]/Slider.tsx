@@ -33,7 +33,7 @@ export function OnboardingSlider({ slug, slides }: SliderProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-16 items-center justify-between border-b border-border px-6">
-        <Logo variant="dark" size="sm" href="/dashboard" />
+        <Logo variant="light" size="sm" href="/dashboard" />
         <button
           onClick={() => router.push("/dashboard")}
           className="text-xs text-muted-foreground hover:text-foreground"

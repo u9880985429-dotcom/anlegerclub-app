@@ -24,7 +24,10 @@
       "Bash(export PATH=\"$HOME/.local/node/bin:$PATH\")",
       "Bash(pnpm install *)",
       "Bash(pnpm typecheck *)",
-      "Bash(pnpm build *)"
+      "Bash(pnpm build *)",
+      "Bash(git commit -m ' *)",
+      "Bash(pnpm dev *)",
+      "WebFetch(domain:traderiq.net)"
     ]
   }
 }

@@ -19,6 +19,8 @@ export const SubStatus = {
   CANCELLED: "CANCELLED",
   EXPIRED: "EXPIRED",
   REFUNDED: "REFUNDED",
+  /** Mitarbeiter / interne Accounts — gilt als bezahlt + Vollzugriff. */
+  PAID: "PAID",
 } as const;
 export type SubStatus = (typeof SubStatus)[keyof typeof SubStatus];
 

@@ -15,7 +15,7 @@ export async function requireProductAccess(slug: ProductSlug) {
   const hasAccess = subs.some(
     (s) =>
       (s.productSlug === slug || s.productSlug === "all-access") &&
-      (s.status === "ACTIVE" || s.status === "CANCELLED"),
+      (s.status === "ACTIVE" || s.status === "CANCELLED" || s.status === "PAID"),
   );
   if (!hasAccess) {
     redirect("/dashboard");
