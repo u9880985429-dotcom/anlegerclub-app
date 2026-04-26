@@ -1,0 +1,191 @@
+// Trader IQ – Prisma schema (Phase 2 ready, NOT migrated in Phase 1).
+// Source of truth: spec §11. Edit spec first, mirror here.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MEMBER
+  MODERATOR
+  ADMIN
+  OWNER
+  STAFF
+}
+
+enum SubStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+}
+
+enum ActionType {
+  NEUER_KAUF
+  NEUER_VERKAUF
+  ANPASSUNG_STOP
+  TAKE_PROFIT
+  NEUER_TRADE
+  GEFUELLT
+  TEUER_TRADE
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  phone         String?        @unique
+  firstName     String?
+  lastName      String?
+  passwordHash  String?
+  role          Role           @default(MEMBER)
+  ablefyId      String?        @unique
+  phoneVerified Boolean        @default(false)
+  notifyPush    Boolean        @default(true)
+  notifyEmail   Boolean        @default(true)
+  loginCount    Int            @default(0)
+  onboardedFor  String[]       @default([])
+  createdAt     DateTime       @default(now())
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id                String    @id @default(uuid())
+  userId            String
+  productSlug       String
+  status            SubStatus
+  ablefyOrderId     String?
+  startedAt         DateTime
+  currentPeriodEnd  DateTime?
+  pausedReason      String?
+  user              User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, productSlug])
+}
+
+model TradeSignal {
+  id           String     @id @default(uuid())
+  productSlug  String
+  date         DateTime
+  action       ActionType
+  tickers      String[]
+  title        String
+  bodyMd       String
+  attachments  Json?
+  publishedAt  DateTime?
+  createdById  String
+}
+
+model MonthlyReport {
+  id            String    @id @default(uuid())
+  productSlug   String
+  monthLabel    String
+  videoAssetId  String?
+  pdfUrl        String?
+  bodyMd        String
+  publishedAt   DateTime?
+}
+
+model Lesson {
+  id           String   @id @default(uuid())
+  productSlug  String
+  section      String
+  title        String
+  bodyMd       String
+  videoAssetId String?
+  order        Int
+  visible      Boolean  @default(true)
+}
+
+model OnboardingSlide {
+  id          String  @id @default(uuid())
+  productSlug String
+  order       Int
+  title       String
+  bodyMd      String
+  imageUrl    String?
+}
+
+model PitchModule {
+  id                  String  @id @default(uuid())
+  audienceProductSlug String
+  headline            String
+  bodyMd              String
+  ctaLabel            String
+  ctaUrl              String
+  active              Boolean @default(true)
+}
+
+model Community {
+  id          String @id @default(uuid())
+  productSlug String @unique
+  name        String
+  archiveUrl  String
+}
+
+model Post {
+  id           String   @id @default(uuid())
+  communityId  String
+  authorId     String
+  title        String?
+  bodyMd       String
+  pinned       Boolean  @default(false)
+  visible      Boolean  @default(true)
+  hiddenById   String?
+  attachments  Json?
+  createdAt    DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  bodyMd    String
+  parentId  String?
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Reaction {
+  id        String  @id @default(uuid())
+  postId    String?
+  commentId String?
+  userId    String
+  type      String
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  reporterId  String
+  postId      String?
+  commentId   String?
+  reason      String
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  action    String
+  entity    String
+  entityId  String
+  meta      Json?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  deeplink  String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+}

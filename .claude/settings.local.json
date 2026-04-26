@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version)",
+      "Bash(npm --version)",
+      "Bash(git --version)",
+      "Bash(gh --version)",
+      "Bash(brew --version)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(xcode-select -p)",
+      "Bash(mkdir -p ~/.local)",
+      "Bash(curl -fsSL -o node.tar.gz https://nodejs.org/dist/v20.18.1/node-v20.18.1-darwin-arm64.tar.gz)",
+      "Bash(tar -xzf node.tar.gz)",
+      "Bash(mv node-v20.18.1-darwin-arm64 node)",
+      "Bash(rm node.tar.gz)",
+      "Bash(cp \"/Users/maxbauer1992icloud.com/Downloads/Logo Trader IQ auf weiss.png\" /Users/maxbauer1992icloud.com/ClaudeCode/Anlegerclub/_logo-light.png)",
+      "Bash(cp \"/Users/maxbauer1992icloud.com/Downloads/Logo TIQ_auf schwarz_ohne Claim.png\" /Users/maxbauer1992icloud.com/ClaudeCode/Anlegerclub/_logo-dark.png)",
+      "Bash(cp \"/Users/maxbauer1992icloud.com/Downloads/Logo Trader IQ auf weiss.png\" /Users/maxbauer1992icloud.com/ClaudeCode/Anlegerclub/apps/web/public/logo-light.png)",
+      "Bash(cp \"/Users/maxbauer1992icloud.com/Downloads/Logo TIQ_auf schwarz_ohne Claim.png\" /Users/maxbauer1992icloud.com/ClaudeCode/Anlegerclub/apps/web/public/logo-dark.png)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(mkdir -p /Users/maxbauer1992icloud.com/ClaudeCode/Anlegerclub/apps/web/app/onboarding/\\\\[slug\\\\])",
+      "Bash(mv /Users/maxbauer1992icloud.com/ClaudeCode/Anlegerclub/apps/web/app/\\\\\\(app\\\\\\)/onboarding/\\\\[slug\\\\]/page.tsx /Users/maxbauer1992icloud.com/ClaudeCode/Anlegerclub/apps/web/app/onboarding/\\\\[slug\\\\]/page.tsx)",
+      "Bash(export PATH=\"$HOME/.local/node/bin:$PATH\")",
+      "Bash(pnpm install *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm build *)"
+    ]
+  }
+}
