@@ -1,6 +1,6 @@
 # Trader IQ Anlegerclub – Mitglieder-App
 
-> Phase 1 = Vercel-Demo mit Mock-Daten. Phase 2 = echte DB + Ablefy + SMS + Push.
+> **Iteration 2** · Vollständige Web-App + Mobile-Optimierung. Vercel-deploybar. Phase 2 = echte DB + Ablefy + SMS + Push.
 > Single source of truth: `traderiq-app-spec.md` (im Downloads-Ordner).
 
 ## 🚀 Schnellstart
@@ -16,101 +16,90 @@ pnpm dev
 > Falls `pnpm` oder `node` nicht im PATH ist, einmalig:
 > `export PATH="$HOME/.local/node/bin:$PATH"` (oder dauerhaft in `~/.zshrc`).
 
-## 🔑 Demo-Logins (Phase 1)
+## 🔑 Demo-Logins
 
 Passwort für **alle**: `traderiq2026`
 
 | E-Mail | Status | Produkt | Vorname | Was passiert |
 |---|---|---|---|---|
-| `max@traderiq.net` | active | all-access | Max | Vollzugriff, alle Depots, Admin-Backend (STAFF-Rolle) |
+| `max@traderiq.net` | **PAID** (Mitarbeiter) | all-access | Max | Vollzugriff, alle Depots, Admin-Backend (STAFF) |
 | `paused@traderiq.net` | paused | starter | Lisa | Login OK → Sperr-Screen mit Ablefy-CTA |
-| `expired@traderiq.net` | expired | trend | Tom | Login OK → Sperr-Screen mit allen 5 Produkt-Reaktivierungs-Links |
-| `staff@traderiq.net` | active | all-access + STAFF | Admin | Vollzugriff + Admin-Backend |
+| `expired@traderiq.net` | expired | trend | Tom | Login OK → Sperr-Screen mit allen 5 Reaktivierungs-Links |
+| `staff@traderiq.net` | **PAID** (Mitarbeiter) | all-access | Admin | Vollzugriff + Admin-Backend |
 
-## 🏗 Architektur
-
-```
-.
-├── apps/
-│   └── web/                  # Next.js 14 App Router (TS)
-│       ├── app/
-│       │   ├── (app)/        # Auth-gegated Routen mit AppShell
-│       │   │   ├── dashboard/
-│       │   │   ├── depot/[starter|trend|stillhalter|cockpit]/
-│       │   │   ├── community/[slug]/
-│       │   │   ├── notifications/
-│       │   │   ├── settings/
-│       │   │   └── admin/    # 12 Sub-Pages
-│       │   ├── api/
-│       │   │   ├── auth/[...nextauth]/   # NextAuth credentials
-│       │   │   └── notify/{email,push}-out/  # Webhook stubs
-│       │   ├── login/
-│       │   ├── locked/        # 3 personalisierte Sperr-Texte (Spec §5)
-│       │   ├── onboarding/[slug]/  # 4–5 Slides je Depot (Spec §7)
-│       │   └── page.tsx       # Marketing-Splash
-│       ├── components/        # AppShell, Tabs, TradeRow, PitchCard, Logo, …
-│       ├── lib/
-│       │   ├── auth.ts        # NextAuthOptions
-│       │   ├── access.ts      # requireSession, requireProductAccess
-│       │   ├── format.ts
-│       │   └── copy/          # ⭐ Zentrale Texte (Spec §5/§7/§9/§14)
-│       └── public/            # logo-dark.png, logo-light.png
-├── packages/
-│   ├── api/                   # Service-Layer + Mock-Repos (Spec §16)
-│   │   └── src/mock/{users,trades,reports,content,community,notifications,pitch}.ts
-│   ├── db/                    # Prisma-Schema (Phase 2 ready, NICHT migriert)
-│   │   └── prisma/schema.prisma
-│   └── ui/                    # Shared cn() helper
-├── BUDGET.md                  # Hartes 100-€-Limit für Phase 1
-├── turbo.json                 # Turborepo pipeline
-├── pnpm-workspace.yaml
-└── vercel.json                # Vercel deploy config
-```
-
-## 🎨 Branding (Spec §3)
-
-- **Primär:** `#ff741f` (Trader-IQ-Orange)
-- **Sekundär:** `#0b0d10` Dark-BG, `#10b981` Profit, `#ef4444` Loss
-- **Logo:** PNG-Assets in `apps/web/public/logo-{dark,light}.png`
-- **Default:** Dark Mode (Spec §3)
-
-## 🌐 Routen (Spec §13)
+## 🌐 Routen
 
 | Route | Beschreibung |
 |---|---|
-| `/` | Marketing-Splash + Login-CTA |
+| `/` | Marketing-Splash (hell, traderiq.net-Stil) |
+| `/info` | Landing-Page mit eingebettetem Vorstellungs-Video + CTAs |
 | `/login` | E-Mail + Passwort + 4 Demo-Helper-Buttons |
-| `/locked` | Sperr-Screen (paused/expired/refunded) |
-| `/onboarding/[slug]` | Tutorial-Slider |
-| `/dashboard` | Übersicht + News + Community-Highlights |
-| `/depot/starter` | Welcome / Strategie / Depot (mit Pitch-Card!) / DAX-MIL / Aktie im Fokus |
-| `/depot/trend` | START / Trade-Signale / Archiv / Depotauswertung |
-| `/depot/stillhalter` | analog zu Trend |
-| `/depot/cockpit` | Welcome / Perspektiven / Tag/Woche/Monat / Calendar / Lexikon / Archiv |
-| `/community/[slug]` | Feed mit Posts, Reactions, Sichtbarkeitstoggle |
+| `/locked` | Sperr-Screen (3 personalisierte Texte: paused/expired/refunded) |
+| `/onboarding/[slug]` | Tutorial-Slider (5 Slides je Depot) |
+| `/dashboard` | Übersicht – alle Stats anklickbar, Trade-Cards verlinken zur Detailseite |
+| `/depot/starter` | Welcome / Strategie & Performance / Trade Signale Aktiensparplan / DAX-Millionär / Depotauswertungen / Aktie im Fokus / Archiv |
+| `/depot/trend` | Welcome / Start / Trade-Signale / Depotauswertungen / Archiv |
+| `/depot/stillhalter` | analog Trend |
+| `/depot/cockpit` | Welcome / Perspektiven / Tag/Woche/Monat / **Earnings** / Calendar / Lexikon / Archiv |
+| `/depot/[slug]/trade/[id]` | Trade-Detail mit Erklärvideo + Diskussions-Community + Likes/Smileys |
+| `/community/[slug]` | Channel-Feed mit Posts |
 | `/community/[slug]/post/[id]` | Post-Detail + Kommentare |
 | `/notifications` | Inbox |
 | `/settings` | Profil, Benachrichtigungen, Sicherheit, Abos, Tutorial-Repeat |
-| `/admin` | Übersicht (nur STAFF/OWNER/ADMIN) |
-| `/admin/{users,subscriptions,trades,reports,focus,marketupdates,lexikon,videos,community,onboarding,pitch,notifications,audit}` | CRUD-Skelette |
+| `/admin` | Übersicht (Aktive Mitglieder + Mitglieder mit Zahlungsschwierigkeiten) |
+| `/admin/users` | Mitglieder-Liste, klickbar → Detailseite |
+| `/admin/users/[id]` | Vollständige Profilansicht + Aktionen-Menü (Sperren/Abmahnen/Bezahlt/Mail) |
+| `/admin/subscriptions` | Bestehende + Einladungen versenden (Mail oder Link kopieren) |
+| `/admin/community` | Mod-Queue mit Auto-Hide + Auto-Reply („Wird geprüft 48h") |
+| `/admin/audit` | Audit-Log |
 
-## 📝 Wo liegen die Texte?
+> **Trade-Signale, Depotauswertungen, Aktie im Fokus, Marktupdates, Lexikon, Videos, Onboarding-Slides und Pitch-Module** werden direkt im jeweiligen Depot über den **Bearbeitungsmodus**-Button gepflegt (sichtbar nur für STAFF/OWNER/ADMIN), nicht mehr im Admin-Backend.
 
-**Alle Texte** (Login-Status, Onboarding, Pitch, Mail-Templates) liegen zentral in **`apps/web/lib/copy/`** und können dort an EINER Stelle bearbeitet werden:
+## 🎨 Branding
 
-- `copy/login-status.ts` – Aktiv/Pausiert/Beendet (Spec §5)
-- `copy/onboarding.ts` – Tutorial-Slides je Depot (Spec §7)
-- `copy/notifications.ts` – Mail- & Push-Templates (Spec §9)
+- **Theme:** Hell (weiß, traderiq.net-Stil) – default
+- **Primär:** `#ff741f` (Trader-IQ-Orange)
+- **Profit/Loss:** `#10b981` / `#ef4444`
+- **Logo:** PNG-Assets in `apps/web/public/logo-{light,dark}.png`
+- **Mobile:** Touch-Targets ≥ 44px, Safe-Area-Inset für iPhone-Notch, horizontale Tab-Scroll
 
-Pitch-Inhalt liegt in `packages/api/src/mock/pitch.ts` (Spec §14).
+## 💪 Mobile/Web-App
+
+Die Web-App funktioniert vollwertig im **mobilen Browser** (iOS Safari, Android Chrome).
+- Bottom-Nav für Mobile mit 5 Hauptbereichen
+- Top-Sidebar für Desktop ab `lg:` (1024px)
+- Alle Tabs horizontal scrollbar bei zu vielen Tabs
+- Phase 3: native React-Native/Expo-App mit identischem Backend
+
+## 🔒 Wortfilter & Werbeerkennung (Spec §10)
+
+Implementiert in `packages/api/src/mock/wordfilter.ts`:
+- **Beleidigungen (DACH + EN):** werden mit Sternen maskiert (z. B. „Arschloch" → „A*******h"), Beitrag wird gepostet, Mod wird intern informiert.
+- **Werbung/externe Links:** Promo-Patterns (URLs, „klick hier", Konkurrenz-Brands) blockieren das Absenden vollständig vor dem Posten.
+- **Erlaubte Smileys:** exakt die in der Spec definierte Liste (im Composer per Smiley-Picker).
+
+## 📊 Performance-Daten
+
+Die Performance-Charts nutzen die echten Daten aus deinen Screenshots:
+- **Starter Depot:** +43,48 % YTD 2025 (Stand 31.12.2025)
+- **Trend Depot:** +14,3 % YTD 2026 vs. S&P 500 −7,33 % = 21,63 % Outperformance (neue Strategie)
+- **Stillhalter Depot:** +172,88 % YTD 2025 vs. S&P 500 +13,54 % = 12,77-fache Outperformance
+
+Performance-Reporting verweist im UI auf das **Visual Trading Journal** mit Trader-IQ-Studenten-Vorteilslink (`https://visualtradingjournal.com/traderiq`) und bindet das SharePoint-Excel als Live-iframe ein.
+
+## ⚙️ Brokerempfehlung
+
+Überall wird **WH-Selfinvest** empfohlen:
+- Affiliate-Link mit `?whref=tiq` für Konditionen-Tracking
+- Iris-Heinen-Calendly als persönliche Ansprechpartnerin für Trader-IQ-Studenten
 
 ## 🔌 Phase-2-Vorbereitungen (heute schon angelegt)
 
-- `packages/db/prisma/schema.prisma` — vollständiges Modell aus Spec §11.
-- `packages/api/src/types.ts` — Zod-Schemas an API-Boundaries.
-- `app/api/notify/email-out/route.ts` — Webhook-Stub, fungiert als Pass-Through wenn `NOTIFY_EMAIL_WEBHOOK_URL` gesetzt.
-- `app/api/notify/push-out/route.ts` — analog für Push.
-- Status-Logik in `lib/access.ts` so gekapselt, dass Phase-2-Webhooks nur die DB-Status-Felder schreiben müssen — die UI ändert sich nicht.
+- `packages/db/prisma/schema.prisma` — vollständiges Modell
+- `packages/api/src/types.ts` — Zod-Schemas an API-Boundaries
+- `app/api/notify/email-out/route.ts` — Webhook-Stub (forwarder bei `NOTIFY_EMAIL_WEBHOOK_URL`)
+- `app/api/notify/push-out/route.ts` — analog für Push
+- Status-Logik in `lib/access.ts` so gekapselt, dass Phase-2-Webhooks nur DB-Status-Felder schreiben — UI ändert sich nicht
 
 ## ☁️ Vercel-Deploy (Schritt für Schritt)
 
@@ -118,47 +107,39 @@ Pitch-Inhalt liegt in `packages/api/src/mock/pitch.ts` (Spec §14).
 
 1. **Code zu GitHub pushen** (einmalig, läuft über deinen GitHub-Account):
    ```bash
+   cd /Users/maxbauer1992icloud.com/ClaudeCode/Anlegerclub
    git push -u origin main
    ```
-   Beim ersten Push wirst du nach **Username** + **Personal Access Token** gefragt
-   (anstelle des Passworts; Token erstellen unter https://github.com/settings/tokens
-   → Scope `repo`).
+   Beim ersten Push wirst du nach **Username** + **Personal Access Token** gefragt (nicht Passwort).
+   Token erstellen: https://github.com/settings/tokens/new → Scope `repo` reicht.
 
-2. **Vercel** öffnen → eingeloggt mit GitHub.
-3. **„Add New… → Project"** → Repository **`anlegerclub-app`** auswählen → **„Import"**.
-4. Framework wird automatisch erkannt: **Next.js**.
-5. **Root Directory** auf `apps/web` setzen.
-6. **Environment Variables** (1 zwingend, Rest optional):
-   - `NEXTAUTH_SECRET` = mit `openssl rand -base64 32` generieren (nötig in Prod).
-   - `NEXTAUTH_URL` = `https://<dein-projekt>.vercel.app` (kann später auf eigene Domain).
+2. **Vercel** öffnen (du bist eingeloggt) → **„Add New… → Project"**
+3. **Repository `anlegerclub-app`** auswählen → **„Import"**
+4. Framework wird automatisch erkannt: **Next.js**
+5. **Root Directory** auf `apps/web` setzen
+6. **Environment Variables**:
+   - `NEXTAUTH_SECRET` = mit `openssl rand -base64 32` generieren (zwingend)
+   - `NEXTAUTH_URL` = `https://<dein-projekt>.vercel.app` (kann später auf eigene Domain)
 7. **Deploy** klicken. Nach 60–90 Sek live.
+
+> **⚠️ Wichtig (Vercel Pro Trial):** Dein Account ist auf „Pro Trial" – läuft nach 7 Tagen automatisch ab und fällt zurück auf den **kostenlosen Hobby-Plan**. Klick NICHT auf „Upgrade to Pro" ($20/Mo) — die Demo läuft komplett auf dem Free-Plan.
 
 ### Variante B: CLI-Deploy (ohne GitHub)
 
 ```bash
 npx vercel --prod
 ```
-(Vercel-CLI wird beim ersten Lauf automatisch installiert. Folgt den interaktiven Prompts.)
-
-## 🧪 Lokale Smoke-Tests
-
-```bash
-pnpm typecheck   # TypeScript across all packages
-pnpm build       # Production build via turbo
-pnpm dev         # Dev mode (HMR)
-```
 
 ## 📦 Phase-2-Roadmap (laut Spec §17)
 
 | Sprint | Inhalt | Geschätzte Kosten |
 |---|---|---|
-| **Sprint 0** ✅ | Repo-Setup, Mock-Daten, Vercel-Deploy | **0 €** |
-| Sprint 1 | Admin-CRUD vervollständigen, Onboarding-Persistierung, Pitch-Editor live | 0 € |
+| **Sprint 0+1** ✅ | Repo-Setup, Mock-Daten, Vercel-Deploy, **Iteration 2 inkl. Light/Mobile/Community-pro-Trade/Earnings** | **0 €** |
 | Sprint 2 | Postgres + Prisma + echte Auth, Ablefy-Webhooks, SMS-OTP | bis ~30 €/Mo |
-| Sprint 3 | Push/Mail-Webhook live, Mux-Video-Pipeline | abh. von Volumen |
-| Sprint 4 | React-Native-Apps (Expo + EAS) | $99/Jahr Apple |
-| Sprint 5 | Gamma-AI-Pipeline, VTJ-Anbindung, Excel-Import | abh. von Gamma-Lizenz |
-| Sprint 6 | Events-Modul, Self-Service-Account, Snowflake-Reporting | abh. |
+| Sprint 3 | Push/Mail-Webhook live, Mux-Video-Pipeline, Outlook-OAuth-Mailversand im Admin | abh. von Volumen |
+| Sprint 4 | React-Native-Apps (Expo + EAS) | $99/Jahr Apple, $25 Google einmalig |
+| Sprint 5 | Gamma-AI-Pipeline, VTJ-API-Anbindung statt iframe, Excel-Import | abh. von Gamma-Lizenz |
+| Sprint 6 | Events-Modul, Self-Service-Account, Snowflake-Reporting, Earnings-Live-API | abh. |
 
 Siehe `BUDGET.md` für das harte 100-€-Limit der Phase 1.
 
