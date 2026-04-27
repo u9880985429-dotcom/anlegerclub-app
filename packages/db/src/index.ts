@@ -10,6 +10,12 @@ export const Role = {
   ADMIN: "ADMIN",
   OWNER: "OWNER",
   STAFF: "STAFF",
+  /**
+   * Sales-Mitarbeiter (Vertrieb).
+   * Intern als „SALES" gefuehrt. Fuer Kunden im Public-Display unsichtbar als
+   * „Mitarbeiter" — nur Admin-internes Listing zeigt das Department.
+   */
+  SALES: "SALES",
 } as const;
 export type Role = (typeof Role)[keyof typeof Role];
 

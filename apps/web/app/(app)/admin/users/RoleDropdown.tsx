@@ -8,7 +8,8 @@ import { getEffectiveRole, writeRoleOverride, clearRoleOverride } from "@/lib/ro
 const OPTIONS: { value: Role; label: string }[] = [
   { value: "MEMBER", label: "Mitglied" },
   { value: "MODERATOR", label: "Moderator" },
-  { value: "STAFF", label: "Mitarbeiter (Bezahlt)" },
+  { value: "SALES", label: "Mitarbeiter (Sales)" },
+  { value: "STAFF", label: "Mitarbeiter" },
   { value: "ADMIN", label: "Admin" },
   { value: "OWNER", label: "Owner / GF" },
 ];

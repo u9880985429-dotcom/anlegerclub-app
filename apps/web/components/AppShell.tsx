@@ -123,7 +123,7 @@ export function AppShell({ children, user }: AppShellProps) {
     hasAllAccess || user.productSlug === slug;
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
-  const isStaff = user.role === "STAFF" || user.role === "OWNER" || user.role === "ADMIN";
+  const isStaff = user.role === "STAFF" || user.role === "SALES" || user.role === "OWNER" || user.role === "ADMIN";
 
   const activeDepotMatch = pathname.match(/^\/depot\/([a-z]+)/);
   const activeDepotSlug = activeDepotMatch?.[1] && (DEPOT_SECTIONS as Record<string, unknown>)[activeDepotMatch[1]]

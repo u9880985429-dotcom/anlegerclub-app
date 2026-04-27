@@ -33,14 +33,14 @@
 
 import type { Role } from "../types";
 
-const HIERARCHY: Role[] = ["MEMBER", "MODERATOR", "STAFF", "ADMIN", "OWNER"];
+const HIERARCHY: Role[] = ["MEMBER", "MODERATOR", "SALES", "STAFF", "ADMIN", "OWNER"];
 function level(r: Role): number {
   return HIERARCHY.indexOf(r);
 }
 
-/** Wer darf das Admin-Backend überhaupt sehen? */
+/** Wer darf das Mitarbeiter-Backend ueberhaupt sehen? (STAFF/SALES/ADMIN/OWNER) */
 export function canAccessAdmin(role: Role): boolean {
-  return role === "OWNER" || role === "ADMIN" || role === "STAFF";
+  return role === "OWNER" || role === "ADMIN" || role === "STAFF" || role === "SALES";
 }
 
 /** Wer darf Teammitglieder einladen? */
@@ -68,10 +68,10 @@ export function canKick(actorRole: Role, targetRole: Role): boolean {
     return targetRole !== "OWNER"; // OWNER kickt jeden außer einen anderen OWNER (es gibt nur einen)
   }
   if (actorRole === "ADMIN") {
-    // ADMIN kickt MEMBER + MODERATOR — NICHT STAFF, NICHT ADMIN, NICHT OWNER
-    return targetRole === "MEMBER" || targetRole === "MODERATOR";
+    // ADMIN kickt MEMBER + MODERATOR + SALES — NICHT STAFF, NICHT ADMIN, NICHT OWNER
+    return targetRole === "MEMBER" || targetRole === "MODERATOR" || targetRole === "SALES";
   }
-  // STAFF + MODERATOR + MEMBER können niemanden kicken
+  // STAFF + SALES + MODERATOR + MEMBER koennen niemanden kicken
   return false;
 }
 

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Settings, Check, ExternalLink, Puzzle, X, Eye, EyeOff, Save, Loader2, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { Settings, Check, ExternalLink, Puzzle, X, Eye, EyeOff, Save, Loader2, CheckCircle2, ArrowRight } from "lucide-react";
 
 type Category = "Sync" | "Notifications" | "Video" | "Analytics" | "AI" | "Storage" | "E-Mail-Marketing" | "Automation" | "Support" | "Tracking";
 
@@ -23,6 +24,8 @@ interface Plugin {
   enabled: boolean;
   url?: string;
   configFields: PluginField[];
+  /** Falls gesetzt, leitet "Konfigurieren" auf eine dedizierte Seite weiter (statt Modal). */
+  dedicatedConfigPath?: string;
 }
 
 const PLUGINS: Plugin[] = [
@@ -31,17 +34,13 @@ const PLUGINS: Plugin[] = [
     id: "p_ablefy",
     name: "Ablefy Subscription Sync",
     vendor: "Ablefy GmbH",
-    description: "Bidirektionaler Sync von Abos, Status, Order-IDs. Webhook-Empfang fuer neue Bestellungen, Refunds, Pausen.",
+    description: "Bidirektionaler Sync von Abos, Status, Order-IDs. Webhook-Empfang fuer neue Bestellungen, Refunds, Pausen. Basis fuer das KPI-Dashboard mit Echtdaten.",
     category: "Sync",
     installed: true,
     enabled: true,
-    url: "https://docs.ablefy.com/api",
-    configFields: [
-      { key: "apiKey", label: "Ablefy API-Key", type: "secret", required: true, hint: "Aus Ablefy-Backend → Einstellungen → API." },
-      { key: "apiSecret", label: "API-Secret", type: "secret", required: true },
-      { key: "webhookSecret", label: "Webhook-Signing-Secret", type: "secret", hint: "HMAC-SHA256 zur Webhook-Verifizierung." },
-      { key: "shopId", label: "Shop-ID", type: "text", placeholder: "z.B. shop_traderiq" },
-    ],
+    url: "https://api.myablefy.com/api/swagger_doc/",
+    configFields: [],
+    dedicatedConfigPath: "/admin/integrations/ablefy",
   },
   {
     id: "p_twilio",
@@ -334,7 +333,11 @@ export function PluginsSection() {
 
   function install(p: Plugin) {
     persistState({ ...state, [p.id]: { installed: true, enabled: true } });
-    setConfiguring(p);
+    if (p.dedicatedConfigPath) {
+      window.location.href = p.dedicatedConfigPath;
+    } else {
+      setConfiguring(p);
+    }
   }
   function toggleEnable(p: Plugin) {
     const s = getState(p);
@@ -425,9 +428,15 @@ export function PluginsSection() {
                     <button onClick={() => toggleEnable(p)} className="btn-secondary inline-flex items-center gap-1">
                       {s.enabled ? "Deaktivieren" : "Aktivieren"}
                     </button>
-                    <button onClick={() => setConfiguring(p)} className="btn-secondary inline-flex items-center gap-1">
-                      <Settings className="h-3.5 w-3.5" /> Konfigurieren
-                    </button>
+                    {p.dedicatedConfigPath ? (
+                      <Link href={p.dedicatedConfigPath as never} className="btn-brand inline-flex items-center gap-1">
+                        <Settings className="h-3.5 w-3.5" /> Konfigurieren <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    ) : (
+                      <button onClick={() => setConfiguring(p)} className="btn-secondary inline-flex items-center gap-1">
+                        <Settings className="h-3.5 w-3.5" /> Konfigurieren
+                      </button>
+                    )}
                     <button onClick={() => uninstall(p)} className="btn-ghost text-xs text-destructive">
                       Deinstallieren
                     </button>

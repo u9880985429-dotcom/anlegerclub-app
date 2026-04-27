@@ -24,7 +24,7 @@ export interface DisplayUser {
 }
 
 export function isTeamRole(role: Role, isTeamMember?: boolean): boolean {
-  if (role === "STAFF" || role === "OWNER" || role === "ADMIN") return true;
+  if (role === "STAFF" || role === "SALES" || role === "OWNER" || role === "ADMIN") return true;
   if (role === "MODERATOR") return isTeamMember === true;
   return false;
 }
@@ -58,12 +58,39 @@ export function getPublicInitials(u: DisplayUser): string {
 /**
  * Liefert Hinweis-Label, wenn der User vom Trader-IQ-Team ist.
  * In der UI als kleines Badge neben dem Namen anzeigen.
+ *
+ * WICHTIG: Fuer Kunden/Teilnehmer ist „Mitarbeiter" das einheitliche Label —
+ * Sales-Mitarbeiter werden NICHT als „Sales" geoutet. Die Abteilungs-Info
+ * (z.B. „Sales") ist nur fuer Admins via getInternalRoleLabel(...) sichtbar.
  */
 export function getTeamBadge(u: DisplayUser): string | null {
   if (!isTeamRole(u.role, u.isTeamMember)) return null;
   if (u.role === "OWNER") return "Trader IQ · Geschäftsführung";
   if (u.role === "ADMIN") return "Trader IQ · Admin";
-  if (u.role === "STAFF") return "Trader IQ · Team";
+  if (u.role === "STAFF" || u.role === "SALES") return "Trader IQ · Mitarbeiter";
   if (u.role === "MODERATOR") return "Trader IQ · Moderator";
   return null;
+}
+
+/**
+ * Admin-internes Rollen-Label (z.B. fuer User-Listen, Audit-Log, KPI-Filter).
+ * Hier zeigen wir die Abteilung in Klammern — z.B. „Mitarbeiter (Sales)".
+ */
+export function getInternalRoleLabel(role: Role): string {
+  switch (role) {
+    case "OWNER":
+      return "Owner / Geschäftsführung";
+    case "ADMIN":
+      return "Admin";
+    case "STAFF":
+      return "Mitarbeiter";
+    case "SALES":
+      return "Mitarbeiter (Sales)";
+    case "MODERATOR":
+      return "Moderator";
+    case "MEMBER":
+      return "Mitglied";
+    default:
+      return role;
+  }
 }

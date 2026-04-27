@@ -100,6 +100,7 @@ export {
   getPublicDisplayName,
   getPublicInitials,
   getTeamBadge,
+  getInternalRoleLabel,
   isTeamRole,
 } from "./mock/displayName";
 export type { DisplayUser } from "./mock/displayName";

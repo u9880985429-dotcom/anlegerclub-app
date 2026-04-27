@@ -59,7 +59,7 @@ const NAV: NavGroup[] = [
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
   const role = session.user.role;
-  if (role !== "STAFF" && role !== "OWNER" && role !== "ADMIN") {
+  if (role !== "STAFF" && role !== "SALES" && role !== "OWNER" && role !== "ADMIN") {
     redirect("/dashboard");
   }
   const isOwnerAdmin = role === "OWNER" || role === "ADMIN";

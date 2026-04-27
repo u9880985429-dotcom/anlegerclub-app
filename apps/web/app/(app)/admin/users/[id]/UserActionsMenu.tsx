@@ -16,8 +16,9 @@ interface UserActionsMenuProps {
 const ROLE_OPTIONS: { value: Role; label: string; rights: string }[] = [
   { value: "MEMBER", label: "Mitglied", rights: "Standard-Zugriff auf eigene Depots" },
   { value: "MODERATOR", label: "Moderator", rights: "+ Posts verstecken, Reports bearbeiten" },
-  { value: "ADMIN", label: "Admin", rights: "+ Inhalte bearbeiten, Mitglieder verwalten" },
-  { value: "STAFF", label: "Mitarbeiter (Bezahlt)", rights: "+ alle Depots gratis (PAID-Status)" },
+  { value: "SALES", label: "Mitarbeiter (Sales)", rights: "+ Vollzugriff auf Depots (PAID), Mitarbeiter-Backend, kein Admin-Backend" },
+  { value: "STAFF", label: "Mitarbeiter", rights: "+ Vollzugriff auf Depots (PAID), Mitarbeiter-Backend, kein Admin-Backend" },
+  { value: "ADMIN", label: "Admin", rights: "+ Inhalte bearbeiten, Mitglieder verwalten, Admin-Backend" },
   { value: "OWNER", label: "Owner / GF", rights: "Vollzugriff auf alles inkl. Audit-Log" },
 ];
 

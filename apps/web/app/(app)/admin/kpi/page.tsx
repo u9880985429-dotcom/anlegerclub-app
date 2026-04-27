@@ -8,6 +8,7 @@ import { requireSession } from "@/lib/access";
 import { allSubscriptions, allUsers } from "@traderiq/api";
 import { RevenueChart, ChurnChart, ProductMixChart } from "./Charts";
 import { KpiCardMenu } from "./KpiCardMenu";
+import { KpiFilterBar } from "./KpiFilterBar";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,13 @@ export default async function KpiDashboardPage() {
           <strong>OWNER</strong> und <strong>ADMIN</strong>. Andere Rollen sehen nicht einmal den Link in der Sidebar.
         </span>
       </div>
+
+      {/* Filter-Bar — Produkt, Datum, Sales-Agent, Live-Sync */}
+      <KpiFilterBar
+        salesAgents={allUsers
+          .filter((u) => u.role === "SALES" || u.role === "STAFF" || u.role === "ADMIN" || u.role === "OWNER")
+          .map((u) => ({ id: u.id, name: `${u.firstName} ${u.lastName}`, role: u.role }))}
+      />
 
       {/* Top-Level KPI-Kacheln */}
       <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
