@@ -16,6 +16,8 @@ import {
   ChevronDown,
   ChevronRight,
   Lock,
+  Menu,
+  X,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { TutorialButton } from "./TutorialButton";
@@ -90,122 +92,177 @@ const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; 
   ],
 };
 
+const ALL_DEPOTS: Exclude<ProductSlug, "all-access">[] = ["starter", "trend", "stillhalter", "cockpit"];
+
 export function AppShell({ children, user }: AppShellProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeTab = searchParams?.get("tab") ?? "";
 
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Drawer schließt sich automatisch bei Routen-Wechsel
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, activeTab]);
+
+  // Body-Scroll sperren wenn Drawer offen
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   const hasAllAccess = user.productSlug === "all-access";
-  // Alle 4 Depots werden in der Sidebar gezeigt — die nicht abonnierten
-  // bekommen ein Schloss-Icon und führen zur Pitch-Page (statt voll geöffnet).
-  const ALL_DEPOTS: Exclude<ProductSlug, "all-access">[] = ["starter", "trend", "stillhalter", "cockpit"];
   const isAccessible = (slug: Exclude<ProductSlug, "all-access">) =>
     hasAllAccess || user.productSlug === slug;
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
   const isStaff = user.role === "STAFF" || user.role === "OWNER" || user.role === "ADMIN";
 
-  // Aktiver Depot-Slug aus dem aktuellen Pfad — für die Tutorial-Button-Logik
   const activeDepotMatch = pathname.match(/^\/depot\/([a-z]+)/);
   const activeDepotSlug = activeDepotMatch?.[1] && (DEPOT_SECTIONS as Record<string, unknown>)[activeDepotMatch[1]]
     ? (activeDepotMatch[1] as Exclude<ProductSlug, "all-access">)
     : undefined;
 
+  const navigationContent = (
+    <>
+      <NavLink href="/dashboard" icon={LayoutDashboard} active={isActive("/dashboard")} label="Dashboard" />
+
+      <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Depots</div>
+      {ALL_DEPOTS.map((slug) => (
+        <DepotMenu
+          key={slug}
+          slug={slug}
+          icon={PRODUCT_ICON[slug]}
+          label={PRODUCT_LABEL[slug]}
+          sections={DEPOT_SECTIONS[slug]}
+          isOpenByDefault={pathname.startsWith(`/depot/${slug}`)}
+          pathname={pathname}
+          activeTab={activeTab}
+          locked={!isAccessible(slug)}
+        />
+      ))}
+
+      <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Account</div>
+      <NavLink href="/notifications" icon={Bell} active={isActive("/notifications")} label="Benachrichtigungen" />
+      <NavLink href="/settings" icon={Settings} active={isActive("/settings")} label="Einstellungen" />
+
+      {isStaff && (
+        <>
+          <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-brand">Admin</div>
+          <NavLink href="/admin" icon={Shield} active={isActive("/admin")} label="Admin-Backend" />
+        </>
+      )}
+    </>
+  );
+
+  const userFooter = (
+    <div className="flex items-center gap-3 px-2 py-2">
+      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
+        {user.firstName.charAt(0)}
+        {user.lastName.charAt(0)}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold">{user.firstName} {user.lastName}</div>
+        <div className="truncate text-xs text-muted-foreground">{user.role}</div>
+      </div>
+      <button
+        onClick={() => signOut({ callbackUrl: "/login" })}
+        title="Abmelden"
+        className="rounded-md p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+      >
+        <LogOut className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
-      {/* Sidebar (desktop) */}
+      {/* Sidebar (Desktop ≥1024px) */}
       <aside className="hidden w-72 flex-shrink-0 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-16 items-center border-b border-border px-5">
           <Logo variant="light" size="sm" />
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3 text-sm">
-          <NavLink href="/dashboard" icon={LayoutDashboard} active={isActive("/dashboard")} label="Dashboard" />
-
-          <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Depots</div>
-          {ALL_DEPOTS.map((slug) => (
-            <DepotMenu
-              key={slug}
-              slug={slug}
-              icon={PRODUCT_ICON[slug]}
-              label={PRODUCT_LABEL[slug]}
-              sections={DEPOT_SECTIONS[slug]}
-              isOpenByDefault={pathname.startsWith(`/depot/${slug}`)}
-              pathname={pathname}
-              activeTab={activeTab}
-              locked={!isAccessible(slug)}
-            />
-          ))}
-
-          <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Account</div>
-          <NavLink href="/notifications" icon={Bell} active={isActive("/notifications")} label="Benachrichtigungen" />
-          <NavLink href="/settings" icon={Settings} active={isActive("/settings")} label="Einstellungen" />
-
-          {isStaff && (
-            <>
-              <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-brand">Admin</div>
-              <NavLink href="/admin" icon={Shield} active={isActive("/admin")} label="Admin-Backend" />
-            </>
-          )}
-        </nav>
-        <div className="border-t border-border p-3">
-          <div className="flex items-center gap-3 px-2 py-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
-              {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold">{user.firstName} {user.lastName}</div>
-              <div className="truncate text-xs text-muted-foreground">{user.role}</div>
-            </div>
-            <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              title="Abmelden"
-              className="rounded-md p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3 text-sm">{navigationContent}</nav>
+        <div className="border-t border-border p-3">{userFooter}</div>
       </aside>
 
-      {/* Mobile top bar */}
-      <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 lg:hidden">
+      {/* Mobile Top-Bar mit Burger-Menü */}
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card px-4 lg:hidden">
         <Logo variant="light" size="sm" />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <TutorialButton activeDepot={activeDepotSlug} userId={user.firstName + user.lastName} compact />
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="rounded-md p-2 text-muted-foreground hover:bg-accent"
-            title="Abmelden"
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Menü öffnen"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
-            <LogOut className="h-4 w-4" />
+            <Menu className="h-6 w-6" />
           </button>
         </div>
       </header>
 
-      {/* Content + Tutorial-Button (desktop, top-right) */}
+      {/* Mobile Drawer Overlay */}
+      {mobileOpen && (
+        <>
+          {/* Backdrop */}
+          <button
+            type="button"
+            aria-label="Menü schließen"
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+            style={{ animation: "fadeIn 0.15s ease-out" }}
+          />
+          {/* Drawer Panel */}
+          <aside
+            className="fixed inset-y-0 right-0 z-50 flex w-[85%] max-w-sm flex-col border-l border-border bg-card shadow-xl lg:hidden"
+            style={{ animation: "slideInRight 0.2s ease-out", paddingTop: "env(safe-area-inset-top)" }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Hauptnavigation"
+          >
+            <div className="flex h-14 items-center justify-between border-b border-border px-4">
+              <Logo variant="light" size="sm" />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Menü schließen"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <nav
+              className="flex-1 space-y-1 overflow-y-auto p-3 text-sm"
+              onClick={(e) => {
+                // Auto-close beim Klick auf einen Link
+                const target = e.target as HTMLElement;
+                if (target.closest("a")) setMobileOpen(false);
+              }}
+            >
+              {navigationContent}
+            </nav>
+            <div
+              className="border-t border-border p-3"
+              style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+            >
+              {userFooter}
+            </div>
+          </aside>
+        </>
+      )}
+
+      {/* Content + Tutorial-Button (Desktop, top-right) */}
       <main className="relative flex-1 overflow-x-hidden">
         <div className="absolute right-4 top-4 z-30 hidden lg:block">
           <TutorialButton activeDepot={activeDepotSlug} userId={user.firstName + user.lastName} />
         </div>
         <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8">{children}</div>
       </main>
-
-      {/* Mobile bottom nav */}
-      <nav
-        className="sticky bottom-0 z-20 grid grid-cols-5 border-t border-border bg-card lg:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      >
-        <MobileNavLink href="/dashboard" icon={LayoutDashboard} label="Home" active={isActive("/dashboard")} />
-        <MobileNavLink
-          href={hasAllAccess ? "/depot/starter" : `/depot/${user.productSlug}`}
-          icon={Briefcase}
-          label="Depot"
-          active={pathname.startsWith("/depot")}
-        />
-        <MobileNavLink href="/notifications" icon={Bell} label="Inbox" active={isActive("/notifications")} />
-        <MobileNavLink href="/settings" icon={Settings} label="Mehr" active={isActive("/settings")} />
-        {isStaff && <MobileNavLink href="/admin" icon={Shield} label="Admin" active={isActive("/admin")} />}
-      </nav>
     </div>
   );
 }
@@ -252,7 +309,6 @@ function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathnam
   const inDepot = pathname === `/depot/${slug}` || pathname.startsWith(`/depot/${slug}/`);
   const effectiveTab = activeTab || "welcome";
 
-  // Locked: kein Drop-down, direkter Link zur Pitch-Page
   if (locked) {
     return (
       <Link
@@ -296,7 +352,7 @@ function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathnam
                 <Link
                   href={`/depot/${slug}?tab=${s.tab}` as never}
                   className={cn(
-                    "relative block rounded-md px-3 py-1.5 text-xs transition",
+                    "relative block rounded-md px-3 py-2 text-xs transition",
                     isActive
                       ? "bg-brand/10 font-semibold text-brand"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground",
@@ -317,22 +373,5 @@ function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathnam
         </ul>
       )}
     </div>
-  );
-}
-
-function MobileNavLink({
-  href, icon: Icon, label, active,
-}: { href: string; icon: React.ComponentType<{ className?: string }>; label: string; active: boolean }) {
-  return (
-    <Link
-      href={href as never}
-      className={cn(
-        "flex flex-col items-center justify-center gap-1 py-2 text-xs",
-        active ? "text-brand" : "text-muted-foreground",
-      )}
-    >
-      <Icon className="h-5 w-5" />
-      <span className="text-[10px] uppercase tracking-wider">{label}</span>
-    </Link>
   );
 }
