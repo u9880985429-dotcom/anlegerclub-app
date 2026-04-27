@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Bell, Smartphone, Mail, Lock, Megaphone, MessageSquare, AtSign, MessageCircleReply, BellRing } from "lucide-react";
+import { Bell, Smartphone, Mail, Megaphone, MessageSquare, AtSign, MessageCircleReply, BellRing } from "lucide-react";
 
 interface NotificationSettingsProps {
   userId: string;
@@ -9,9 +9,13 @@ interface NotificationSettingsProps {
 }
 
 interface NotifPrefs {
-  // Optionale Toggles (Default-Werte)
+  // Channel-Schalter
   channelPush: boolean;
   channelEmail: boolean;
+  // Empfohlene Standard-Benachrichtigungen — vorselektiert, aber abwählbar
+  newTrades: boolean;
+  newMarketUpdates: boolean;
+  // Optional / Granular
   community: { starter: boolean; trend: boolean; stillhalter: boolean; cockpit: boolean };
   mentions: boolean;
   commentReplies: boolean;
@@ -21,6 +25,8 @@ interface NotifPrefs {
 const DEFAULTS: NotifPrefs = {
   channelPush: true,
   channelEmail: true,
+  newTrades: true,
+  newMarketUpdates: true,
   community: { starter: false, trend: false, stillhalter: false, cockpit: false },
   mentions: true,
   commentReplies: true,
@@ -89,25 +95,29 @@ export function NotificationSettings({ userId, accessibleProducts }: Notificatio
         </div>
       </div>
 
-      {/* Pflicht-Benachrichtigungen — immer an */}
+      {/* Empfohlene Standard-Benachrichtigungen — vorselektiert, jederzeit abwählbar */}
       <div className="card-base p-5">
         <h3 className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand">
-          <Lock className="h-3.5 w-3.5" />
-          Pflicht-Benachrichtigungen
+          <Megaphone className="h-3.5 w-3.5" />
+          Empfohlene Benachrichtigungen
         </h3>
         <p className="mb-3 text-xs text-muted-foreground">
-          Diese Push-/Mail-Nachrichten erhältst du automatisch ab Beginn — sie sind elementarer Teil deines Anlegerclub-Zugangs und können nicht deaktiviert werden.
+          Unsere Empfehlung — diese Toggles sind ab Beginn aktiv, damit du nichts verpasst. Du kannst sie jederzeit abschalten und später wieder aktivieren.
         </p>
         <div className="space-y-2">
-          <LockedRow
+          <ToggleRow
             icon={Megaphone}
             title="Neue Trade-Signale"
             description="Sofort wenn die Redaktion einen neuen Trade veröffentlicht (Kauf, Verkauf, Stop-Anpassung, Take-Profit)"
+            enabled={prefs.newTrades}
+            onChange={(v) => update({ ...prefs, newTrades: v })}
           />
-          <LockedRow
+          <ToggleRow
             icon={Megaphone}
             title="Neue Marktanalysen"
             description="Tagesblick · Wochenblick · Monatsblick · Perspektiven des Chefredakteurs"
+            enabled={prefs.newMarketUpdates}
+            onChange={(v) => update({ ...prefs, newMarketUpdates: v })}
           />
         </div>
       </div>
@@ -222,32 +232,3 @@ function ToggleRow({
   );
 }
 
-function LockedRow({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-md border border-brand/30 bg-brand/5 px-4 py-3">
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-brand/15 text-brand">
-          <Icon className="h-4 w-4" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-sm font-medium">{title}</div>
-          <div className="text-xs text-muted-foreground">{description}</div>
-        </div>
-      </div>
-      <span
-        title="Pflicht-Benachrichtigung — kann nicht deaktiviert werden"
-        className="inline-flex items-center gap-1 rounded-md bg-brand/15 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-brand"
-      >
-        <Lock className="h-3 w-3" /> Pflicht
-      </span>
-    </div>
-  );
-}
