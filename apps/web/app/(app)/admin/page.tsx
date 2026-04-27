@@ -16,7 +16,7 @@ export default function AdminOverview() {
   return (
     <>
       <PageHeader
-        eyebrow="Backend"
+        eyebrow="Admin · Übersicht"
         title="Admin-Übersicht"
         description="Zentrale Steuerung. Inhalte werden direkt im jeweiligen Depot via Bearbeitungsmodus gepflegt."
       />

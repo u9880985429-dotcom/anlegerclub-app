@@ -24,7 +24,7 @@ export default function AdminSubscriptionsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Backend"
+        eyebrow="Admin · Subscriptions & Einladungen"
         title="Subscriptions & Einladungen"
         description="Bestehende Abos und Einladungen für neue Kunden – per Mail oder über Direkt-Link."
       />

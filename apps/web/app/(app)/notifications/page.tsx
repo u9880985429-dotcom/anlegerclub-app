@@ -23,7 +23,7 @@ export default async function NotificationsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Inbox"
+        eyebrow="Konto · Benachrichtigungen"
         title="Benachrichtigungen"
         description={`${items.length} Einträge · ${unread} ungelesen`}
         action={

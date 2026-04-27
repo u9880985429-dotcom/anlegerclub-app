@@ -7,7 +7,7 @@ export default function AdminAuditPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Backend"
+        eyebrow="Admin · Audit-Log"
         title="Audit-Log"
         description="Wer · Was · Wann · Warum (alle Admin-Aktionen)"
       />

@@ -14,7 +14,7 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Konto" title="Einstellungen" description="Profil, Benachrichtigungen, Sicherheit & Abos." />
+      <PageHeader eyebrow="Konto · Einstellungen" title="Einstellungen" description="Profil, Benachrichtigungen, Sicherheit & Abos." />
 
       {/* Profil */}
       <Section title="Profil">

@@ -11,7 +11,7 @@ export default function AdminCommunityPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Backend"
+        eyebrow="Admin · Community-Moderation"
         title="Community-Moderation"
         description={`${open.length} offene Reports · ${resolved.length} bearbeitet · ${allPosts.length} Posts gesamt`}
       />

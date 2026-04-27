@@ -30,7 +30,7 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
       </Link>
 
       <PageHeader
-        eyebrow="Mitglied"
+        eyebrow="Admin · Mitglied"
         title={`${user.firstName} ${user.lastName}`}
         description={`${user.email} · Rolle ${user.role} · ${user.loginCount} Logins`}
         action={<UserActionsMenu userId={user.id} role={user.role} currentStatus={subs[0]?.status ?? "—"} />}

@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Tabs";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
 import { EarningsBrowser } from "@/components/EarningsBrowser";
 import { EditModeBar } from "@/components/EditModeBar";
+import { buildBreadcrumb } from "@/lib/copy/depot-sections";
 import { CommunityFeed } from "@/components/CommunityFeed";
 import { requireProductAccess } from "@/lib/access";
 import { lexikon, marketUpdates, upcomingEarnings, cockpitDocuments } from "@traderiq/api";
@@ -33,7 +34,7 @@ export default async function CockpitPage({
   return (
     <>
       <PageHeader
-        eyebrow="Trader Cockpit"
+        eyebrow={buildBreadcrumb("cockpit", activeTab)}
         title="Trader Cockpit"
         description="Marktradar – Perspektiven, Tagesblicke, Wochenblicke, Monatsanalysen, Earnings-Kalender und Lexikon."
       />

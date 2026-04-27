@@ -39,7 +39,7 @@ export function BrokerCard() {
           rel="noreferrer"
           className="btn-brand inline-flex items-center gap-2"
         >
-          Konto eröffnen
+          Jetzt Depot eröffnen
           <ExternalLink className="h-4 w-4" />
         </a>
         <a

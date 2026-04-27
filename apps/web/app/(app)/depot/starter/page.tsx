@@ -12,6 +12,7 @@ import { VTJEmbed } from "@/components/VTJEmbed";
 import { BrokerCard } from "@/components/BrokerCard";
 import { EditModeBar } from "@/components/EditModeBar";
 import { CommunityFeed } from "@/components/CommunityFeed";
+import { buildBreadcrumb } from "@/lib/copy/depot-sections";
 import { requireProductAccess } from "@/lib/access";
 import {
   STARTER_PERFORMANCE,
@@ -46,7 +47,7 @@ export default async function StarterDepotPage({
   return (
     <>
       <PageHeader
-        eyebrow="Starter Depot"
+        eyebrow={buildBreadcrumb("starter", activeTab)}
         title="Dein Starter Depot"
         description={`${trades.length} Trade-Signale · ${focusStocks.length} Aktien im Fokus · monatliche Auswertungen`}
       />
@@ -107,7 +108,7 @@ export default async function StarterDepotPage({
               </a>
             </div>
 
-            <VTJEmbed title="Starter Depot · Live-Trade-Journal" />
+            <VTJEmbed productSlug="starter" />
           </div>
         </TabsContent>
 

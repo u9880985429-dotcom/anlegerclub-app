@@ -214,6 +214,10 @@ const SEEDS: SeedRow[] = [
   { ticker: "AIG", company: "American International Group", price: 78.4, iv: 24.4, drift: 0.003, daysFromNow: 5, bmo: true, estimateEPS: 1.42 },
 ];
 
+// Tagesbasis: ~60 Handelstage seit dem letzten Earnings (≈ 12 Wochen),
+// wöchentlicher drift entspricht 5 Tageswerten → durch 5 teilen.
+const DAYS_PER_CANDLE = 60;
+
 export const upcomingEarnings: EarningsEntry[] = SEEDS.filter((s) => s.price >= 20).map((s) => ({
   ticker: s.ticker,
   company: s.company,
@@ -224,7 +228,8 @@ export const upcomingEarnings: EarningsEntry[] = SEEDS.filter((s) => s.price >= 
   lastPrice: s.price,
   changeSinceLastEarnings: Number((s.drift * 100 * 12).toFixed(2)),
   impliedVolatility: s.iv,
-  priceHistory: gen(s.price * 0.92, 12, s.drift, s.iv / 2400),
+  // 60 tägliche Werte mit täglicher Drift + Daily-Vola.
+  priceHistory: gen(s.price * 0.92, DAYS_PER_CANDLE, s.drift / 5, s.iv / 6000),
 }));
 
 export function searchEarnings(query: string): EarningsEntry[] {

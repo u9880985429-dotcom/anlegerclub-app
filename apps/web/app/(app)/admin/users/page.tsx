@@ -30,7 +30,7 @@ export default function AdminUsersPage({
   return (
     <>
       <PageHeader
-        eyebrow="Backend"
+        eyebrow="Admin · Mitglieder"
         title="Mitglieder"
         description={`${filtered.length} ${filter ? `· Filter: ${filter}` : "Mitglieder gesamt"}`}
       />

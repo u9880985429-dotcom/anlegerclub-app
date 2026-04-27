@@ -9,6 +9,7 @@ import { PortfolioDashboard } from "@/components/PortfolioDashboard";
 import { VTJEmbed } from "@/components/VTJEmbed";
 import { BrokerCard } from "@/components/BrokerCard";
 import { EditModeBar } from "@/components/EditModeBar";
+import { buildBreadcrumb } from "@/lib/copy/depot-sections";
 import { CommunityFeed } from "@/components/CommunityFeed";
 import { requireProductAccess } from "@/lib/access";
 import {
@@ -38,7 +39,7 @@ export default async function TrendDepotPage({
   return (
     <>
       <PageHeader
-        eyebrow="Trend Depot"
+        eyebrow={buildBreadcrumb("trend", activeTab)}
         title="Trend Depot"
         description="Rein technische Strategie – wir folgen Trends, halten Gewinne, schneiden Verluste schnell."
       />
@@ -90,7 +91,7 @@ export default async function TrendDepotPage({
               </a>
             </div>
 
-            <VTJEmbed title="Trend Depot · Live-Trade-Journal" />
+            <VTJEmbed productSlug="trend" />
           </div>
         </TabsContent>
 

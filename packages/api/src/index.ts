@@ -121,5 +121,23 @@ export {
   portfolioTrend,
   portfolioStillhalter,
   getPortfolioByProduct,
+  equityCurveStarter,
+  equityCurveTrend,
+  equityCurveStillhalter,
+  getEquityCurve,
+  apaPositionGroup,
+  openPositionsStarter,
+  openPositionsTrend,
+  openPositionsStillhalter,
+  getOpenPositions,
 } from "./mock/portfolio";
-export type { PortfolioCapital, PortfolioSnapshot } from "./mock/portfolio";
+export type {
+  PortfolioCapital,
+  PortfolioSnapshot,
+  EquityMonth,
+  PositionAction,
+  PositionType,
+  PositionRow,
+  PositionGroup,
+  OpenPositionRow,
+} from "./mock/portfolio";
