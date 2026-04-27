@@ -5,7 +5,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/Tabs";
 import { TradeRow } from "@/components/TradeRow";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
 import { PerformanceChart } from "@/components/PerformanceChart";
-import { PortfolioDashboard } from "@/components/PortfolioDashboard";
 import { VTJEmbed } from "@/components/VTJEmbed";
 import { BrokerCard } from "@/components/BrokerCard";
 import { EditModeBar } from "@/components/EditModeBar";
@@ -18,7 +17,6 @@ import {
   VTJ,
   getReportsByProduct,
   getTradesByProduct,
-  getPortfolioByProduct,
 } from "@traderiq/api";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +31,6 @@ export default async function StillhalterDepotPage({
   const session = await requireProductAccess("stillhalter");
   const trades = getTradesByProduct("stillhalter");
   const reports = getReportsByProduct("stillhalter");
-  const portfolio = getPortfolioByProduct("stillhalter")!;
   const activeTab = searchParams.tab ?? "welcome";
 
   return (
@@ -77,8 +74,6 @@ export default async function StillhalterDepotPage({
               <h3 className="mb-3 text-lg font-bold">Einführung ins Stillhalter Depot</h3>
               <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{STILLHALTER_STRATEGY}</p>
             </article>
-
-            <PortfolioDashboard data={portfolio} />
 
             <PerformanceChart data={STILLHALTER_PERFORMANCE} title="Stillhalter Depot · Performance YTD 2025" />
 

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import {
@@ -91,6 +91,8 @@ const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; 
 
 export function AppShell({ children, user }: AppShellProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams?.get("tab") ?? "";
 
   const hasAllAccess = user.productSlug === "all-access";
   const accessibleDepots: Exclude<ProductSlug, "all-access">[] = hasAllAccess
@@ -126,6 +128,7 @@ export function AppShell({ children, user }: AppShellProps) {
               sections={DEPOT_SECTIONS[slug]}
               isOpenByDefault={pathname.startsWith(`/depot/${slug}`)}
               pathname={pathname}
+              activeTab={activeTab}
             />
           ))}
 
@@ -232,15 +235,18 @@ interface DepotMenuProps {
   sections: { tab: string; label: string }[];
   isOpenByDefault: boolean;
   pathname: string;
+  activeTab: string;
 }
 
-function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathname }: DepotMenuProps) {
+function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathname, activeTab }: DepotMenuProps) {
   const [open, setOpen] = useState(isOpenByDefault);
   useEffect(() => {
     if (isOpenByDefault) setOpen(true);
   }, [isOpenByDefault]);
 
-  const active = pathname === `/depot/${slug}` || pathname.startsWith(`/depot/${slug}/`);
+  const inDepot = pathname === `/depot/${slug}` || pathname.startsWith(`/depot/${slug}/`);
+  // Default-Tab ist "welcome", wenn kein Query-Param gesetzt ist
+  const effectiveTab = activeTab || "welcome";
 
   return (
     <div>
@@ -249,7 +255,7 @@ function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathnam
         onClick={() => setOpen(!open)}
         className={cn(
           "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition",
-          active ? "bg-brand/10 text-brand font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+          inDepot ? "bg-brand/10 text-brand font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
         )}
         aria-expanded={open}
       >
@@ -259,16 +265,31 @@ function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathnam
       </button>
       {open && (
         <ul className="ml-2 mt-0.5 space-y-0.5 border-l border-border pl-2">
-          {sections.map((s) => (
-            <li key={s.tab}>
-              <Link
-                href={`/depot/${slug}?tab=${s.tab}` as never}
-                className="block rounded-md px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-accent hover:text-foreground"
-              >
-                {s.label}
-              </Link>
-            </li>
-          ))}
+          {sections.map((s) => {
+            const isActive = inDepot && effectiveTab === s.tab;
+            return (
+              <li key={s.tab}>
+                <Link
+                  href={`/depot/${slug}?tab=${s.tab}` as never}
+                  className={cn(
+                    "relative block rounded-md px-3 py-1.5 text-xs transition",
+                    isActive
+                      ? "bg-brand/10 font-semibold text-brand"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  )}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {isActive && (
+                    <span
+                      aria-hidden
+                      className="absolute -left-2 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r bg-brand"
+                    />
+                  )}
+                  {s.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

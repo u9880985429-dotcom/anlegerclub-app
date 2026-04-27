@@ -6,7 +6,6 @@ import { TradeRow } from "@/components/TradeRow";
 import { PitchCard } from "@/components/PitchCard";
 import { PitchBanner } from "@/components/PitchBanner";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
-import { PortfolioDashboard } from "@/components/PortfolioDashboard";
 import { PerformanceChart } from "@/components/PerformanceChart";
 import { VTJEmbed } from "@/components/VTJEmbed";
 import { BrokerCard } from "@/components/BrokerCard";
@@ -24,7 +23,6 @@ import {
   focusStocks,
   getReportsByProduct,
   getTradesByProduct,
-  getPortfolioByProduct,
 } from "@traderiq/api";
 import { formatGermanDate } from "@/lib/format";
 
@@ -40,7 +38,6 @@ export default async function StarterDepotPage({
   const session = await requireProductAccess("starter");
   const trades = getTradesByProduct("starter");
   const reports = getReportsByProduct("starter");
-  const portfolio = getPortfolioByProduct("starter")!;
   const isStarterOnly = session.user.productSlug === "starter";
   const activeTab = searchParams.tab ?? "welcome";
 
@@ -94,8 +91,6 @@ export default async function StarterDepotPage({
               <h3 className="mb-3 text-lg font-bold">Die Strategie des Starter Real-Depots</h3>
               <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{STARTER_STRATEGY}</p>
             </article>
-
-            <PortfolioDashboard data={portfolio} />
 
             <PerformanceChart data={STARTER_PERFORMANCE} title="Starter Depot · Performance YTD" />
 

@@ -128,7 +128,7 @@ function IVPanel({ value, priceHistory }: { value: number; priceHistory: number[
   return (
     <div>
       <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Implizite Volatilität</div>
-      <div className="flex h-32 w-full items-end gap-[2px]">
+      <div className="flex h-72 w-full items-end gap-[2px]">
         {series.map((v, i) => (
           <span
             key={i}
@@ -152,9 +152,9 @@ function IVPanel({ value, priceHistory }: { value: number; priceHistory: number[
  */
 function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
   const W = 640;
-  const H = 200;
+  const H = 380;
   const PAD_X = 6;
-  const PAD_Y = 8;
+  const PAD_Y = 12;
 
   // OHLC pro Tag: Open = Vortages-Close, Close = aktueller Tag.
   // High/Low werden synthetisch aus der lokalen Range geschätzt.
@@ -193,7 +193,7 @@ function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
       </div>
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="block h-44 w-full"
+        className="block h-80 w-full"
         preserveAspectRatio="none"
         role="img"
         aria-label="Candlestick chart"
