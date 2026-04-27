@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import {
   Plus, ChevronUp, ChevronDown, Trash2, Maximize2, RotateCcw, Layout,
-  Sparkles,
+  Sparkles, MoreHorizontal, Settings, ArrowRightLeft, RefreshCw, Download,
 } from "lucide-react";
 import {
   readKpiConfig, writeKpiConfig, resetKpiConfig, generateInstanceId, DEFAULT_LAYOUT,
@@ -11,6 +11,7 @@ import {
 import { findWidget } from "./widgets/registry";
 import type { WidgetData } from "./widgets/types";
 import { WidgetGallery } from "./WidgetGallery";
+import { WidgetSettingsModal } from "./WidgetSettingsModal";
 
 const COLS_OPTIONS: WidgetSize[] = [3, 4, 6, 8, 12];
 
@@ -19,6 +20,8 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
   const [mounted, setMounted] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [settingsIdx, setSettingsIdx] = useState<number | null>(null);
+  const [refreshFlash, setRefreshFlash] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -47,6 +50,7 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
   function removeWidget(idx: number) {
     if (!confirm("Widget aus dem Dashboard entfernen?")) return;
     persist({ ...config, widgets: config.widgets.filter((_, i) => i !== idx) });
+    setSettingsIdx(null);
   }
 
   function resizeWidget(idx: number, cols: WidgetSize) {
@@ -55,10 +59,59 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
     persist({ ...config, widgets: next });
   }
 
+  function updateInstance(idx: number, updated: WidgetInstance) {
+    const next = [...config.widgets];
+    next[idx] = updated;
+    persist({ ...config, widgets: next });
+    setSettingsIdx(null);
+  }
+
+  function swapWidget(idx: number, newWidgetId: string) {
+    const next = [...config.widgets];
+    const newEntry = findWidget(newWidgetId);
+    const currentCols = next[idx]!.cols;
+    const allowed = newEntry?.allowedCols ?? COLS_OPTIONS;
+    const cols: WidgetSize = allowed.includes(currentCols) ? currentCols : (newEntry?.defaultCols ?? 6);
+    next[idx] = {
+      ...next[idx]!,
+      widgetId: newWidgetId,
+      cols,
+      // Title-Override beim Swap entfernen — neuer Widget bekommt seinen eigenen Default-Titel
+      title: undefined,
+    };
+    persist({ ...config, widgets: next });
+    setSettingsIdx(null);
+  }
+
   function addWidget(widgetId: string, cols: WidgetSize) {
     const inst: WidgetInstance = { instanceId: generateInstanceId(), widgetId, cols };
     persist({ ...config, widgets: [...config.widgets, inst] });
     setGalleryOpen(false);
+  }
+
+  function refreshWidget(idx: number) {
+    const inst = config.widgets[idx];
+    if (!inst) return;
+    setRefreshFlash(inst.instanceId);
+    setTimeout(() => setRefreshFlash(null), 1200);
+    // Phase 2: triggert echtes Re-Fetch der Datenquelle.
+  }
+
+  function exportCsv(idx: number) {
+    const inst = config.widgets[idx];
+    const entry = inst ? findWidget(inst.widgetId) : undefined;
+    if (!inst || !entry) return;
+    const filename = `${entry.id}-${new Date().toISOString().slice(0, 10)}.csv`;
+    const header = ["widget", "title", "category", "exported_at"].join(",");
+    const row = [entry.id, inst.title ?? entry.title, entry.category, new Date().toISOString()].map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",");
+    const blob = new Blob([header + "\n" + row + "\n"], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    // Phase 2: echte Datenzeilen statt Metadata-Stub.
   }
 
   function reset() {
@@ -68,6 +121,9 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
   }
 
   if (!mounted) return null;
+
+  const settingsInstance = settingsIdx !== null ? config.widgets[settingsIdx] : null;
+  const settingsEntry = settingsInstance ? findWidget(settingsInstance.widgetId) : null;
 
   return (
     <div className="space-y-4">
@@ -118,48 +174,43 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
             if (!entry) {
               return (
                 <div key={inst.instanceId} className="col-span-12 rounded-md border border-loss/30 bg-loss/5 p-3 text-xs text-loss">
-                  Unbekanntes Widget: <code>{inst.widgetId}</code> — entferne es oder waehle ein anderes.
+                  Unbekanntes Widget: <code>{inst.widgetId}</code>{" "}
+                  <button onClick={() => removeWidget(idx)} className="ml-2 underline hover:no-underline">entfernen</button>
                 </div>
               );
             }
             return (
               <div
                 key={inst.instanceId}
-                className={`relative col-span-12 ${colSpanClass(inst.cols)}`}
+                className={`group relative col-span-12 ${colSpanClass(inst.cols)} ${refreshFlash === inst.instanceId ? "animate-pulse" : ""}`}
               >
-                {editMode && (
-                  <div className="absolute right-2 top-2 z-10 flex gap-1 rounded-md border border-border bg-card p-1 shadow-sm">
-                    <button
-                      onClick={() => moveWidget(idx, -1)}
-                      disabled={idx === 0}
-                      className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
-                      aria-label="Nach oben"
-                      title="Nach oben"
-                    >
-                      <ChevronUp className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => moveWidget(idx, 1)}
-                      disabled={idx === config.widgets.length - 1}
-                      className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
-                      aria-label="Nach unten"
-                      title="Nach unten"
-                    >
-                      <ChevronDown className="h-3.5 w-3.5" />
-                    </button>
-                    <ResizePicker
-                      current={inst.cols}
-                      allowed={entry.allowedCols}
-                      onPick={(c) => resizeWidget(idx, c)}
+                {/* Schwebendes Action-Menue: immer sichtbar oben rechts */}
+                <div className="pointer-events-none absolute right-2 top-2 z-20 flex items-start gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                  {editMode && (
+                    <div className="pointer-events-auto flex gap-1 rounded-md border border-border bg-card p-1 shadow-sm">
+                      <IconButton onClick={() => moveWidget(idx, -1)} disabled={idx === 0} icon={ChevronUp} label="Nach oben" />
+                      <IconButton onClick={() => moveWidget(idx, 1)} disabled={idx === config.widgets.length - 1} icon={ChevronDown} label="Nach unten" />
+                      <ResizePicker
+                        current={inst.cols}
+                        allowed={entry.allowedCols}
+                        onPick={(c) => resizeWidget(idx, c)}
+                      />
+                    </div>
+                  )}
+                  <div className="pointer-events-auto rounded-md border border-border bg-card p-1 shadow-sm">
+                    <ActionMenu
+                      onSettings={() => setSettingsIdx(idx)}
+                      onSwap={() => setSettingsIdx(idx)}
+                      onRefresh={() => refreshWidget(idx)}
+                      onExportCsv={() => exportCsv(idx)}
+                      onRemove={() => removeWidget(idx)}
                     />
-                    <button
-                      onClick={() => removeWidget(idx)}
-                      className="rounded p-1 text-destructive hover:bg-destructive/10"
-                      aria-label="Entfernen"
-                      title="Entfernen"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                  </div>
+                </div>
+                {/* Custom-Title-Indikator (falls gesetzt) */}
+                {inst.title && (
+                  <div className="absolute left-3 top-3 z-10 rounded-md bg-brand/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand">
+                    {inst.title}
                   </div>
                 )}
                 {entry.render(data, inst.settings)}
@@ -174,7 +225,114 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
         onClose={() => setGalleryOpen(false)}
         onAdd={(entry) => addWidget(entry.id, entry.defaultCols)}
       />
+
+      {settingsInstance && settingsEntry && (
+        <WidgetSettingsModal
+          instance={settingsInstance}
+          catalogEntry={settingsEntry}
+          onClose={() => setSettingsIdx(null)}
+          onSave={(next) => updateInstance(settingsIdx!, next)}
+          onSwap={(newId) => swapWidget(settingsIdx!, newId)}
+        />
+      )}
     </div>
+  );
+}
+
+function IconButton({
+  onClick,
+  disabled,
+  icon: Icon,
+  label,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
+      aria-label={label}
+      title={label}
+    >
+      <Icon className="h-3.5 w-3.5" />
+    </button>
+  );
+}
+
+function ActionMenu({
+  onSettings,
+  onSwap,
+  onRefresh,
+  onExportCsv,
+  onRemove,
+}: {
+  onSettings: () => void;
+  onSwap: () => void;
+  onRefresh: () => void;
+  onExportCsv: () => void;
+  onRemove: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      const t = e.target as HTMLElement;
+      if (!t.closest('[data-widget-action-menu="true"]')) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  return (
+    <div data-widget-action-menu="true" className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+        aria-label="Aktionen"
+        title="Aktionen"
+      >
+        <MoreHorizontal className="h-3.5 w-3.5" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-md border border-border bg-card shadow-lg">
+          <MenuItem icon={RefreshCw} label="Aktualisieren" onClick={() => { setOpen(false); onRefresh(); }} />
+          <MenuItem icon={ArrowRightLeft} label="Widget austauschen" onClick={() => { setOpen(false); onSwap(); }} />
+          <MenuItem icon={Settings} label="Einstellungen" onClick={() => { setOpen(false); onSettings(); }} />
+          <div className="my-1 border-t border-border" />
+          <MenuItem icon={Download} label="Als CSV exportieren" onClick={() => { setOpen(false); onExportCsv(); }} />
+          <div className="my-1 border-t border-border" />
+          <MenuItem icon={Trash2} label="Entfernen" destructive onClick={() => { setOpen(false); onRemove(); }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItem({
+  icon: Icon,
+  label,
+  onClick,
+  destructive,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  destructive?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition ${
+        destructive ? "text-destructive hover:bg-destructive/10" : "text-foreground hover:bg-accent"
+      }`}
+    >
+      <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+      {label}
+    </button>
   );
 }
 
@@ -188,8 +346,17 @@ function ResizePicker({
   onPick: (c: WidgetSize) => void;
 }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      const t = e.target as HTMLElement;
+      if (!t.closest('[data-resize-picker="true"]')) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
   return (
-    <div className="relative">
+    <div data-resize-picker="true" className="relative">
       <button
         onClick={() => setOpen(!open)}
         className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -199,7 +366,7 @@ function ResizePicker({
         <Maximize2 className="h-3.5 w-3.5" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-1 w-32 rounded-md border border-border bg-card py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-30 mt-1 w-32 rounded-md border border-border bg-card py-1 shadow-lg">
           {COLS_OPTIONS.map((c) => {
             const isAllowed = allowed.includes(c);
             return (

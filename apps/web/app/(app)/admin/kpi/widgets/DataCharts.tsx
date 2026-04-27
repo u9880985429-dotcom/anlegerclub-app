@@ -1,6 +1,5 @@
 "use client";
 import { TrendingUp, RefreshCcw, PieChart as PieIcon, BarChart3, Layers } from "lucide-react";
-import { CardMenu } from "@/components/CardMenu";
 import type { WidgetData } from "./types";
 
 const PRODUCT_COLORS: Record<string, string> = {
@@ -17,16 +16,6 @@ const PRODUCT_LABEL: Record<string, string> = {
   cockpit: "Cockpit",
   "all-access": "All-Access",
 };
-
-function chartMenuItems(label: string) {
-  return [
-    { label: "Aktualisieren", onClick: () => alert(`„${label}" wird aktualisiert (Phase 2: DB-Refetch).`) },
-    { label: "Als PNG exportieren", onClick: () => alert(`„${label}" als PNG (Phase 2).`) },
-    { label: "Als CSV exportieren", onClick: () => alert(`„${label}" als CSV (Phase 2).`) },
-    { divider: true, label: "" },
-    { label: "Einstellungen", onClick: () => alert("Einstellungen (Phase 2).") },
-  ];
-}
 
 /**
  * Area-Chart fuer MRR-Verlauf.
@@ -88,7 +77,6 @@ export function RevenueAreaChart({ data }: { data: WidgetData }) {
             <div className="text-xl font-extrabold">{last.value.toLocaleString("de-DE")} €</div>
             <div className="text-[11px] text-profit">+{growth.toFixed(1).replace(".", ",")} % seit Start</div>
           </div>
-          <CardMenu items={chartMenuItems("Umsatz-Verlauf")} />
         </div>
       </div>
       <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full" preserveAspectRatio="none">
@@ -153,7 +141,6 @@ export function LineRevenueChart({ data }: { data: WidgetData }) {
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           <TrendingUp className="h-3.5 w-3.5" /> Booked Revenue (Monatslinie)
         </h3>
-        <CardMenu items={chartMenuItems("Booked Revenue")} />
       </div>
       <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
         {[0.25, 0.5, 0.75].map((g) => {
@@ -206,7 +193,6 @@ export function VerticalBarChart({ data }: { data: WidgetData }) {
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           <BarChart3 className="h-3.5 w-3.5" /> Aktivitaet pro Monat
         </h3>
-        <CardMenu items={chartMenuItems("Monats-Aktivitaet")} />
       </div>
       <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
         {[0.25, 0.5, 0.75].map((g) => {
@@ -252,7 +238,6 @@ export function HorizontalBarsChart({ data }: { data: WidgetData }) {
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           <BarChart3 className="h-3.5 w-3.5" /> Reichweite je Kanal
         </h3>
-        <CardMenu items={chartMenuItems("Reichweite je Kanal")} />
       </div>
       <div className="space-y-3">
         {rows.map((r) => (
@@ -312,7 +297,6 @@ export function GroupedBarChart({ data }: { data: WidgetData }) {
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           <Layers className="h-3.5 w-3.5" /> Revenue · jetzt vs. Vergleich
         </h3>
-        <CardMenu items={chartMenuItems("Revenue Vergleich")} />
       </div>
       <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
         {[0.25, 0.5, 0.75].map((g) => {
@@ -358,7 +342,6 @@ export function ChurnDonut({ data }: { data: WidgetData }) {
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           <RefreshCcw className="h-3.5 w-3.5" /> Retention vs. Churn
         </h3>
-        <CardMenu items={chartMenuItems("Retention vs Churn")} />
       </div>
       <div className="mt-4 flex items-center gap-4">
         <svg viewBox="0 0 100 100" className="h-28 w-28 -rotate-90">
@@ -423,7 +406,6 @@ export function ProductMixPie({ data }: { data: WidgetData }) {
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           <PieIcon className="h-3.5 w-3.5" /> Produkt-Mix
         </h3>
-        <CardMenu items={chartMenuItems("Produkt-Mix")} />
       </div>
       <div className="mt-4 flex items-center gap-5">
         <svg viewBox="0 0 100 100" className="h-32 w-32 -rotate-90">
@@ -483,7 +465,6 @@ export function SalesFunnelChart({ data }: { data: WidgetData }) {
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Conversion-Funnel · letzte 30 Tage
         </h3>
-        <CardMenu items={chartMenuItems("Conversion-Funnel")} />
       </div>
       <div className="space-y-2">
         {steps.map((s, i) => {
@@ -534,7 +515,6 @@ export function FunnelStepsChart({ data }: { data: WidgetData }) {
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Sales-Funnel
         </h3>
-        <CardMenu items={chartMenuItems("Sales-Funnel")} />
       </div>
       <svg viewBox={`0 0 ${w} ${h}`} className="mx-auto h-auto w-full max-w-[360px]">
         {steps.map((s, i) => {

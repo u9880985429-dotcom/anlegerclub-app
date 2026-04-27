@@ -1,5 +1,4 @@
 "use client";
-import { CardMenu } from "@/components/CardMenu";
 import type { WidgetData } from "./types";
 
 /**
@@ -9,13 +8,6 @@ import type { WidgetData } from "./types";
  *  - Latest Income / Last 10 Balances (Personal-Finance-Card)
  *  - Top Trade-Signale nach Engagement (eigene Mock)
  */
-
-const chartActions = (label: string) => [
-  { label: "Aktualisieren", onClick: () => alert(`„${label}" aktualisiert (Phase 2).`) },
-  { label: "Als CSV exportieren", onClick: () => alert(`„${label}" als CSV (Phase 2).`) },
-  { divider: true, label: "" },
-  { label: "Einstellungen", onClick: () => alert("Einstellungen (Phase 2).") },
-];
 
 /** Cohort-Retention-Tabelle. */
 export function CohortRetentionTable() {
@@ -31,7 +23,6 @@ export function CohortRetentionTable() {
     <div className="card-base h-full p-5">
       <div className="mb-3 flex items-start justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Kohorten-Retention</h3>
-        <CardMenu items={chartActions("Kohorten-Retention")} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -91,7 +82,6 @@ export function TopTradesTable() {
     <div className="card-base h-full">
       <div className="flex items-start justify-between p-4 pb-0">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Top-Trades nach Engagement</h3>
-        <CardMenu items={chartActions("Top Trade-Signale")} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -140,7 +130,6 @@ export function LatestOrdersTable({ data }: { data: WidgetData }) {
     <div className="card-base h-full">
       <div className="flex items-start justify-between p-4 pb-0">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Letzte Bestellungen</h3>
-        <CardMenu items={chartActions("Letzte Bestellungen")} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -189,7 +178,6 @@ export function SalesPerformanceTable() {
     <div className="card-base h-full p-5">
       <div className="mb-3 flex items-start justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Sales-Performance · Agent-Vergleich</h3>
-        <CardMenu items={chartActions("Sales-Performance")} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -237,7 +225,6 @@ export function SubscriptionStatusBreakdown({ data }: { data: WidgetData }) {
     <div className="card-base h-full p-5">
       <div className="mb-2 flex items-start justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Subscription-Status</h3>
-        <CardMenu items={chartActions("Status-Verteilung")} />
       </div>
       <div className="mt-4 flex items-center gap-5">
         <svg viewBox="0 0 100 100" className="h-28 w-28 -rotate-90">
