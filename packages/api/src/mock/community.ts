@@ -1,4 +1,33 @@
 import type { Comment, Community, Post, ProductSlug, Report } from "../types";
+import { getPublicDisplayName, getTeamBadge, isTeamRole } from "./displayName";
+
+/**
+ * Author-Roll-Map: bestimmt wie der Name dieses Autors öffentlich dargestellt wird.
+ * Quelle der Wahrheit für Autor-Rolle + Team-Status. Synchron zu users.ts.
+ */
+const AUTHOR_META: Record<string, { firstName: string; lastName: string; role: import("../types").Role; isTeamMember?: boolean }> = {
+  u_admin: { firstName: "Admin", lastName: "Trader IQ", role: "STAFF", isTeamMember: true },
+  u_max: { firstName: "Max", lastName: "Bauer", role: "STAFF", isTeamMember: true },
+  u_mira: { firstName: "Mira", lastName: "Schulz", role: "MODERATOR", isTeamMember: false }, // aus MEMBER befördert
+  u_anna: { firstName: "Anna", lastName: "Huber", role: "MEMBER" },
+  u_klaus: { firstName: "Klaus", lastName: "Berger", role: "MEMBER" },
+  u_jonas: { firstName: "Jonas", lastName: "Weiß", role: "MEMBER" },
+  u_petra: { firstName: "Petra", lastName: "Fischer", role: "MEMBER" },
+};
+
+function publicNameFor(authorId: string, fallbackFirst: string, fallbackLast: string): string {
+  const meta = AUTHOR_META[authorId] ?? { firstName: fallbackFirst, lastName: fallbackLast, role: "MEMBER" as const };
+  return getPublicDisplayName(meta);
+}
+
+function authorMetaFor(authorId: string) {
+  const m = AUTHOR_META[authorId];
+  if (!m) return { isTeam: false, badge: null };
+  return {
+    isTeam: isTeamRole(m.role, m.isTeamMember),
+    badge: getTeamBadge(m),
+  };
+}
 
 export const communities: Community[] = [
   { id: "c_starter", productSlug: "starter", name: "Starter Depot Community", archiveUrl: "https://member.geldiq.com/s/geldiq/starter-depot-8740b018" },
@@ -25,11 +54,14 @@ const PIN_TITLES = [
 
 function buildPostsFor(community: Community): Post[] {
   const now = Date.now();
+  const adminMeta = authorMetaFor("u_admin");
   const pinned: Post[] = PIN_TITLES.map((title, i) => ({
     id: `p_${community.id}_pin_${i}`,
     communityId: community.id,
     authorId: "u_admin",
-    authorName: "Admin Trader IQ",
+    authorName: publicNameFor("u_admin", "Admin", "Trader IQ"),
+    authorIsTeam: adminMeta.isTeam,
+    authorTeamBadge: adminMeta.badge,
     title,
     bodyMd: i === 0
       ? "Hier herrscht ein freundlicher, respektvoller Ton. Keine Anlageberatung, keine Empfehlungen für Drittprodukte, keine Werbung. Bei Fragen meldet euch bei einem Mod."
@@ -45,11 +77,16 @@ function buildPostsFor(community: Community): Post[] {
     createdAt: new Date(now - (30 + i) * 24 * 60 * 60 * 1000).toISOString(),
   }));
 
-  const regular: Post[] = POST_TEMPLATES.map((t, i) => ({
+  const regular: Post[] = POST_TEMPLATES.map((t, i) => {
+    const meta = AUTHOR_META[t.authorId];
+    const teamMeta = authorMetaFor(t.authorId);
+    return {
     id: `p_${community.id}_${i}`,
     communityId: community.id,
     authorId: t.authorId,
-    authorName: t.author,
+    authorName: publicNameFor(t.authorId, meta?.firstName ?? t.author.split(" ")[0]!, meta?.lastName ?? t.author.split(" ").slice(1).join(" ")),
+    authorIsTeam: teamMeta.isTeam,
+    authorTeamBadge: teamMeta.badge,
     title: t.title ?? null,
     bodyMd: t.body,
     pinned: false,
@@ -62,7 +99,8 @@ function buildPostsFor(community: Community): Post[] {
     ].filter((r) => r.count > 0),
     commentCount: ((i * 3) % 4) + 1,
     createdAt: new Date(now - i * 6 * 60 * 60 * 1000).toISOString(),
-  }));
+  };
+  });
 
   return [...pinned, ...regular];
 }
@@ -91,11 +129,11 @@ export function getPostById(id: string): Post | undefined {
 }
 
 // ─── Comments ─────────────────────────────────────────────────────────────
-const COMMENT_TEMPLATES = [
-  { author: "Klaus Berger", authorId: "u_klaus", body: "Sehe ich genauso. Bei mir war die Lernkurve in den ersten 3 Monaten am steilsten." },
-  { author: "Anna Huber", authorId: "u_anna", body: "Ich warte immer 30 Min nach Eröffnung – die Volatilität direkt zur Eröffnung verfälscht oft die Stops." },
-  { author: "Mira Schulz", authorId: "u_mira", body: "Im Trade Journal findest du die exakten Anpassungen mit Zeitstempel. 👍" },
-  { author: "Jonas Weiß", authorId: "u_jonas", body: "Danke für den Hinweis – Kalender ist bei mir eingetragen." },
+const COMMENT_TEMPLATES: { authorId: string; body: string }[] = [
+  { authorId: "u_klaus", body: "Sehe ich genauso. Bei mir war die Lernkurve in den ersten 3 Monaten am steilsten." },
+  { authorId: "u_anna", body: "Ich warte immer 30 Min nach Eröffnung – die Volatilität direkt zur Eröffnung verfälscht oft die Stops." },
+  { authorId: "u_mira", body: "Im Trade Journal findest du die exakten Anpassungen mit Zeitstempel. 👍" },
+  { authorId: "u_jonas", body: "Danke für den Hinweis – Kalender ist bei mir eingetragen." },
 ];
 
 // Echte Beleidigungs-Mock-Beispiele für die Mod-Queue (intern, in der UI maskiert).
@@ -126,11 +164,15 @@ export const moderationFlaggedComments = [
 export const allComments: Comment[] = allPosts.flatMap((p, idx) =>
   Array.from({ length: p.commentCount }).map((_, i) => {
     const tpl = COMMENT_TEMPLATES[(idx + i) % COMMENT_TEMPLATES.length]!;
+    const meta = AUTHOR_META[tpl.authorId];
+    const teamMeta = authorMetaFor(tpl.authorId);
     return {
       id: `cm_${p.id}_${i}`,
       postId: p.id,
       authorId: tpl.authorId,
-      authorName: tpl.author,
+      authorName: publicNameFor(tpl.authorId, meta?.firstName ?? "User", meta?.lastName ?? ""),
+      authorIsTeam: teamMeta.isTeam,
+      authorTeamBadge: teamMeta.badge,
       bodyMd: tpl.body,
       parentId: null,
       visible: true,
@@ -148,7 +190,7 @@ export const reports: Report[] = [
   {
     id: "rep_1",
     reporterId: "u_anna",
-    reporterName: "Anna Huber",
+    reporterName: publicNameFor("u_anna", "Anna", "Huber"),
     postId: allPosts[5]?.id ?? null,
     commentId: null,
     reason: "Vermutete Werbung für Drittprodukt (Telegram-Link im Post)",
@@ -158,7 +200,7 @@ export const reports: Report[] = [
   {
     id: "rep_2",
     reporterId: "u_klaus",
-    reporterName: "Klaus Berger",
+    reporterName: publicNameFor("u_klaus", "Klaus", "Berger"),
     postId: null,
     commentId: moderationFlaggedComments[0]!.id,
     reason: 'Beleidigung („Vollidiot") – automatisch maskiert',
@@ -168,7 +210,7 @@ export const reports: Report[] = [
   {
     id: "rep_3",
     reporterId: "u_petra",
-    reporterName: "Petra Fischer",
+    reporterName: publicNameFor("u_petra", "Petra", "Fischer"),
     postId: null,
     commentId: moderationFlaggedComments[1]!.id,
     reason: 'Schwere Beleidigung („Hurensohn") – automatisch maskiert',
@@ -178,7 +220,7 @@ export const reports: Report[] = [
   {
     id: "rep_4",
     reporterId: "u_mira",
-    reporterName: "Mira Schulz",
+    reporterName: publicNameFor("u_mira", "Mira", "Schulz"),
     postId: allPosts[2]?.id ?? null,
     commentId: null,
     reason: "Off-Topic – kein Bezug zum Trade",

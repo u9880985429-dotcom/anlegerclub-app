@@ -75,7 +75,7 @@ export default async function StillhalterDepotPage({
             <div className="card-base p-5">
               <h3 className="mb-2 font-semibold">Willkommen</h3>
               <p className="text-sm text-muted-foreground">
-                Schau dir das Welcome-Video an. Anschließend findest du unter „Start" die Strategie-Erklärung, Performance und Brokerempfehlung.
+                Schau dir das Welcome-Video an. Anschließend findest du unter „Strategie und Performance" die Strategie-Erklärung, Performance und Brokerempfehlung.
               </p>
             </div>
           </div>

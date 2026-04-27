@@ -97,6 +97,14 @@ export {
 export type { Strike, StrikeReason, StrikeSeverity, StrikeSummary } from "./mock/strikes";
 
 export {
+  getPublicDisplayName,
+  getPublicInitials,
+  getTeamBadge,
+  isTeamRole,
+} from "./mock/displayName";
+export type { DisplayUser } from "./mock/displayName";
+
+export {
   daxStrategieSignale,
   daxMillJahresRenditen,
   daxMillEquityCurve,

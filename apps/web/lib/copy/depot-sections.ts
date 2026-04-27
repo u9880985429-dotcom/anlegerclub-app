@@ -24,7 +24,7 @@ export const STARTER_TAB_LABELS: Record<string, string> = {
 
 export const TREND_TAB_LABELS: Record<string, string> = {
   welcome: "Welcome",
-  start: "Start",
+  start: "Strategie und Performance",
   signale: "Trade-Signale",
   auswertungen: "Depotauswertungen",
   broker: "Brokerempfehlung",

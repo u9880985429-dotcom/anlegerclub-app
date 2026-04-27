@@ -62,7 +62,7 @@ const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; 
   ],
   trend: [
     { tab: "welcome", label: "Welcome" },
-    { tab: "start", label: "Start" },
+    { tab: "start", label: "Strategie und Performance" },
     { tab: "signale", label: "Trade-Signale" },
     { tab: "auswertungen", label: "Depotauswertungen" },
     { tab: "broker", label: "Brokerempfehlung" },
@@ -71,7 +71,7 @@ const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; 
   ],
   stillhalter: [
     { tab: "welcome", label: "Welcome" },
-    { tab: "start", label: "Start" },
+    { tab: "start", label: "Strategie und Performance" },
     { tab: "signale", label: "Trade-Signale" },
     { tab: "auswertungen", label: "Depotauswertungen" },
     { tab: "broker", label: "Brokerempfehlung" },

@@ -15,6 +15,12 @@ export interface User {
   notifyEmail: boolean;
   loginCount: number;
   onboardedFor: ProductSlug[];
+  /**
+   * `true` für vom Trader-IQ-Team eingeladene User.
+   * Bestimmt, ob im Public-Namen der Nachname voll oder nur als Initial steht.
+   * Wird automatisch true gewertet bei STAFF/OWNER/ADMIN.
+   */
+  isTeamMember?: boolean;
   /** Felder die Ablefy in Phase 2 weiterleitet — Phase 1 als optionale Demo-Daten. */
   phone?: string;
   street?: string;
@@ -122,6 +128,10 @@ export interface Post {
   communityId: string;
   authorId: string;
   authorName: string;
+  /** `true`, wenn der Autor zum Trader-IQ-Team gehört (für Badge-Anzeige). */
+  authorIsTeam?: boolean;
+  /** Spezifischer Team-Badge-Text (z.B. „Trader IQ · Team"). */
+  authorTeamBadge?: string | null;
   title: string | null;
   bodyMd: string;
   pinned: boolean;
@@ -137,6 +147,9 @@ export interface Comment {
   postId: string;
   authorId: string;
   authorName: string;
+  /** `true`, wenn der Autor zum Trader-IQ-Team gehört (für Badge-Anzeige). */
+  authorIsTeam?: boolean;
+  authorTeamBadge?: string | null;
   bodyMd: string;
   parentId: string | null;
   visible: boolean;

@@ -75,7 +75,7 @@ export default async function TrendDepotPage({
             <div className="card-base p-5">
               <h3 className="mb-2 font-semibold">Willkommen</h3>
               <p className="text-sm text-muted-foreground">
-                Schau dir das Welcome-Video an. Anschließend findest du unter „Start" die Einführung, Performance und Brokerempfehlung.
+                Schau dir das Welcome-Video an. Anschließend findest du unter „Strategie und Performance" die Einführung, Performance und Brokerempfehlung.
               </p>
             </div>
           </div>

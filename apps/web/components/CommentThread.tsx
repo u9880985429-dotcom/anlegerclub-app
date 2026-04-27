@@ -111,10 +111,15 @@ function CommentNode({
     >
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
         {depth > 0 && <CornerDownRight className="h-3 w-3 text-brand" />}
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[10px] font-bold">
+        <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${comment.authorIsTeam ? "bg-brand text-white" : "bg-muted"}`}>
           {comment.authorName.split(" ").map((n) => n.charAt(0)).slice(0, 2).join("")}
         </div>
         <span className="font-semibold">{comment.authorName}</span>
+        {comment.authorIsTeam && comment.authorTeamBadge && (
+          <span className="inline-flex items-center rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+            {comment.authorTeamBadge}
+          </span>
+        )}
         <span className="text-muted-foreground">·</span>
         <span className="text-muted-foreground">{formatRelative(comment.createdAt)}</span>
       </div>

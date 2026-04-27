@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { allSubscriptions, allUsers } from "@traderiq/api";
 import { Search, Filter, ChevronRight } from "lucide-react";
 import { RoleDropdown } from "./RoleDropdown";
+import { TeamInvite } from "./TeamInvite";
 
 const STATUS_CLASS: Record<string, string> = {
   ACTIVE: "badge-profit",
@@ -33,6 +34,7 @@ export default function AdminUsersPage({
         eyebrow="Admin · Mitglieder"
         title="Mitglieder"
         description={`${filtered.length} ${filter ? `· Filter: ${filter}` : "Mitglieder gesamt"}`}
+        action={<TeamInvite />}
       />
 
       <div className="card-base mb-4 flex flex-wrap items-center gap-2 p-3">
