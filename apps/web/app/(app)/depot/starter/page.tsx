@@ -11,8 +11,9 @@ import { VTJEmbed } from "@/components/VTJEmbed";
 import { BrokerCard } from "@/components/BrokerCard";
 import { EditModeBar } from "@/components/EditModeBar";
 import { CommunityFeed } from "@/components/CommunityFeed";
+import { LockedProductPitch } from "@/components/LockedProductPitch";
 import { buildBreadcrumb } from "@/lib/copy/depot-sections";
-import { requireProductAccess } from "@/lib/access";
+import { getProductAccess } from "@/lib/access";
 import {
   STARTER_PERFORMANCE,
   STARTER_STRATEGY,
@@ -35,7 +36,19 @@ export default async function StarterDepotPage({
 }: {
   searchParams: { tab?: string };
 }) {
-  const session = await requireProductAccess("starter");
+  const { session, hasAccess } = await getProductAccess("starter");
+  if (!hasAccess) {
+    return (
+      <>
+        <PageHeader
+          eyebrow={buildBreadcrumb("starter", "welcome")}
+          title="Dein Starter Depot"
+          description="Vorschau – noch nicht abonniert."
+        />
+        <LockedProductPitch slug="starter" />
+      </>
+    );
+  }
   const trades = getTradesByProduct("starter");
   const reports = getReportsByProduct("starter");
   const isStarterOnly = session.user.productSlug === "starter";

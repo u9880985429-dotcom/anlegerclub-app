@@ -10,7 +10,8 @@ import { BrokerCard } from "@/components/BrokerCard";
 import { EditModeBar } from "@/components/EditModeBar";
 import { buildBreadcrumb } from "@/lib/copy/depot-sections";
 import { CommunityFeed } from "@/components/CommunityFeed";
-import { requireProductAccess } from "@/lib/access";
+import { LockedProductPitch } from "@/components/LockedProductPitch";
+import { getProductAccess } from "@/lib/access";
 import {
   TREND_PERFORMANCE,
   TREND_STRATEGY,
@@ -28,7 +29,19 @@ export default async function TrendDepotPage({
 }: {
   searchParams: { tab?: string };
 }) {
-  const session = await requireProductAccess("trend");
+  const { session, hasAccess } = await getProductAccess("trend");
+  if (!hasAccess) {
+    return (
+      <>
+        <PageHeader
+          eyebrow={buildBreadcrumb("trend", "welcome")}
+          title="Trend Depot"
+          description="Vorschau – noch nicht abonniert."
+        />
+        <LockedProductPitch slug="trend" />
+      </>
+    );
+  }
   const trades = getTradesByProduct("trend");
   const reports = getReportsByProduct("trend");
   const activeTab = searchParams.tab ?? "welcome";

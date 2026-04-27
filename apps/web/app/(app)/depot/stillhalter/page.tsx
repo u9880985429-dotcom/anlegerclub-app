@@ -10,7 +10,8 @@ import { BrokerCard } from "@/components/BrokerCard";
 import { EditModeBar } from "@/components/EditModeBar";
 import { buildBreadcrumb } from "@/lib/copy/depot-sections";
 import { CommunityFeed } from "@/components/CommunityFeed";
-import { requireProductAccess } from "@/lib/access";
+import { LockedProductPitch } from "@/components/LockedProductPitch";
+import { getProductAccess } from "@/lib/access";
 import {
   STILLHALTER_PERFORMANCE,
   STILLHALTER_STRATEGY,
@@ -28,7 +29,19 @@ export default async function StillhalterDepotPage({
 }: {
   searchParams: { tab?: string };
 }) {
-  const session = await requireProductAccess("stillhalter");
+  const { session, hasAccess } = await getProductAccess("stillhalter");
+  if (!hasAccess) {
+    return (
+      <>
+        <PageHeader
+          eyebrow={buildBreadcrumb("stillhalter", "welcome")}
+          title="Stillhalter Depot"
+          description="Vorschau – noch nicht abonniert."
+        />
+        <LockedProductPitch slug="stillhalter" />
+      </>
+    );
+  }
   const trades = getTradesByProduct("stillhalter");
   const reports = getReportsByProduct("stillhalter");
   const activeTab = searchParams.tab ?? "welcome";

@@ -7,7 +7,8 @@ import { EarningsBrowser } from "@/components/EarningsBrowser";
 import { EditModeBar } from "@/components/EditModeBar";
 import { buildBreadcrumb } from "@/lib/copy/depot-sections";
 import { CommunityFeed } from "@/components/CommunityFeed";
-import { requireProductAccess } from "@/lib/access";
+import { LockedProductPitch } from "@/components/LockedProductPitch";
+import { getProductAccess } from "@/lib/access";
 import { lexikon, marketUpdates, upcomingEarnings, cockpitDocuments } from "@traderiq/api";
 import { formatGermanDate } from "@/lib/format";
 
@@ -20,7 +21,19 @@ export default async function CockpitPage({
 }: {
   searchParams: { tab?: string };
 }) {
-  const session = await requireProductAccess("cockpit");
+  const { session, hasAccess } = await getProductAccess("cockpit");
+  if (!hasAccess) {
+    return (
+      <>
+        <PageHeader
+          eyebrow={buildBreadcrumb("cockpit", "welcome")}
+          title="Trader Cockpit"
+          description="Vorschau – noch nicht abonniert."
+        />
+        <LockedProductPitch slug="cockpit" />
+      </>
+    );
+  }
   const tag = marketUpdates.filter((u) => u.kind === "tag");
   const woche = marketUpdates.filter((u) => u.kind === "woche");
   const monat = marketUpdates.filter((u) => u.kind === "monat");

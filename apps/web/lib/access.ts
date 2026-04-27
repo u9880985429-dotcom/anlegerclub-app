@@ -23,6 +23,24 @@ export async function requireProductAccess(slug: ProductSlug) {
   return session;
 }
 
+/**
+ * Wie requireProductAccess, aber redirect-frei: der Aufrufer kann selbst entscheiden,
+ * ob bei fehlendem Zugriff eine Pitch-Page (statt Redirect) gerendert werden soll.
+ */
+export async function getProductAccess(slug: ProductSlug): Promise<{
+  session: Awaited<ReturnType<typeof requireSession>>;
+  hasAccess: boolean;
+}> {
+  const session = await requireSession();
+  const subs = findSubscriptionsForUser(session.user.id);
+  const hasAccess = subs.some(
+    (s) =>
+      (s.productSlug === slug || s.productSlug === "all-access") &&
+      (s.status === "ACTIVE" || s.status === "CANCELLED" || s.status === "PAID"),
+  );
+  return { session, hasAccess };
+}
+
 export function isOnboardedFor(onboardedFor: string[], slug: ProductSlug): boolean {
   return onboardedFor.includes(slug);
 }

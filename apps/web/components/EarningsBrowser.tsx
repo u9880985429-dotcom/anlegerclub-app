@@ -112,6 +112,7 @@ function EarningsCard({ entry }: { entry: EarningsEntry }) {
  * und rendern Balken neben dem Spotwert. Die Farbe ist neutral (Brand-Orange).
  */
 function IVPanel({ value, priceHistory }: { value: number; priceHistory: number[] }) {
+  const xTicks = buildXTicks(priceHistory.length, 3);
   // Simulierte IV-Kurve aus rolling stddev (10 Werte) der Preis-Historie.
   const rolling: number[] = [];
   const WIN = 10;
@@ -137,6 +138,12 @@ function IVPanel({ value, priceHistory }: { value: number; priceHistory: number[
           />
         ))}
       </div>
+      {/* Datums-Ticks unter der IV-Bar */}
+      <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+        {xTicks.map((t, i) => (
+          <span key={i} className="font-mono">{t.label}</span>
+        ))}
+      </div>
       <div className="mt-2 flex items-baseline justify-between text-xs">
         <span className="text-muted-foreground">aktuell</span>
         <span className="font-mono text-base font-bold text-foreground">{value.toFixed(1).replace(".", ",")} %</span>
@@ -150,11 +157,40 @@ function IVPanel({ value, priceHistory }: { value: number; priceHistory: number[
  * Body = Open→Close (grün/rot), Wick = High/Low.
  * 1 Kerze = 1 Handelstag seit dem letzten Earnings (≈ 60 Kerzen / 12 Wochen).
  */
+/**
+ * Berechnet 4–5 Datumsticks für die X-Achse, dynamisch je Spanne.
+ * - ≤ 7 Tage: täglich (TT.MM)
+ * - 8–35 Tage: wöchentlich (TT.MM)
+ * - 36–120 Tage: ~bi-weekly (TT.MM)
+ * - > 120 Tage: monatlich (MM.JJ)
+ *
+ * Letzte Kerze = "heute"; jede Kerze = 1 Handelstag (≈ 1,4 Kalendertage).
+ */
+function buildXTicks(numCandles: number, count = 5): { ratio: number; label: string }[] {
+  const totalCalendarDays = Math.round(numCandles * 1.4);
+  const today = new Date();
+  const ticks: { ratio: number; label: string }[] = [];
+  const useMonthly = totalCalendarDays > 120;
+
+  for (let k = 0; k < count; k++) {
+    const ratio = k / (count - 1);
+    const calendarDaysBack = Math.round((1 - ratio) * totalCalendarDays);
+    const d = new Date(today);
+    d.setDate(d.getDate() - calendarDaysBack);
+    const label = useMonthly
+      ? d.toLocaleDateString("de-DE", { month: "2-digit", year: "2-digit" })
+      : d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+    ticks.push({ ratio, label });
+  }
+  return ticks;
+}
+
 function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
   const W = 640;
   const H = 380;
-  const PAD_X = 6;
+  const PAD_X = 30;
   const PAD_Y = 12;
+  const PAD_BOTTOM = 28; // Platz für Datumsticks unten
 
   // OHLC pro Tag: Open = Vortages-Close, Close = aktueller Tag.
   // High/Low werden synthetisch aus der lokalen Range geschätzt.
@@ -175,15 +211,20 @@ function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
   const max = Math.max(...allValues);
   const range = max - min || 1;
 
-  const sy = (v: number) => PAD_Y + (1 - (v - min) / range) * (H - 2 * PAD_Y);
+  const plotH = H - PAD_Y - PAD_BOTTOM;
+  const sy = (v: number) => PAD_Y + (1 - (v - min) / range) * plotH;
   const slotW = (W - 2 * PAD_X) / candles.length;
   const bodyW = Math.max(slotW * 0.66, 2);
 
-  // Y-axis ticks
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
-    y: PAD_Y + t * (H - 2 * PAD_Y),
+  // Y-axis ticks (Preisachse links)
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
+    y: PAD_Y + t * plotH,
     val: max - t * range,
   }));
+
+  // X-axis ticks (Datumsachse unten)
+  const xTicks = buildXTicks(values.length, 5);
+  const xAxisY = PAD_Y + plotH;
 
   return (
     <div>
@@ -198,9 +239,9 @@ function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
         role="img"
         aria-label="Candlestick chart"
       >
-        {/* Y-grid */}
-        {ticks.map((t, i) => (
-          <g key={i}>
+        {/* Y-grid + Preisachse links */}
+        {yTicks.map((t, i) => (
+          <g key={`y_${i}`}>
             <line
               x1={PAD_X}
               x2={W - PAD_X}
@@ -210,11 +251,33 @@ function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
               strokeWidth="0.4"
               strokeDasharray="3,3"
             />
-            <text x={W - PAD_X - 2} y={t.y - 1} fontSize="8" textAnchor="end" className="fill-muted-foreground">
+            <text x={PAD_X - 4} y={t.y + 3} fontSize="9" textAnchor="end" className="fill-muted-foreground">
               {t.val.toFixed(2)}
             </text>
           </g>
         ))}
+
+        {/* X-Achse: horizontale Trennlinie + Datumsticks */}
+        <line
+          x1={PAD_X}
+          x2={W - PAD_X}
+          y1={xAxisY}
+          y2={xAxisY}
+          className="stroke-border"
+          strokeWidth="0.6"
+        />
+        {xTicks.map((t, i) => {
+          const x = PAD_X + t.ratio * (W - 2 * PAD_X);
+          const anchor = i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle";
+          return (
+            <g key={`x_${i}`}>
+              <line x1={x} x2={x} y1={xAxisY - 2} y2={xAxisY + 3} className="stroke-muted-foreground" strokeWidth="0.6" />
+              <text x={x} y={xAxisY + 16} fontSize="10" textAnchor={anchor} className="fill-muted-foreground">
+                {t.label}
+              </text>
+            </g>
+          );
+        })}
         {candles.map((c, i) => {
           const x = PAD_X + i * slotW + (slotW - bodyW) / 2;
           const cx = x + bodyW / 2;

@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronDown,
   ChevronRight,
+  Lock,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { TutorialButton } from "./TutorialButton";
@@ -95,9 +96,11 @@ export function AppShell({ children, user }: AppShellProps) {
   const activeTab = searchParams?.get("tab") ?? "";
 
   const hasAllAccess = user.productSlug === "all-access";
-  const accessibleDepots: Exclude<ProductSlug, "all-access">[] = hasAllAccess
-    ? ["starter", "trend", "stillhalter", "cockpit"]
-    : (user.productSlug !== "all-access" ? [user.productSlug as Exclude<ProductSlug, "all-access">] : []);
+  // Alle 4 Depots werden in der Sidebar gezeigt — die nicht abonnierten
+  // bekommen ein Schloss-Icon und führen zur Pitch-Page (statt voll geöffnet).
+  const ALL_DEPOTS: Exclude<ProductSlug, "all-access">[] = ["starter", "trend", "stillhalter", "cockpit"];
+  const isAccessible = (slug: Exclude<ProductSlug, "all-access">) =>
+    hasAllAccess || user.productSlug === slug;
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
   const isStaff = user.role === "STAFF" || user.role === "OWNER" || user.role === "ADMIN";
@@ -109,7 +112,7 @@ export function AppShell({ children, user }: AppShellProps) {
     : undefined;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background lg:flex-row">
+    <div className="flex min-h-screen flex-col lg:flex-row">
       {/* Sidebar (desktop) */}
       <aside className="hidden w-72 flex-shrink-0 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-16 items-center border-b border-border px-5">
@@ -119,7 +122,7 @@ export function AppShell({ children, user }: AppShellProps) {
           <NavLink href="/dashboard" icon={LayoutDashboard} active={isActive("/dashboard")} label="Dashboard" />
 
           <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Depots</div>
-          {accessibleDepots.map((slug) => (
+          {ALL_DEPOTS.map((slug) => (
             <DepotMenu
               key={slug}
               slug={slug}
@@ -129,6 +132,7 @@ export function AppShell({ children, user }: AppShellProps) {
               isOpenByDefault={pathname.startsWith(`/depot/${slug}`)}
               pathname={pathname}
               activeTab={activeTab}
+              locked={!isAccessible(slug)}
             />
           ))}
 
@@ -236,17 +240,37 @@ interface DepotMenuProps {
   isOpenByDefault: boolean;
   pathname: string;
   activeTab: string;
+  locked?: boolean;
 }
 
-function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathname, activeTab }: DepotMenuProps) {
+function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathname, activeTab, locked }: DepotMenuProps) {
   const [open, setOpen] = useState(isOpenByDefault);
   useEffect(() => {
     if (isOpenByDefault) setOpen(true);
   }, [isOpenByDefault]);
 
   const inDepot = pathname === `/depot/${slug}` || pathname.startsWith(`/depot/${slug}/`);
-  // Default-Tab ist "welcome", wenn kein Query-Param gesetzt ist
   const effectiveTab = activeTab || "welcome";
+
+  // Locked: kein Drop-down, direkter Link zur Pitch-Page
+  if (locked) {
+    return (
+      <Link
+        href={`/depot/${slug}` as never}
+        className={cn(
+          "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition",
+          inDepot
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground/70 hover:bg-accent hover:text-foreground",
+        )}
+        title={`${label} ist nicht abonniert – Vorschau anzeigen`}
+      >
+        <Icon className="h-4 w-4 flex-shrink-0 opacity-60" />
+        <span className="flex-1">{label}</span>
+        <Lock className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" aria-label="gesperrt" />
+      </Link>
+    );
+  }
 
   return (
     <div>
