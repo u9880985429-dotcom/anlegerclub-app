@@ -105,6 +105,16 @@ export {
 export type { DisplayUser } from "./mock/displayName";
 
 export {
+  canAccessAdmin,
+  canInviteTeam,
+  canManageIntegrations,
+  canManagePermissions,
+  canKick,
+  canChangeRole,
+  isHigherOrEqual,
+} from "./mock/permissions";
+
+export {
   daxStrategieSignale,
   daxMillJahresRenditen,
   daxMillEquityCurve,

@@ -8,6 +8,7 @@ const ADMIN_NAV = [
   { href: "/admin/users", label: "Mitglieder" },
   { href: "/admin/subscriptions", label: "Subscriptions & Einladungen" },
   { href: "/admin/community", label: "Community-Moderation" },
+  { href: "/admin/integrations", label: "API · Webhooks · Plugins" },
   { href: "/admin/audit", label: "Audit-Log" },
 ];
 

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
-import { allSubscriptions, allUsers } from "@traderiq/api";
+import { allSubscriptions, allUsers, canInviteTeam } from "@traderiq/api";
 import { Search, Filter, ChevronRight } from "lucide-react";
 import { RoleDropdown } from "./RoleDropdown";
 import { TeamInvite } from "./TeamInvite";
+import { requireSession } from "@/lib/access";
 
 const STATUS_CLASS: Record<string, string> = {
   ACTIVE: "badge-profit",
@@ -14,11 +15,13 @@ const STATUS_CLASS: Record<string, string> = {
   REFUNDED: "badge-loss",
 };
 
-export default function AdminUsersPage({
+export default async function AdminUsersPage({
   searchParams,
 }: {
   searchParams: { status?: string };
 }) {
+  const session = await requireSession();
+  const actorRole = session.user.role;
   const filter = searchParams.status?.toUpperCase();
   const filtered = allUsers.filter((u) => {
     if (!filter) return true;
@@ -34,7 +37,7 @@ export default function AdminUsersPage({
         eyebrow="Admin · Mitglieder"
         title="Mitglieder"
         description={`${filtered.length} ${filter ? `· Filter: ${filter}` : "Mitglieder gesamt"}`}
-        action={<TeamInvite />}
+        action={canInviteTeam(actorRole) ? <TeamInvite /> : undefined}
       />
 
       <div className="card-base mb-4 flex flex-wrap items-center gap-2 p-3">
@@ -77,7 +80,7 @@ export default function AdminUsersPage({
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-3">
-                    <RoleDropdown initial={u.role} userId={u.id} />
+                    <RoleDropdown initial={u.role} userId={u.id} actorRole={actorRole} />
                   </td>
                   <td className="px-4 py-3 text-xs">{sub?.productSlug ?? "—"}</td>
                   <td className="px-4 py-3">

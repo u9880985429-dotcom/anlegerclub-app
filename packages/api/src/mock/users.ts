@@ -7,11 +7,25 @@ export const DEMO_PASSWORD = "traderiq2026";
 
 export const demoUsers: User[] = [
   {
+    id: "u_andrei",
+    email: "andrei@traderiq.net",
+    firstName: "Andrei",
+    lastName: "Trader IQ",
+    role: "OWNER",
+    isTeamMember: true,
+    notifyPush: true,
+    notifyEmail: true,
+    loginCount: 0,
+    onboardedFor: ["starter", "trend", "stillhalter", "cockpit"],
+    ablefyId: "AF-OWNER-0001",
+    notes: "Geschäftsführer · Owner-Account.",
+  },
+  {
     id: "u_max",
     email: "max@traderiq.net",
     firstName: "Max",
     lastName: "Bauer",
-    role: "STAFF",
+    role: "ADMIN",
     isTeamMember: true,
     notifyPush: true,
     notifyEmail: true,
@@ -23,7 +37,7 @@ export const demoUsers: User[] = [
     city: "Berlin",
     country: "Deutschland",
     ablefyId: "AF-USR-0001",
-    notes: "Geschäftsführer.",
+    notes: "Admin (vollumfänglich, kann nicht den Owner kicken).",
   },
   {
     id: "u_lisa",
@@ -63,10 +77,19 @@ export const demoUsers: User[] = [
 
 export const demoSubscriptions: Subscription[] = [
   {
+    id: "s_andrei",
+    userId: "u_andrei",
+    productSlug: "all-access",
+    status: "PAID",
+    ablefyOrderId: "AF-INTERNAL-OWNER",
+    startedAt: "2024-01-01T00:00:00Z",
+    currentPeriodEnd: null,
+    pausedReason: null,
+  },
+  {
     id: "s_max",
     userId: "u_max",
     productSlug: "all-access",
-    // Mitarbeiter / Geschäftsführung → "Bezahlt" Status für interne Vollzugriffe (Spec §13)
     status: "PAID",
     ablefyOrderId: "AF-INTERNAL-MAX",
     startedAt: "2025-08-01T00:00:00Z",

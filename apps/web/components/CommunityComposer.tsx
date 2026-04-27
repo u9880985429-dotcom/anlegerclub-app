@@ -1,13 +1,15 @@
 "use client";
 import { useRef, useState } from "react";
 import { Send, AlertTriangle, ShieldCheck, ImagePlus, X } from "lucide-react";
-import Image from "next/image";
 import { filterText } from "@traderiq/api";
+import type { Role } from "@traderiq/api";
 import { SmileyPicker } from "./SmileyPicker";
 
 interface CommunityComposerProps {
   placeholder?: string;
   contextHint?: string;
+  /** Rolle des aktuell eingeloggten Users — entscheidet über das Upload-Limit. */
+  userRole?: Role;
 }
 
 interface Attachment {
@@ -18,7 +20,16 @@ interface Attachment {
   size: number;
 }
 
-const MAX_ATTACHMENTS = 4;
+/**
+ * Upload-Limit pro Beitrag/Kommentar:
+ * - MEMBER:  max 5 Bilder
+ * - alle anderen Rollen (MODERATOR/STAFF/ADMIN/OWNER): de-facto unlimited (50)
+ */
+function maxAttachmentsForRole(role?: Role): number {
+  if (!role || role === "MEMBER") return 5;
+  return 50;
+}
+
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 /**
@@ -28,7 +39,8 @@ const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
  * - Smiley-Picker mit den vom Spec erlaubten Reaktionen.
  * - Bis zu 4 Bilder pro Beitrag, je 5 MB max.
  */
-export function CommunityComposer({ placeholder = "Was möchtest du teilen?", contextHint }: CommunityComposerProps) {
+export function CommunityComposer({ placeholder = "Was möchtest du teilen?", contextHint, userRole }: CommunityComposerProps) {
+  const MAX_ATTACHMENTS = maxAttachmentsForRole(userRole);
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -175,7 +187,7 @@ export function CommunityComposer({ placeholder = "Was möchtest du teilen?", co
           </button>
 
           <span className="hidden text-[11px] text-muted-foreground sm:inline">
-            Werbung wird blockiert · Beleidigungen maskiert · Bilder bis 5 MB
+            Werbung wird blockiert · Beleidigungen maskiert · {MAX_ATTACHMENTS >= 50 ? "unbegrenzt Bilder" : `max ${MAX_ATTACHMENTS} Bilder`} (5 MB/Bild)
           </span>
         </div>
         <button

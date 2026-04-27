@@ -5,6 +5,7 @@ import { filterText } from "@traderiq/api";
 import type { Comment, Role } from "@traderiq/api";
 import { LikeButton } from "./LikeButton";
 import { SmileyPicker } from "./SmileyPicker";
+import { AttachmentInput, type Attachment } from "./AttachmentInput";
 import { formatRelative } from "@/lib/format";
 
 interface CommentThreadProps {
@@ -125,6 +126,8 @@ function CommentNode({
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyText, setReplyText] = useState("");
+  const [replyAttachments, setReplyAttachments] = useState<Attachment[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(comment.bodyMd);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -180,15 +183,17 @@ function CommentNode({
 
   function handleReplySubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!replyText.trim()) return;
+    if (!replyText.trim() && replyAttachments.length === 0) return;
     const ok = onReply(comment.id, replyText);
     if (!ok) {
       setErrorMsg("⚠️ Werbung blockiert. Bitte überarbeite deine Antwort.");
       return;
     }
     setReplyText("");
+    setReplyAttachments([]);
     setReplyOpen(false);
     setErrorMsg(null);
+    setUploadError(null);
   }
 
   function handleEditSubmit(e: React.FormEvent) {
@@ -365,12 +370,28 @@ function CommentNode({
             placeholder={`Antwort an ${comment.authorName}…`}
             autoFocus
           />
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <SmileyPicker onPick={(e) => setReplyText((t) => `${t}${t.endsWith(" ") || t === "" ? "" : " "}${e} `)} />
-            <button type="submit" disabled={!replyText.trim()} className="btn-brand inline-flex items-center gap-1 text-xs">
+
+          <AttachmentInput
+            attachments={replyAttachments}
+            setAttachments={setReplyAttachments}
+            userRole={currentUser.role}
+            onError={setUploadError}
+            compact
+          />
+
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <SmileyPicker onPick={(e) => setReplyText((t) => `${t}${t.endsWith(" ") || t === "" ? "" : " "}${e} `)} />
+            </div>
+            <button
+              type="submit"
+              disabled={!replyText.trim() && replyAttachments.length === 0}
+              className="btn-brand inline-flex items-center gap-1 text-xs"
+            >
               <Send className="h-3 w-3" /> Antwort senden
             </button>
           </div>
+          {uploadError && <div className="mt-2 text-xs text-amber-700">⚠️ {uploadError}</div>}
           {errorMsg && <div className="mt-2 text-xs text-destructive">{errorMsg}</div>}
         </form>
       )}

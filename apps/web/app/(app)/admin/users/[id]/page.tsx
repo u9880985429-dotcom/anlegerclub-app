@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Mail, Phone, MapPin, Shield } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { allUsers, allSubscriptions } from "@traderiq/api";
+import { allUsers, allSubscriptions, canManagePermissions } from "@traderiq/api";
 import { UserActionsMenu } from "./UserActionsMenu";
+import { GranularPermissions } from "./GranularPermissions";
+import { requireSession } from "@/lib/access";
 import { formatGermanDate } from "@/lib/format";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -15,10 +17,13 @@ const STATUS_CLASS: Record<string, string> = {
   REFUNDED: "badge-loss",
 };
 
-export default function AdminUserDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminUserDetailPage({ params }: { params: { id: string } }) {
+  const session = await requireSession();
+  const actorRole = session.user.role;
   const user = allUsers.find((u) => u.id === params.id);
   if (!user) notFound();
   const subs = allSubscriptions.filter((s) => s.userId === user.id);
+  const canManagePerms = canManagePermissions(actorRole);
 
   return (
     <>
@@ -33,7 +38,7 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
         eyebrow="Admin · Mitglied"
         title={`${user.firstName} ${user.lastName}`}
         description={`${user.email} · Rolle ${user.role} · ${user.loginCount} Logins`}
-        action={<UserActionsMenu userId={user.id} role={user.role} currentStatus={subs[0]?.status ?? "—"} />}
+        action={<UserActionsMenu userId={user.id} role={user.role} currentStatus={subs[0]?.status ?? "—"} actorRole={actorRole} />}
       />
 
       <section className="grid gap-6 lg:grid-cols-3">
@@ -98,6 +103,16 @@ export default function AdminUserDetailPage({ params }: { params: { id: string }
           ))}
         </div>
       </section>
+
+      {/* Granulare Bereichs-Berechtigungen — nur Owner/Admin */}
+      {canManagePerms && (
+        <section className="mt-8">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Bereichs-Berechtigungen (granular)
+          </h3>
+          <GranularPermissions userId={user.id} userName={`${user.firstName} ${user.lastName}`} />
+        </section>
+      )}
     </>
   );
 }
