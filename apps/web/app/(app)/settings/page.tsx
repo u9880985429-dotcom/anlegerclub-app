@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { ExternalLink, Mail, Bell, Smartphone, Shield, ChevronRight } from "lucide-react";
+import { ExternalLink, Smartphone, Shield, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { TutorialSettings } from "@/components/TutorialSettings";
 import { AvatarUploader } from "@/components/AvatarUploader";
+import { NotificationSettings } from "@/components/NotificationSettings";
 import { requireSession } from "@/lib/access";
 import { findSubscriptionsForUser, isTeamRole } from "@traderiq/api";
+import type { ProductSlug } from "@traderiq/api";
 import { PRODUCT_LABELS, PRODUCT_LINKS } from "@/lib/copy/login-status";
 
 export const dynamic = "force-dynamic";
@@ -40,14 +42,10 @@ export default async function SettingsPage() {
 
       {/* Benachrichtigungen */}
       <Section title="Benachrichtigungen">
-        <div className="space-y-1">
-          <ToggleRow icon={Smartphone} title="Push-Benachrichtigungen" description="Trades, Auswertungen, Erwähnungen" enabled />
-          <ToggleRow icon={Mail} title="E-Mail-Benachrichtigungen" description="Trades, Auswertungen, wichtige Redaktionsmeldungen" enabled />
-          <ToggleRow icon={Bell} title="Community-Erwähnungen" description="Push, wenn dich jemand mit @ erwähnt" enabled />
-        </div>
-        <div className="mt-4 rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
-          Phase 2: granulare Steuerung pro Depot (z. B. nur Trend-Trades, keine Stillhalter-Push).
-        </div>
+        <NotificationSettings
+          userId={session.user.id}
+          accessibleProducts={accessibleProducts(session.user.productSlug, subs.map((s) => s.productSlug))}
+        />
       </Section>
 
       {/* Sicherheit */}
@@ -131,42 +129,13 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ToggleRow({
-  icon: Icon,
-  title,
-  description,
-  enabled,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-  enabled: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3">
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
-          <Icon className="h-4 w-4" />
-        </div>
-        <div>
-          <div className="text-sm font-medium">{title}</div>
-          <div className="text-xs text-muted-foreground">{description}</div>
-        </div>
-      </div>
-      <div
-        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border ${
-          enabled ? "border-brand bg-brand" : "border-border bg-muted"
-        }`}
-        title="Phase 2: persistiert in DB"
-      >
-        <span
-          className={`absolute top-0.5 inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-            enabled ? "translate-x-6" : "translate-x-0.5"
-          }`}
-        />
-      </div>
-    </div>
-  );
+function accessibleProducts(
+  primary: ProductSlug,
+  subSlugs: string[],
+): ("starter" | "trend" | "stillhalter" | "cockpit")[] {
+  const all: ("starter" | "trend" | "stillhalter" | "cockpit")[] = ["starter", "trend", "stillhalter", "cockpit"];
+  if (primary === "all-access" || subSlugs.includes("all-access")) return all;
+  return all.filter((p) => primary === p || subSlugs.includes(p));
 }
 
 function Row({ icon: Icon, title, subtitle }: { icon: React.ComponentType<{ className?: string }>; title: string; subtitle?: string }) {
