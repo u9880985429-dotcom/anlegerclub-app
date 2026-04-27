@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { TutorialSettings } from "@/components/TutorialSettings";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { NotificationSettings } from "@/components/NotificationSettings";
+import { PasswordChangeForm } from "@/components/PasswordChangeForm";
 import { requireSession } from "@/lib/access";
 import { findSubscriptionsForUser, isTeamRole } from "@traderiq/api";
 import type { ProductSlug } from "@traderiq/api";
@@ -50,8 +51,8 @@ export default async function SettingsPage() {
 
       {/* Sicherheit */}
       <Section title="Sicherheit">
-        <div className="space-y-2 text-sm">
-          <Row icon={Shield} title="Passwort ändern" subtitle="Zuletzt geändert: vor 47 Tagen" />
+        <div className="space-y-3 text-sm">
+          <PasswordChangeForm />
           <Row icon={Smartphone} title="2-Faktor-Authentifizierung (SMS-OTP)" subtitle="Phase 2: Twilio Verify" />
           <Row icon={Shield} title="Aktive Sitzungen" subtitle="2 Geräte aktiv" />
         </div>

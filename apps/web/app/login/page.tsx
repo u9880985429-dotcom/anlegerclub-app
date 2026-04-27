@@ -1,5 +1,6 @@
 "use client";
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Logo } from "@/components/Logo";
@@ -86,9 +87,12 @@ function LoginInner() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            Phase 2: zusätzlicher SMS-OTP-Schritt beim Erstlogin.
-          </p>
+          <div className="mt-4 flex items-center justify-between text-xs">
+            <Link href="/login/forgot-password" className="text-brand hover:underline">
+              Passwort vergessen?
+            </Link>
+            <span className="text-muted-foreground">Phase 2: + SMS-OTP</span>
+          </div>
         </div>
 
         {/* Demo-Login Helper Card */}
