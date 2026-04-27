@@ -4,8 +4,8 @@ import { Logo } from "@/components/Logo";
 
 export default function MarketingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Subtle background tint, traderiq.net inspired */}
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Subtle background tint, traderiq.net inspired — über dem globalen Polygon-Wallpaper */}
       <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[1200px] -translate-x-1/2 rounded-full bg-brand/5 blur-3xl" />
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">

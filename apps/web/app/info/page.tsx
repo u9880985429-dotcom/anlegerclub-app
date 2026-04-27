@@ -4,7 +4,7 @@ import { Logo } from "@/components/Logo";
 
 export default function InfoPage() {
   return (
-    <div className="relative min-h-screen bg-background">
+    <div className="relative min-h-screen">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
         <Logo variant="light" size="md" href="/" />
         <Link href="/login" className="btn-secondary">Anmelden</Link>

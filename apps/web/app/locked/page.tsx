@@ -29,7 +29,7 @@ export default async function LockedPage() {
   const isPaused = status === "PAUSED";
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col">
       <header className="flex h-16 items-center justify-between border-b border-border px-6">
         <Logo variant="light" size="sm" href={null} />
         <LogoutButton />
