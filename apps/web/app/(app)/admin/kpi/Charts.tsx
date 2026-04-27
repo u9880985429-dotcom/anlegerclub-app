@@ -1,5 +1,20 @@
 "use client";
-import { TrendingUp, RefreshCcw, PieChart as PieIcon } from "lucide-react";
+import {
+  TrendingUp, RefreshCcw, PieChart as PieIcon, RefreshCw, Download, Settings, Filter, Share2,
+} from "lucide-react";
+import { CardMenu, type CardMenuItem } from "@/components/CardMenu";
+
+function chartActions(label: string): CardMenuItem[] {
+  return [
+    { label: "Aktualisieren", icon: RefreshCw, onClick: () => alert(`„${label}" wird aktualisiert (Phase 2: DB-Refetch).`) },
+    { label: "Als PNG exportieren", icon: Download, onClick: () => alert(`„${label}" als PNG (Phase 2: html-to-image).`) },
+    { label: "Als CSV exportieren", icon: Download, onClick: () => alert(`„${label}" als CSV (Phase 2).`) },
+    { divider: true, label: "" },
+    { label: "Zeitraum ändern", icon: Filter, onClick: () => alert("Zeitraum-Picker (Phase 2).") },
+    { label: "Teilen / Snapshot", icon: Share2, onClick: () => alert("Snapshot-URL erstellen (Phase 2).") },
+    { label: "Einstellungen", icon: Settings, onClick: () => alert("Chart-Einstellungen (Phase 2).") },
+  ];
+}
 
 /**
  * SVG-basierte KPI-Charts ohne externe Dependencies.
@@ -37,7 +52,7 @@ export function RevenueChart() {
 
   return (
     <div className="card-base p-5">
-      <div className="mb-3 flex items-start justify-between">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             <TrendingUp className="h-3.5 w-3.5" />
@@ -45,9 +60,12 @@ export function RevenueChart() {
           </h3>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Monatlich wiederkehrender Umsatz in €</p>
         </div>
-        <div className="text-right">
-          <div className="text-xl font-extrabold">{last.v.toLocaleString("de-DE")} €</div>
-          <div className="text-[11px] text-profit">+{growth.toFixed(1).replace(".", ",")} % vs. Mai 25</div>
+        <div className="flex items-start gap-2">
+          <div className="text-right">
+            <div className="text-xl font-extrabold">{last.v.toLocaleString("de-DE")} €</div>
+            <div className="text-[11px] text-profit">+{growth.toFixed(1).replace(".", ",")} % vs. Mai 25</div>
+          </div>
+          <CardMenu items={chartActions("MRR-Entwicklung")} />
         </div>
       </div>
       <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full" preserveAspectRatio="none">
@@ -94,10 +112,13 @@ export function ChurnChart() {
 
   return (
     <div className="card-base p-5">
-      <h3 className="mb-2 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        <RefreshCcw className="h-3.5 w-3.5" />
-        Retention vs. Churn
-      </h3>
+      <div className="mb-2 flex items-start justify-between">
+        <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <RefreshCcw className="h-3.5 w-3.5" />
+          Retention vs. Churn
+        </h3>
+        <CardMenu items={chartActions("Retention vs. Churn")} />
+      </div>
       <div className="mt-4 flex items-center gap-4">
         <svg viewBox="0 0 100 100" className="h-28 w-28 -rotate-90">
           <circle cx="50" cy="50" r={radius} fill="none" stroke="currentColor" strokeOpacity="0.12" strokeWidth="10" />
@@ -159,10 +180,13 @@ export function ProductMixChart() {
 
   return (
     <div className="card-base p-5">
-      <h3 className="mb-2 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        <PieIcon className="h-3.5 w-3.5" />
-        Produkt-Mix (aktive Subscriptions)
-      </h3>
+      <div className="mb-2 flex items-start justify-between">
+        <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <PieIcon className="h-3.5 w-3.5" />
+          Produkt-Mix (aktive Subscriptions)
+        </h3>
+        <CardMenu items={chartActions("Produkt-Mix")} />
+      </div>
       <div className="mt-4 flex items-center gap-5">
         <svg viewBox="0 0 100 100" className="h-32 w-32 -rotate-90">
           {segments.map((s) => (

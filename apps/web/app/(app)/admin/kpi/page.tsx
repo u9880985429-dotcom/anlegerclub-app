@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { requireSession } from "@/lib/access";
 import { allSubscriptions, allUsers } from "@traderiq/api";
 import { RevenueChart, ChurnChart, ProductMixChart } from "./Charts";
+import { KpiCardMenu } from "./KpiCardMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -158,12 +159,15 @@ function KpiCard({
         <div className={`flex h-9 w-9 items-center justify-center rounded-md ${accent ? "bg-brand/15 text-brand" : alert ? "bg-amber-500/15 text-amber-700" : "bg-muted text-muted-foreground"}`}>
           <Icon className="h-4 w-4" />
         </div>
-        {delta && (
-          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${deltaSentiment === "up" ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
-            {deltaSentiment === "up" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-            {delta}
-          </span>
-        )}
+        <div className="flex items-center gap-1">
+          {delta && (
+            <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${deltaSentiment === "up" ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
+              {deltaSentiment === "up" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              {delta}
+            </span>
+          )}
+          <KpiCardMenu label={label} variant="metric" />
+        </div>
       </div>
       <div className="text-2xl font-extrabold">{value}</div>
       <div className="mt-1 text-xs text-muted-foreground">{label}</div>
@@ -182,7 +186,10 @@ function CohortRetention() {
   ];
   return (
     <div className="card-base p-5">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Kohorten-Retention</h3>
+      <div className="mb-3 flex items-start justify-between">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Kohorten-Retention</h3>
+        <KpiCardMenu label="Kohorten-Retention" variant="table" />
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -241,6 +248,10 @@ function FunnelView() {
   ];
   return (
     <div className="card-base p-5">
+      <div className="mb-3 flex items-start justify-between">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Schritt-fuer-Schritt-Conversion</h3>
+        <KpiCardMenu label="Conversion-Funnel" variant="chart" />
+      </div>
       <div className="space-y-2">
         {steps.map((s, i) => {
           const width = Math.max(20, (s.value / steps[0]!.value) * 100);
@@ -279,7 +290,12 @@ function EngagementTable() {
     { date: "19.03.2026", title: "NOW Take Profit + Roll", depot: "Stillhalter", views: 982, comments: 24, reactions: 98 },
   ];
   return (
-    <div className="card-base overflow-x-auto">
+    <div className="card-base">
+      <div className="flex items-start justify-between p-4 pb-0">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Top-Trades nach Engagement</h3>
+        <KpiCardMenu label="Top Trade-Signale" variant="table" />
+      </div>
+      <div className="overflow-x-auto">
       <table className="w-full text-xs">
         <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
           <tr className="border-b border-border">
@@ -304,6 +320,7 @@ function EngagementTable() {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }
