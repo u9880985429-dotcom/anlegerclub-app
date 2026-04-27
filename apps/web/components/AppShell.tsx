@@ -21,12 +21,15 @@ import {
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { TutorialButton } from "./TutorialButton";
+import { Avatar } from "./Avatar";
 import { cn } from "@traderiq/ui";
 import type { ProductSlug, Role } from "@traderiq/api";
+import { isTeamRole } from "@traderiq/api";
 
 interface AppShellProps {
   children: React.ReactNode;
   user: {
+    id: string;
     firstName: string;
     lastName: string;
     role: Role;
@@ -161,10 +164,12 @@ export function AppShell({ children, user }: AppShellProps) {
 
   const userFooter = (
     <div className="flex items-center gap-3 px-2 py-2">
-      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
-        {user.firstName.charAt(0)}
-        {user.lastName.charAt(0)}
-      </div>
+      <Avatar
+        name={`${user.firstName} ${user.lastName}`}
+        userId={user.id}
+        isTeam={isTeamRole(user.role)}
+        size="md"
+      />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold">{user.firstName} {user.lastName}</div>
         <div className="truncate text-xs text-muted-foreground">{user.role}</div>
@@ -181,13 +186,13 @@ export function AppShell({ children, user }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
-      {/* Sidebar (Desktop ≥1024px) */}
-      <aside className="hidden w-72 flex-shrink-0 border-r border-border bg-card lg:flex lg:flex-col">
-        <div className="flex h-16 items-center border-b border-border px-5">
+      {/* Sidebar (Desktop ≥1024px) — sticky, Nav scrollt intern, Logo + User-Footer bleiben starr */}
+      <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:flex-shrink-0 lg:flex-col lg:border-r lg:border-border lg:bg-card">
+        <div className="flex h-16 flex-shrink-0 items-center border-b border-border px-5">
           <Logo variant="light" size="sm" />
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3 text-sm">{navigationContent}</nav>
-        <div className="border-t border-border p-3">{userFooter}</div>
+        <div className="flex-shrink-0 border-t border-border bg-card p-3">{userFooter}</div>
       </aside>
 
       {/* Mobile Top-Bar mit Burger-Menü */}
@@ -225,7 +230,7 @@ export function AppShell({ children, user }: AppShellProps) {
             aria-modal="true"
             aria-label="Hauptnavigation"
           >
-            <div className="flex h-14 items-center justify-between border-b border-border px-4">
+            <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border px-4">
               <Logo variant="light" size="sm" />
               <button
                 type="button"
@@ -246,8 +251,9 @@ export function AppShell({ children, user }: AppShellProps) {
             >
               {navigationContent}
             </nav>
+            {/* Footer starr am unteren Rand — Logout & User-Info immer sichtbar */}
             <div
-              className="border-t border-border p-3"
+              className="flex-shrink-0 border-t border-border bg-card p-3"
               style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
             >
               {userFooter}

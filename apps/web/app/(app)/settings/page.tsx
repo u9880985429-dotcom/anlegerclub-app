@@ -2,8 +2,9 @@ import Link from "next/link";
 import { ExternalLink, Mail, Bell, Smartphone, Shield, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { TutorialSettings } from "@/components/TutorialSettings";
+import { AvatarUploader } from "@/components/AvatarUploader";
 import { requireSession } from "@/lib/access";
-import { findSubscriptionsForUser } from "@traderiq/api";
+import { findSubscriptionsForUser, isTeamRole } from "@traderiq/api";
 import { PRODUCT_LABELS, PRODUCT_LINKS } from "@/lib/copy/login-status";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,14 @@ export default async function SettingsPage() {
 
       {/* Profil */}
       <Section title="Profil">
+        <div className="card-base mb-4 p-5">
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Profilbild</h3>
+          <AvatarUploader
+            userId={session.user.id}
+            name={`${session.user.firstName} ${session.user.lastName}`}
+            isTeam={isTeamRole(session.user.role)}
+          />
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Vorname" value={session.user.firstName} />
           <Field label="Nachname" value={session.user.lastName} />
@@ -25,7 +34,7 @@ export default async function SettingsPage() {
           <Field label="Rolle" value={session.user.role} />
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Profildaten werden in Phase 2 mit Ablefy synchronisiert. Änderungen dort wirken sich automatisch hier aus.
+          Stamm-Profildaten werden in Phase 2 mit Ablefy synchronisiert. Profilbild bleibt User-eigen.
         </p>
       </Section>
 

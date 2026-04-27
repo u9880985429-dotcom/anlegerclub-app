@@ -96,7 +96,11 @@ export default async function TradeDetailPage({
 
       <CommentThread
         comments={comments}
-        currentUser={{ name: `${session.user.firstName} ${session.user.lastName}`, role: session.user.role }}
+        currentUser={{
+          id: session.user.id,
+          name: `${session.user.firstName} ${session.user.lastName}`,
+          role: session.user.role,
+        }}
       />
     </>
   );

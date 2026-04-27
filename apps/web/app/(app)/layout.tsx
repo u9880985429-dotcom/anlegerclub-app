@@ -19,6 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <AppShell
       user={{
+        id: session.user.id,
         firstName: session.user.firstName,
         lastName: session.user.lastName,
         role: session.user.role,
