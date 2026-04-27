@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { Plus, Trash2, ExternalLink, Send, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, Trash2, Send, Check, AlertCircle, Webhook as WebhookIcon } from "lucide-react";
 
 interface Webhook {
   id: string;
@@ -26,29 +26,26 @@ const AVAILABLE_EVENTS = [
   "community.strike.issued",
 ];
 
-const INITIAL_HOOKS: Webhook[] = [
-  {
-    id: "wh_1",
-    url: "https://hooks.zapier.com/hooks/catch/12345/abcdef",
-    events: ["trade.published", "report.published"],
-    secret: "whsec_••••••••",
-    active: true,
-    createdAt: "2026-04-10T08:00:00Z",
-  },
-  {
-    id: "wh_2",
-    url: "https://traderiq.app.n8n.cloud/webhook/ablefy-sync",
-    events: ["user.subscribed", "user.paused", "user.expired", "user.refunded"],
-    secret: "whsec_••••••••",
-    active: true,
-    createdAt: "2026-04-12T11:15:00Z",
-  },
-];
+const STORAGE_KEY = "traderiq:webhooks";
 
 export function WebhooksSection() {
-  const [hooks, setHooks] = useState<Webhook[]>(INITIAL_HOOKS);
+  const [hooks, setHooks] = useState<Webhook[]>([]);
+  const [mounted, setMounted] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [testStatus, setTestStatus] = useState<{ id: string; ok: boolean } | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setHooks(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  function persist(next: Webhook[]) {
+    setHooks(next);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  }
 
   function add(url: string, events: string[]) {
     const wh: Webhook = {
@@ -59,17 +56,17 @@ export function WebhooksSection() {
       active: true,
       createdAt: new Date().toISOString(),
     };
-    setHooks((prev) => [wh, ...prev]);
+    persist([wh, ...hooks]);
     setShowForm(false);
   }
 
   function remove(id: string) {
     if (!confirm("Webhook wirklich entfernen?")) return;
-    setHooks((prev) => prev.filter((w) => w.id !== id));
+    persist(hooks.filter((w) => w.id !== id));
   }
 
   function toggleActive(id: string) {
-    setHooks((prev) => prev.map((w) => (w.id === id ? { ...w, active: !w.active } : w)));
+    persist(hooks.map((w) => (w.id === id ? { ...w, active: !w.active } : w)));
   }
 
   function testWebhook(id: string) {
@@ -77,9 +74,11 @@ export function WebhooksSection() {
     setTimeout(() => setTestStatus(null), 2500);
   }
 
+  if (!mounted) return null;
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
           Webhooks erhalten POST-Requests bei den abonnierten Events. Signatur via HMAC-SHA256 mit dem Secret.
         </p>
@@ -90,46 +89,60 @@ export function WebhooksSection() {
 
       {showForm && <WebhookForm onCreate={add} onCancel={() => setShowForm(false)} />}
 
-      <div className="card-base divide-y divide-border">
-        {hooks.length === 0 && (
-          <div className="p-5 text-sm text-muted-foreground">Keine Webhooks angelegt.</div>
-        )}
-        {hooks.map((w) => (
-          <div key={w.id} className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <code className="break-all font-mono text-xs">{w.url}</code>
-                  {w.active ? (
-                    <span className="badge-profit">Aktiv</span>
-                  ) : (
-                    <span className="badge-base">Inaktiv</span>
-                  )}
+      {hooks.length === 0 ? (
+        <div className="card-base flex flex-col items-center gap-2 py-10 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <WebhookIcon className="h-5 w-5" />
+          </div>
+          <div className="text-sm font-medium">Noch keine Webhooks angelegt</div>
+          <div className="text-xs text-muted-foreground">
+            Klick „Neuer Webhook" oben rechts, um deinen ersten Webhook zu erstellen.
+          </div>
+        </div>
+      ) : (
+        <div className="card-base divide-y divide-border">
+          {hooks.map((w) => (
+            <div key={w.id} className="p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <code className="break-all font-mono text-xs">{w.url}</code>
+                    {w.active ? (
+                      <span className="badge-profit">Aktiv</span>
+                    ) : (
+                      <span className="badge-base">Inaktiv</span>
+                    )}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Erstellt: {new Date(w.createdAt).toLocaleDateString("de-DE")} · Secret: <code className="font-mono">{w.secret}</code>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {w.events.map((e) => (
+                      <span key={e} className="badge-base">{e}</span>
+                    ))}
+                  </div>
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Erstellt: {new Date(w.createdAt).toLocaleDateString("de-DE")} · Secret: <code className="font-mono">{w.secret}</code>
+                <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+                  <button onClick={() => testWebhook(w.id)} className="btn-secondary inline-flex items-center gap-1">
+                    {testStatus?.id === w.id ? <Check className="h-3.5 w-3.5 text-profit" /> : <Send className="h-3.5 w-3.5" />}
+                    {testStatus?.id === w.id ? "Test gesendet" : "Test"}
+                  </button>
+                  <button onClick={() => toggleActive(w.id)} className="btn-secondary inline-flex items-center gap-1">
+                    {w.active ? "Deaktivieren" : "Aktivieren"}
+                  </button>
+                  <button onClick={() => remove(w.id)} className="btn-secondary inline-flex items-center gap-1 text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" /> Entfernen
+                  </button>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {w.events.map((e) => (
-                    <span key={e} className="badge-base">{e}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
-                <button onClick={() => testWebhook(w.id)} className="btn-secondary inline-flex items-center gap-1">
-                  {testStatus?.id === w.id ? <Check className="h-3.5 w-3.5 text-profit" /> : <Send className="h-3.5 w-3.5" />}
-                  {testStatus?.id === w.id ? "Test gesendet" : "Test"}
-                </button>
-                <button onClick={() => toggleActive(w.id)} className="btn-secondary inline-flex items-center gap-1">
-                  {w.active ? "Deaktivieren" : "Aktivieren"}
-                </button>
-                <button onClick={() => remove(w.id)} className="btn-secondary inline-flex items-center gap-1 text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" /> Entfernen
-                </button>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+      )}
+
+      <div className="rounded-md border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+        <AlertCircle className="mr-1 inline h-3 w-3" />
+        Hinweis: Eingehende Webhooks <strong>von Ablefy</strong> werden nicht hier konfiguriert, sondern unter <a href="/admin/integrations/ablefy" className="text-brand hover:underline">Ablefy-Integration</a>. Dieser Bereich ist fuer ausgehende Webhooks (z.B. an Zapier, n8n, eigene Backends).
       </div>
     </div>
   );

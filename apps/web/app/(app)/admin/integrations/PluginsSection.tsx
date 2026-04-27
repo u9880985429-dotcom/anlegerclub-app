@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Settings, Check, ExternalLink, Puzzle, X, Eye, EyeOff, Save, Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+import { Settings, Check, ExternalLink, Puzzle, X, Eye, EyeOff, Save, Loader2, CheckCircle2, ArrowRight, Plus } from "lucide-react";
 
 type Category = "Sync" | "Notifications" | "Video" | "Analytics" | "AI" | "Storage" | "E-Mail-Marketing" | "Automation" | "Support" | "Tracking";
 
@@ -306,8 +306,9 @@ export function PluginsSection() {
   const [state, setState] = useState<Record<string, PluginState>>({});
   const [configs, setConfigs] = useState<Record<string, Record<string, string>>>({});
   const [mounted, setMounted] = useState(false);
-  const [filter, setFilter] = useState<"all" | Category>("all");
   const [configuring, setConfiguring] = useState<Plugin | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerCategory, setPickerCategory] = useState<"all" | Category>("all");
 
   useEffect(() => {
     setMounted(true);
@@ -319,8 +320,9 @@ export function PluginsSection() {
     } catch {}
   }, []);
 
+  // Default = NICHT installiert. Catalog-Defaults werden ignoriert; Status nur aus localStorage.
   function getState(p: Plugin): PluginState {
-    return state[p.id] ?? { installed: p.installed, enabled: p.enabled };
+    return state[p.id] ?? { installed: false, enabled: false };
   }
   function persistState(next: Record<string, PluginState>) {
     setState(next);
@@ -333,6 +335,7 @@ export function PluginsSection() {
 
   function install(p: Plugin) {
     persistState({ ...state, [p.id]: { installed: true, enabled: true } });
+    setPickerOpen(false);
     if (p.dedicatedConfigPath) {
       window.location.href = p.dedicatedConfigPath;
     } else {
@@ -354,104 +357,174 @@ export function PluginsSection() {
 
   if (!mounted) return null;
 
-  const categories = Array.from(new Set(PLUGINS.map((p) => p.category)));
-  const visiblePlugins = filter === "all" ? PLUGINS : PLUGINS.filter((p) => p.category === filter);
+  const installed = PLUGINS.filter((p) => getState(p).installed);
+  const available = PLUGINS.filter((p) => !getState(p).installed);
+  const filteredAvailable = pickerCategory === "all" ? available : available.filter((p) => p.category === pickerCategory);
+  const availableCategories = Array.from(new Set(available.map((p) => p.category)));
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
-        Plugin-Marketplace fuer externe Integrationen. Klick „Installieren" → Konfiguration im Modal (API-Keys, Secrets).
-      </p>
-
-      <div className="flex flex-wrap gap-1.5">
-        <button
-          onClick={() => setFilter("all")}
-          className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
-            filter === "all" ? "bg-brand text-white" : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
-          }`}
-        >
-          Alle
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">
+          Aktivierte Integrationen. Click „Plugin hinzufuegen" um aus dem Katalog (KlickTipp, Zapier, MailChimp, Vimeo, Tracify, Ablefy, ...) zu installieren.
+        </p>
+        <button onClick={() => setPickerOpen(true)} className="btn-brand inline-flex items-center gap-1.5">
+          <Plus className="h-3.5 w-3.5" /> Plugin hinzufuegen
         </button>
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
-              filter === cat ? "bg-brand text-white" : `${CAT_BADGE[cat]} hover:opacity-80`
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {visiblePlugins.map((p) => {
-          const s = getState(p);
-          const cfg = configs[p.id] ?? {};
-          const cfgComplete = p.configFields.filter((f) => f.required).every((f) => Boolean(cfg[f.key]));
-          return (
-            <article key={p.id} className="card-base p-4">
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Puzzle className="h-4 w-4 text-brand" />
-                    <h3 className="font-semibold">{p.name}</h3>
+      {installed.length === 0 ? (
+        <div className="card-base flex flex-col items-center gap-2 py-10 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
+            <Puzzle className="h-5 w-5" />
+          </div>
+          <div className="text-sm font-medium">Noch keine Plugins installiert</div>
+          <div className="text-xs text-muted-foreground">
+            Klick „Plugin hinzufuegen" oben rechts, um aus {available.length} verfuegbaren Integrationen zu waehlen.
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {installed.map((p) => {
+            const s = getState(p);
+            const cfg = configs[p.id] ?? {};
+            const cfgComplete = p.configFields.filter((f) => f.required).every((f) => Boolean(cfg[f.key]));
+            return (
+              <article key={p.id} className="card-base p-4">
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Puzzle className="h-4 w-4 text-brand" />
+                      <h3 className="font-semibold">{p.name}</h3>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
+                      <span className={`rounded-md px-1.5 py-0.5 font-semibold ${CAT_BADGE[p.category]}`}>{p.category}</span>
+                      <span>·</span>
+                      <span>von {p.vendor}</span>
+                    </div>
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
-                    <span className={`rounded-md px-1.5 py-0.5 font-semibold ${CAT_BADGE[p.category]}`}>{p.category}</span>
-                    <span>·</span>
-                    <span>von {p.vendor}</span>
-                  </div>
+                  {s.enabled ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-[10px] font-semibold text-profit">
+                      <Check className="h-3 w-3" /> Aktiv
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                      Pausiert
+                    </span>
+                  )}
                 </div>
-                {s.installed && s.enabled && (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-[10px] font-semibold text-profit">
-                    <Check className="h-3 w-3" /> Aktiv
-                  </span>
+                <p className="text-xs text-muted-foreground">{p.description}</p>
+
+                {!cfgComplete && p.configFields.length > 0 && (
+                  <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                    Konfiguration unvollstaendig
+                  </div>
                 )}
-              </div>
-              <p className="text-xs text-muted-foreground">{p.description}</p>
 
-              {s.installed && !cfgComplete && (
-                <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                  Konfiguration unvollstaendig
-                </div>
-              )}
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {!s.installed ? (
-                  <button onClick={() => install(p)} className="btn-brand inline-flex items-center gap-1">
-                    <Puzzle className="h-3.5 w-3.5" /> Installieren
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button onClick={() => toggleEnable(p)} className="btn-secondary inline-flex items-center gap-1">
+                    {s.enabled ? "Deaktivieren" : "Aktivieren"}
                   </button>
-                ) : (
-                  <>
-                    <button onClick={() => toggleEnable(p)} className="btn-secondary inline-flex items-center gap-1">
-                      {s.enabled ? "Deaktivieren" : "Aktivieren"}
+                  {p.dedicatedConfigPath ? (
+                    <Link href={p.dedicatedConfigPath as never} className="btn-brand inline-flex items-center gap-1">
+                      <Settings className="h-3.5 w-3.5" /> Konfigurieren <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  ) : (
+                    <button onClick={() => setConfiguring(p)} className="btn-secondary inline-flex items-center gap-1">
+                      <Settings className="h-3.5 w-3.5" /> Konfigurieren
                     </button>
-                    {p.dedicatedConfigPath ? (
-                      <Link href={p.dedicatedConfigPath as never} className="btn-brand inline-flex items-center gap-1">
-                        <Settings className="h-3.5 w-3.5" /> Konfigurieren <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    ) : (
-                      <button onClick={() => setConfiguring(p)} className="btn-secondary inline-flex items-center gap-1">
-                        <Settings className="h-3.5 w-3.5" /> Konfigurieren
-                      </button>
-                    )}
-                    <button onClick={() => uninstall(p)} className="btn-ghost text-xs text-destructive">
-                      Deinstallieren
-                    </button>
-                  </>
-                )}
-                {p.url && (
-                  <a href={p.url} target="_blank" rel="noreferrer" className="btn-ghost inline-flex items-center gap-1 text-xs">
-                    Doku <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
+                  )}
+                  <button onClick={() => uninstall(p)} className="btn-ghost text-xs text-destructive">
+                    Deinstallieren
+                  </button>
+                  {p.url && (
+                    <a href={p.url} target="_blank" rel="noreferrer" className="btn-ghost inline-flex items-center gap-1 text-xs">
+                      Doku <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      {pickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="card-base w-full max-w-3xl overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border p-4">
+              <div>
+                <h3 className="text-lg font-semibold inline-flex items-center gap-2">
+                  <Puzzle className="h-4 w-4 text-brand" /> Plugin hinzufuegen
+                </h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {available.length} verfuegbare Integrationen aus dem Katalog
+                </p>
               </div>
-            </article>
-          );
-        })}
-      </div>
+              <button onClick={() => setPickerOpen(false)} aria-label="Schliessen" className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 border-b border-border bg-muted/20 p-3">
+              <button
+                onClick={() => setPickerCategory("all")}
+                className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                  pickerCategory === "all" ? "bg-brand text-white" : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+                }`}
+              >
+                Alle
+              </button>
+              {availableCategories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setPickerCategory(cat)}
+                  className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                    pickerCategory === cat ? "bg-brand text-white" : `${CAT_BADGE[cat]} hover:opacity-80`
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid max-h-[60vh] gap-2 overflow-y-auto p-4 sm:grid-cols-2">
+              {filteredAvailable.length === 0 ? (
+                <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
+                  Keine weiteren Plugins in dieser Kategorie verfuegbar — alle bereits installiert.
+                </div>
+              ) : (
+                filteredAvailable.map((p) => (
+                  <article key={p.id} className="rounded-md border border-border bg-card p-3">
+                    <div className="mb-2">
+                      <div className="flex items-center gap-2">
+                        <Puzzle className="h-3.5 w-3.5 text-brand" />
+                        <h4 className="text-sm font-semibold">{p.name}</h4>
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
+                        <span className={`rounded-md px-1.5 py-0.5 font-semibold ${CAT_BADGE[p.category]}`}>{p.category}</span>
+                        <span>·</span>
+                        <span>{p.vendor}</span>
+                      </div>
+                    </div>
+                    <p className="mb-2 line-clamp-3 text-[11px] text-muted-foreground">{p.description}</p>
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => install(p)} className="btn-brand inline-flex items-center gap-1 text-xs">
+                        <Plus className="h-3 w-3" /> Installieren
+                      </button>
+                      {p.url && (
+                        <a href={p.url} target="_blank" rel="noreferrer" className="btn-ghost inline-flex items-center gap-1 text-[10px]">
+                          Doku <ExternalLink className="h-2.5 w-2.5" />
+                        </a>
+                      )}
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {configuring && (
         <ConfigModal
