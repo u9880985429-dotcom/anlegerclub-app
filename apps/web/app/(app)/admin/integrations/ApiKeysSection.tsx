@@ -1,16 +1,9 @@
 "use client";
-import { useState } from "react";
-import { Plus, Copy, Trash2, Eye, EyeOff, KeyRound, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, Copy, Trash2, KeyRound, Check, Terminal, Send, Loader2 } from "lucide-react";
+import { readApiKeys, writeApiKeys, generateApiKey, type StoredApiKey } from "@/lib/api-keys";
 
-interface ApiKey {
-  id: string;
-  name: string;
-  prefix: string;       // sichtbarer Teil (z. B. "tiq_live_a3F9…")
-  fullKey: string;      // Vollständig nur einmal angezeigt
-  scopes: string[];
-  createdAt: string;
-  lastUsedAt: string | null;
-}
+type ApiKey = StoredApiKey;
 
 const AVAILABLE_SCOPES = [
   { value: "trades.read", label: "Trades lesen" },
@@ -23,63 +16,57 @@ const AVAILABLE_SCOPES = [
   { value: "audit.read", label: "Audit-Log lesen" },
 ];
 
-const INITIAL_KEYS: ApiKey[] = [
-  {
-    id: "k_1",
-    name: "Ablefy-Sync",
-    prefix: "tiq_live_aB3F9k…",
-    fullKey: "tiq_live_aB3F9kQrWzPlmN7XyZ8oP4kL2bV6hT",
-    scopes: ["subscriptions.read", "subscriptions.write", "users.read"],
-    createdAt: "2026-04-01T08:00:00Z",
-    lastUsedAt: "2026-04-26T14:32:00Z",
-  },
-  {
-    id: "k_2",
-    name: "Push-Service (Expo)",
-    prefix: "tiq_live_p8H2x…",
-    fullKey: "tiq_live_p8H2xVnQrTYmK4LpDdF6oXhU9bN3wE",
-    scopes: ["notifications.send"],
-    createdAt: "2026-03-12T10:30:00Z",
-    lastUsedAt: "2026-04-27T03:18:00Z",
-  },
-];
-
 export function ApiKeysSection() {
-  const [keys, setKeys] = useState<ApiKey[]>(INITIAL_KEYS);
+  const [keys, setKeys] = useState<ApiKey[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [revealKey, setRevealKey] = useState<{ id: string; full: string } | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{ id: string; ok: boolean; body: string } | null>(null);
+
+  // Lade gespeicherte Keys aus localStorage
+  useEffect(() => {
+    setKeys(readApiKeys());
+  }, []);
+
+  function persistKeys(next: ApiKey[]) {
+    setKeys(next);
+    writeApiKeys(next);
+  }
 
   function generateKey(name: string, scopes: string[]) {
-    const random = Array.from({ length: 30 })
-      .map(() => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".charAt(Math.floor(Math.random() * 62)))
-      .join("");
-    const fullKey = `tiq_live_${random}`;
-    const prefix = `${fullKey.slice(0, 14)}…`;
-    const id = `k_${Date.now()}`;
-    const newKey: ApiKey = {
-      id,
-      name,
-      prefix,
-      fullKey,
-      scopes,
-      createdAt: new Date().toISOString(),
-      lastUsedAt: null,
-    };
-    setKeys((prev) => [newKey, ...prev]);
-    setRevealKey({ id, full: fullKey });
+    const newKey = generateApiKey(name, scopes);
+    const next = [newKey, ...keys];
+    persistKeys(next);
+    setRevealKey({ id: newKey.id, full: newKey.fullKey });
     setShowForm(false);
   }
 
   function revoke(id: string) {
     if (!confirm("Diesen API-Key wirklich widerrufen? Alle Anfragen mit diesem Key werden ab sofort abgelehnt.")) return;
-    setKeys((prev) => prev.filter((k) => k.id !== id));
+    persistKeys(keys.filter((k) => k.id !== id));
   }
 
   function copyKey(id: string, key: string) {
     void navigator.clipboard?.writeText(key);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function testKey(id: string, key: string) {
+    setTestingId(id);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/v1/ping", { headers: { "X-API-Key": key } });
+      const json = await res.json();
+      setTestResult({ id, ok: res.ok, body: JSON.stringify(json, null, 2) });
+      // Update lastUsedAt lokal
+      persistKeys(keys.map((k) => (k.id === id ? { ...k, lastUsedAt: new Date().toISOString() } : k)));
+    } catch (err) {
+      setTestResult({ id, ok: false, body: String(err) });
+    } finally {
+      setTestingId(null);
+    }
   }
 
   return (
@@ -113,6 +100,19 @@ export function ApiKeysSection() {
               {copiedId === revealKey.id ? "Kopiert" : "Kopieren"}
             </button>
           </div>
+
+          {/* Sofort-Test-Snippet */}
+          <details className="mt-3 rounded-md border border-border bg-card p-2 text-xs">
+            <summary className="cursor-pointer font-semibold inline-flex items-center gap-1.5">
+              <Terminal className="h-3.5 w-3.5" /> So testest du den Key (curl)
+            </summary>
+            <pre className="mt-2 overflow-x-auto rounded bg-muted/50 p-2 font-mono text-[11px]">{`curl -H "X-API-Key: ${revealKey.full}" \\
+  https://anlegerclub-app-web.vercel.app/api/v1/ping`}</pre>
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              Endpoints: <code>/api/v1/ping</code>, <code>/api/v1/users</code>, <code>/api/v1/trades</code>, <code>/api/v1/subscriptions</code>
+            </div>
+          </details>
+
           <button
             onClick={() => setRevealKey(null)}
             className="mt-2 text-xs text-muted-foreground hover:text-foreground"
@@ -145,14 +145,32 @@ export function ApiKeysSection() {
                 ))}
               </div>
             </div>
-            <button
-              onClick={() => revoke(k.id)}
-              className="btn-secondary inline-flex items-center gap-1 text-destructive"
-            >
-              <Trash2 className="h-3.5 w-3.5" /> Widerrufen
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => testKey(k.id, k.fullKey)}
+                disabled={testingId === k.id}
+                className="btn-secondary inline-flex items-center gap-1"
+              >
+                {testingId === k.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                Test-Ping
+              </button>
+              <button
+                onClick={() => revoke(k.id)}
+                className="btn-secondary inline-flex items-center gap-1 text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Widerrufen
+              </button>
+            </div>
           </div>
         ))}
+        {testResult && (
+          <div className={`p-3 ${testResult.ok ? "bg-profit/5 border-t border-profit/30" : "bg-destructive/5 border-t border-destructive/30"}`}>
+            <div className={`mb-1 text-xs font-semibold ${testResult.ok ? "text-profit" : "text-destructive"}`}>
+              {testResult.ok ? "✓ API antwortet sauber" : "✗ Fehler beim Test"}
+            </div>
+            <pre className="overflow-x-auto rounded bg-muted/40 p-2 font-mono text-[10px]">{testResult.body}</pre>
+          </div>
+        )}
       </div>
     </div>
   );
