@@ -18,6 +18,7 @@ import {
   Lock,
   Menu,
   X,
+  Users,
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { TutorialButton } from "./TutorialButton";
@@ -123,6 +124,10 @@ export function AppShell({ children, user }: AppShellProps) {
     hasAllAccess || user.productSlug === slug;
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  // Mitarbeiter-Routen (alles unter /admin AUSSER Admin-Backend-Routen)
+  const ADMIN_ONLY = ["/admin/kpi", "/admin/integrations", "/admin/email-config", "/admin/domains", "/admin/cookies", "/admin/fonts", "/admin/logs", "/admin/legal"];
+  const isActiveAdmin = (p: string) => ADMIN_ONLY.some((prefix) => p === prefix || p.startsWith(prefix + "/"));
+  const isActiveStaff = (p: string) => (p === "/admin" || p.startsWith("/admin/")) && !isActiveAdmin(p);
   const isStaff = user.role === "STAFF" || user.role === "SALES" || user.role === "OWNER" || user.role === "ADMIN";
 
   const activeDepotMatch = pathname.match(/^\/depot\/([a-z]+)/);
@@ -155,8 +160,24 @@ export function AppShell({ children, user }: AppShellProps) {
 
       {isStaff && (
         <>
+          <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-brand">Mitarbeiter</div>
+          <NavLink
+            href="/admin"
+            icon={Users}
+            active={isActiveStaff(pathname)}
+            label="Mitarbeiter-Backend"
+          />
+        </>
+      )}
+      {(user.role === "OWNER" || user.role === "ADMIN") && (
+        <>
           <div className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-brand">Admin</div>
-          <NavLink href="/admin" icon={Shield} active={isActive("/admin")} label="Admin-Backend" />
+          <NavLink
+            href="/admin/kpi"
+            icon={Shield}
+            active={isActiveAdmin(pathname)}
+            label="Admin-Backend"
+          />
         </>
       )}
     </>

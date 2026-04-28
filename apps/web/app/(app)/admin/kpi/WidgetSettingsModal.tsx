@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { X, Check, Search, Sparkles, ArrowRightLeft } from "lucide-react";
+import { X, Check, Search, Sparkles, ArrowRightLeft, Database, ExternalLink } from "lucide-react";
 import { WIDGET_REGISTRY } from "./widgets/registry";
 import type { WidgetCatalogEntry } from "./widgets/types";
 import type { WidgetInstance, WidgetSize } from "@/lib/kpi-config";
 import { WidgetThumbnail } from "./WidgetThumbnail";
+import { DATA_SOURCES, DEFAULT_DATA_SOURCE_ID, findDataSource } from "./widgets/dataSources";
 
 const COLS_OPTIONS: WidgetSize[] = [3, 4, 6, 8, 12];
 
@@ -31,11 +32,18 @@ export function WidgetSettingsModal({
   onSave: (next: WidgetInstance) => void;
   onSwap: (newWidgetId: string) => void;
 }) {
-  const [tab, setTab] = useState<"general" | "swap">("general");
+  const [tab, setTab] = useState<"general" | "data" | "swap">("general");
   const [title, setTitle] = useState(instance.title ?? "");
   const [cols, setCols] = useState<WidgetSize>(instance.cols);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"all" | WidgetCatalogEntry["category"]>("all");
+  // Datenquelle aus instance.settings lesen, default: demo.static
+  const initialDsId = (instance.settings?.dataSourceId as string | undefined) ?? DEFAULT_DATA_SOURCE_ID;
+  const [dataSourceId, setDataSourceId] = useState(initialDsId);
+  const initialCustomUrl = (instance.settings?.customEndpoint as string | undefined) ?? "";
+  const [customEndpoint, setCustomEndpoint] = useState(initialCustomUrl);
+  const initialCustomLabel = (instance.settings?.customLabel as string | undefined) ?? "";
+  const [customLabel, setCustomLabel] = useState(initialCustomLabel);
 
   useEffect(() => {
     function onEsc(e: KeyboardEvent) {
@@ -61,10 +69,20 @@ export function WidgetSettingsModal({
   );
 
   function save() {
+    const settings: Record<string, unknown> = { ...(instance.settings ?? {}) };
+    settings.dataSourceId = dataSourceId;
+    if (dataSourceId === "custom") {
+      settings.customEndpoint = customEndpoint.trim();
+      settings.customLabel = customLabel.trim() || undefined;
+    } else {
+      delete settings.customEndpoint;
+      delete settings.customLabel;
+    }
     onSave({
       ...instance,
       title: title.trim() ? title.trim() : undefined,
       cols,
+      settings,
     });
   }
 
@@ -100,6 +118,16 @@ export function WidgetSettingsModal({
             Allgemein
           </button>
           <button
+            onClick={() => setTab("data")}
+            className={`-mb-px border-b-2 px-3 py-2 text-xs font-medium transition ${
+              tab === "data" ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span className="inline-flex items-center gap-1">
+              <Database className="h-3 w-3" /> Datenquelle
+            </span>
+          </button>
+          <button
             onClick={() => setTab("swap")}
             className={`-mb-px border-b-2 px-3 py-2 text-xs font-medium transition ${
               tab === "swap" ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"
@@ -113,7 +141,7 @@ export function WidgetSettingsModal({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-5">
-          {tab === "general" ? (
+          {tab === "general" && (
             <div className="space-y-4">
               <Field label="Eigener Titel (optional)">
                 <input
@@ -165,7 +193,21 @@ export function WidgetSettingsModal({
                 )}
               </div>
             </div>
-          ) : (
+          )}
+
+          {tab === "data" && (
+            <DataSourceTab
+              dataSourceId={dataSourceId}
+              setDataSourceId={setDataSourceId}
+              customEndpoint={customEndpoint}
+              setCustomEndpoint={setCustomEndpoint}
+              customLabel={customLabel}
+              setCustomLabel={setCustomLabel}
+              widgetCategory={catalogEntry.category}
+            />
+          )}
+
+          {tab === "swap" && (
             <div>
               <p className="mb-3 text-xs text-muted-foreground">
                 Tausche dieses Widget gegen ein anderes aus — Position und Groesse bleiben erhalten.
@@ -234,7 +276,7 @@ export function WidgetSettingsModal({
         </div>
 
         {/* Footer */}
-        {tab === "general" && (
+        {(tab === "general" || tab === "data") && (
           <div className="flex items-center justify-end gap-2 border-t border-border bg-muted/10 p-3">
             <button onClick={onClose} className="btn-ghost">Abbrechen</button>
             <button onClick={save} className="btn-brand inline-flex items-center gap-1">
@@ -253,5 +295,161 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="mb-1 block font-semibold">{label}</span>
       {children}
     </label>
+  );
+}
+
+function DataSourceTab({
+  dataSourceId,
+  setDataSourceId,
+  customEndpoint,
+  setCustomEndpoint,
+  customLabel,
+  setCustomLabel,
+  widgetCategory,
+}: {
+  dataSourceId: string;
+  setDataSourceId: (id: string) => void;
+  customEndpoint: string;
+  setCustomEndpoint: (v: string) => void;
+  customLabel: string;
+  setCustomLabel: (v: string) => void;
+  widgetCategory: WidgetCatalogEntry["category"];
+}) {
+  const selected = findDataSource(dataSourceId);
+  const recommended = DATA_SOURCES.filter((d) => d.recommendedFor.includes(widgetCategory));
+  const others = DATA_SOURCES.filter((d) => !d.recommendedFor.includes(widgetCategory));
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border border-brand/20 bg-brand/5 p-3 text-[11px]">
+        <strong className="text-brand">Datenquelle</strong> bestimmt, woher die Werte fuer dieses Widget geladen werden. Phase 1: Auswahl wird gespeichert + im Widget-Header angezeigt. Phase 2: der DynamicGridLoader ruft den ausgewaehlten Endpoint mit den aktuellen Filtern auf.
+      </div>
+
+      <div>
+        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Empfohlen fuer „{widgetCategory}"-Widgets
+        </h4>
+        <div className="space-y-2">
+          {recommended.map((d) => (
+            <DataSourceCard
+              key={d.id}
+              source={d}
+              selected={dataSourceId === d.id}
+              onSelect={() => setDataSourceId(d.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {others.length > 0 && (
+        <div>
+          <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Weitere Datenquellen
+          </h4>
+          <div className="space-y-2">
+            {others.map((d) => (
+              <DataSourceCard
+                key={d.id}
+                source={d}
+                selected={dataSourceId === d.id}
+                onSelect={() => setDataSourceId(d.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {dataSourceId === "custom" && (
+        <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
+          <Field label="Custom Endpoint-URL (HTTPS)">
+            <input
+              className="input-base font-mono text-[11px]"
+              placeholder="https://api.example.com/kpi/...."
+              value={customEndpoint}
+              onChange={(e) => setCustomEndpoint(e.target.value)}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              JSON muss Top-Level-Felder wie <code>byMonth</code>, <code>byProduct</code>, <code>totalRevenue</code> liefern.
+            </p>
+          </Field>
+          <Field label="Anzeige-Name (optional)">
+            <input
+              className="input-base"
+              placeholder="z.B. „GA4 Conversions"
+              value={customLabel}
+              onChange={(e) => setCustomLabel(e.target.value)}
+            />
+          </Field>
+        </div>
+      )}
+
+      {selected && selected.id !== "custom" && (
+        <div className="rounded-md border border-dashed border-border bg-muted/10 p-3 text-[11px]">
+          <div className="mb-1 inline-flex items-center gap-1 font-semibold">
+            <ExternalLink className="h-3 w-3" />
+            Aktuelle Auswahl: {selected.label}
+          </div>
+          <div className="mt-1 space-y-1 text-muted-foreground">
+            <div>
+              <strong className="text-foreground">Endpoint:</strong> <code className="font-mono">{selected.method} {selected.endpoint}</code>
+            </div>
+            <div>
+              <strong className="text-foreground">Speist:</strong> {selected.feeds.join(", ")}
+            </div>
+            <div>
+              <strong className="text-foreground">Provider:</strong> {selected.provider}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DataSourceCard({
+  source,
+  selected,
+  onSelect,
+}: {
+  source: typeof DATA_SOURCES[number];
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`block w-full rounded-md border p-3 text-left transition ${
+        selected
+          ? "border-brand bg-brand/10"
+          : "border-border bg-card hover:border-brand/40 hover:bg-muted/30"
+      }`}
+    >
+      <div className="mb-1 flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+              selected ? "border-brand bg-brand" : "border-border bg-card"
+            }`}
+          >
+            {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+          </span>
+          <h5 className="text-sm font-semibold">{source.label}</h5>
+        </div>
+        <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase ${
+          source.provider === "ablefy" ? "bg-orange-500/15 text-orange-700" :
+          source.provider === "internal" ? "bg-emerald-500/15 text-emerald-700" :
+          "bg-purple-500/15 text-purple-700"
+        }`}>
+          {source.provider}
+        </span>
+      </div>
+      <p className="mb-1.5 text-[11px] text-muted-foreground">{source.description}</p>
+      <div className="flex flex-wrap items-center gap-2 text-[10px]">
+        <code className="font-mono text-muted-foreground">{source.method} {source.endpoint}</code>
+        <span className="text-muted-foreground/60">·</span>
+        <span className="text-muted-foreground">Speist: {source.feeds.join(", ")}</span>
+      </div>
+    </button>
   );
 }
