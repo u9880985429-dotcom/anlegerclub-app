@@ -5,7 +5,7 @@ import {
   Sparkles, MoreHorizontal, Settings, ArrowRightLeft, RefreshCw, Download,
 } from "lucide-react";
 import {
-  readKpiConfig, writeKpiConfig, resetKpiConfig, generateInstanceId, DEFAULT_LAYOUT,
+  readKpiConfig, writeKpiConfig, resetKpiConfig, generateInstanceId, syncFromServer, DEFAULT_LAYOUT,
   type KpiDashboardConfig, type WidgetInstance, type WidgetSize,
 } from "@/lib/kpi-config";
 import { findWidget } from "./widgets/registry";
@@ -26,6 +26,10 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
   useEffect(() => {
     setMounted(true);
     setConfig(readKpiConfig());
+    // Server-Layout nachladen (ueberschreibt lokal, falls vorhanden + neuer).
+    void syncFromServer().then((server) => {
+      if (server) setConfig(server);
+    });
     function onChange(e: Event) {
       const detail = (e as CustomEvent<KpiDashboardConfig>).detail;
       if (detail) setConfig(detail);

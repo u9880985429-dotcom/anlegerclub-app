@@ -1,8 +1,15 @@
 /**
  * Persistente KPI-Dashboard-Konfiguration.
  *
- * Phase 1: localStorage (browser-spezifisch, ueberlebt aber Pushes/Deploys).
- * Phase 2: pro User in Postgres, dadurch geraete-uebergreifend.
+ * Speicherung:
+ *  1. localStorage (sofort verfuegbar, kein Roundtrip — primary store fuer
+ *     unmittelbares Render).
+ *  2. Postgres via /api/v1/kpi/layout (geraete-uebergreifend, Source of Truth
+ *     wenn DB erreichbar). Beim Mount wird DB-Layout geladen und ueberschreibt
+ *     ggf. den lokalen Cache. Bei jedem Save wird parallel POST gefired.
+ *
+ * Falls die DB nicht erreichbar ist (Migration noch nicht durch, Neon im Sleep,
+ * Netz-Hiccup) faellt alles auf localStorage zurueck — User bemerkt nichts.
  */
 
 export type WidgetSize = 3 | 4 | 6 | 8 | 12;
@@ -65,6 +72,34 @@ export function writeKpiConfig(cfg: KpiDashboardConfig) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
   window.dispatchEvent(new CustomEvent("traderiq:kpi-config-change", { detail: cfg }));
+  // Fire-and-forget: parallel zur DB hochladen. Fehler werden geschluckt
+  // (User bemerkt nichts, lokaler Cache bleibt korrekt).
+  void fetch("/api/v1/kpi/layout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ widgets: cfg.widgets }),
+  }).catch(() => {});
+}
+
+/**
+ * Beim Mount holt der Client das Server-Layout. Wenn die DB ein Layout hat
+ * (geraete-uebergreifend gespeichert), ueberschreibt es den lokalen Cache.
+ * Wenn nicht (oder DB nicht erreichbar), bleibt der lokale Cache.
+ */
+export async function syncFromServer(): Promise<KpiDashboardConfig | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const res = await fetch("/api/v1/kpi/layout", { cache: "no-store" });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { ok: boolean; widgets: WidgetInstance[] | null };
+    if (!json.ok || !json.widgets) return null;
+    const cfg: KpiDashboardConfig = { widgets: json.widgets, schemaVersion: SCHEMA_VERSION };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+    window.dispatchEvent(new CustomEvent("traderiq:kpi-config-change", { detail: cfg }));
+    return cfg;
+  } catch {
+    return null;
+  }
 }
 
 export function resetKpiConfig() {
