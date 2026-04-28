@@ -887,3 +887,360 @@ export function MiniDonutRow({ data }: { data: WidgetData }) {
     </div>
   );
 }
+
+/**
+ * Stacked-Vertical-Bars (Multi-Layer-Bars pro Monat).
+ * Inspiriert von Bild 8 (Mehrfarben-Stack pro Monat).
+ */
+export function StackedVerticalBarsChart({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  const months = ["Mai", "Jun", "Jul", "Aug", "Sep", "Okt"];
+  const seriesData = [
+    { paid: 4.2, refunded: 0.8, open: 1.2 },
+    { paid: 3.5, refunded: 0.5, open: 2.0 },
+    { paid: 4.8, refunded: 1.0, open: 1.5 },
+    { paid: 4.2, refunded: 0.6, open: 2.3 },
+    { paid: 5.0, refunded: 0.9, open: 1.7 },
+    { paid: 5.7, refunded: 1.1, open: 2.0 },
+  ];
+  const colors = { paid: "#7c3aed", refunded: "#fbbf24", open: "#10b981" };
+  const max = Math.max(...seriesData.map((s) => s.paid + s.refunded + s.open));
+  const w = 600;
+  const h = 240;
+  const padX = 30;
+  const padY = 24;
+  const innerW = w - padX * 2;
+  const innerH = h - padY * 2;
+  const barWidth = innerW / months.length - 6;
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Subscription-Status · Stacked Monatlich
+      </h3>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((g) => {
+          const y = padY + innerH * g;
+          return <line key={g} x1={padX} y1={y} x2={w - padX} y2={y} stroke="currentColor" strokeOpacity="0.08" />;
+        })}
+        {seriesData.map((s, i) => {
+          const x = padX + i * (innerW / months.length) + 3;
+          const totalH = ((s.paid + s.refunded + s.open) / max) * innerH;
+          const paidH = (s.paid / max) * innerH;
+          const refundH = (s.refunded / max) * innerH;
+          const openH = (s.open / max) * innerH;
+          let yOffset = padY + innerH;
+          return (
+            <g key={i}>
+              <rect x={x} y={yOffset - paidH} width={barWidth} height={paidH} fill={colors.paid} rx="2" />
+              <rect x={x} y={yOffset - paidH - refundH} width={barWidth} height={refundH} fill={colors.refunded} />
+              <rect x={x} y={yOffset - totalH} width={barWidth} height={openH} fill={colors.open} rx="2" />
+              <text x={x + barWidth / 2} y={padY + innerH - totalH - 4} textAnchor="middle" className="fill-foreground" fontSize="9" fontWeight="600">
+                {(s.paid + s.refunded + s.open).toFixed(1)}
+              </text>
+              <text x={x + barWidth / 2} y={h - 6} textAnchor="middle" className="fill-muted-foreground" fontSize="9">
+                {months[i]}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.paid }} /> Paid</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.refunded }} /> Refunded</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.open }} /> Open</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Stacked-Horizontal-Bars (Multi-Layer-Bars pro Zeile, eine je Produkt).
+ * Inspiriert von Bild 9 (mehrere Werte pro Zeile uebereinander).
+ */
+export function StackedHorizontalBarsChart({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  const products = [
+    { name: "Starter", paid: 28, refund: 2, open: 5 },
+    { name: "Trend", paid: 34, refund: 1, open: 8 },
+    { name: "Stillhalter", paid: 21, refund: 1, open: 3 },
+    { name: "Cockpit", paid: 9, refund: 0, open: 2 },
+    { name: "All-Access", paid: 17, refund: 1, open: 4 },
+  ];
+  const max = Math.max(...products.map((p) => p.paid + p.refund + p.open));
+  const colors = { paid: "#7c3aed", refund: "#fbbf24", open: "#10b981" };
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Subscriptions je Produkt · Status-Stack
+      </h3>
+      <div className="space-y-2">
+        {products.map((p) => {
+          const total = p.paid + p.refund + p.open;
+          const paidPct = (p.paid / max) * 100;
+          const refundPct = (p.refund / max) * 100;
+          const openPct = (p.open / max) * 100;
+          return (
+            <div key={p.name} className="flex items-center gap-3">
+              <span className="w-24 flex-shrink-0 text-xs font-medium">{p.name}</span>
+              <div className="flex h-5 flex-1 overflow-hidden rounded-md bg-muted">
+                <div className="h-full" style={{ width: `${paidPct}%`, background: colors.paid }} />
+                <div className="h-full" style={{ width: `${refundPct}%`, background: colors.refund }} />
+                <div className="h-full" style={{ width: `${openPct}%`, background: colors.open }} />
+              </div>
+              <span className="w-12 flex-shrink-0 text-right font-mono text-xs">{total}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.paid }} /> Aktiv (Paid)</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.refund }} /> Refunded</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.open }} /> Offen</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Bubble-Scatter — X-Y-Plot mit groessenvariablen Bubbles.
+ * Inspiriert von Bild 5 (Sales Activity / Tableau-Style).
+ */
+export function BubbleScatterChart({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  const trades = [
+    { label: "AVGO", x: 47, y: 1842, size: 213 },
+    { label: "CSX/MCD", x: 38, y: 1623, size: 184 },
+    { label: "VICI", x: 22, y: 1201, size: 142 },
+    { label: "AMKR", x: 29, y: 1109, size: 119 },
+    { label: "NOW", x: 24, y: 982, size: 98 },
+    { label: "SLV", x: 18, y: 870, size: 86 },
+    { label: "TFC", x: 14, y: 690, size: 64 },
+    { label: "MRNA", x: 35, y: 1410, size: 156 },
+  ];
+  const w = 600;
+  const h = 280;
+  const padX = 50;
+  const padY = 30;
+  const innerW = w - padX * 2;
+  const innerH = h - padY * 2;
+  const xMax = Math.max(...trades.map((t) => t.x)) * 1.1;
+  const yMax = Math.max(...trades.map((t) => t.y)) * 1.1;
+  const sMax = Math.max(...trades.map((t) => t.size));
+
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Trade-Engagement · Scatter
+        </h3>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">X = Kommentare · Y = Views · Bubble-Groesse = Reaktionen</p>
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
+        {/* Achsen */}
+        <line x1={padX} y1={padY} x2={padX} y2={h - padY} stroke="currentColor" strokeOpacity="0.2" />
+        <line x1={padX} y1={h - padY} x2={w - padX} y2={h - padY} stroke="currentColor" strokeOpacity="0.2" />
+        {[0.25, 0.5, 0.75].map((g) => {
+          const y = padY + innerH * g;
+          return <line key={g} x1={padX} y1={y} x2={w - padX} y2={y} stroke="currentColor" strokeOpacity="0.06" />;
+        })}
+        {/* Y-Labels */}
+        {[0, 0.5, 1].map((g) => {
+          const y = padY + innerH * (1 - g);
+          return (
+            <text key={g} x={padX - 6} y={y + 3} textAnchor="end" className="fill-muted-foreground" fontSize="9">
+              {Math.round(yMax * g)}
+            </text>
+          );
+        })}
+        {/* X-Labels */}
+        {[0, 0.5, 1].map((g) => {
+          const x = padX + innerW * g;
+          return (
+            <text key={g} x={x} y={h - padY + 14} textAnchor="middle" className="fill-muted-foreground" fontSize="9">
+              {Math.round(xMax * g)}
+            </text>
+          );
+        })}
+        {/* Bubbles */}
+        {trades.map((t, i) => {
+          const cx = padX + (t.x / xMax) * innerW;
+          const cy = padY + innerH - (t.y / yMax) * innerH;
+          const r = 5 + (t.size / sMax) * 18;
+          return (
+            <g key={i}>
+              <circle cx={cx} cy={cy} r={r} fill="#0ea5e9" fillOpacity="0.55" stroke="#0ea5e9" strokeWidth="1.5" />
+              <text x={cx} y={cy + 2} textAnchor="middle" className="fill-white" fontSize="8" fontWeight="600">{t.label}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * Combo-Bar-Line-Chart — Bars + Line auf gleichem Chart.
+ * Inspiriert von Bild 7 (Bars + Line overlay).
+ */
+export function ComboBarLineChart({ data }: { data: WidgetData }) {
+  const series = data.ablefyAggregate?.byMonth
+    ? Object.entries(data.ablefyAggregate.byMonth).sort(([a], [b]) => a.localeCompare(b)).slice(-8).map(([k, v]) => ({ label: k.slice(5), bar: v.count, line: v.revenue }))
+    : [
+        { label: "Jan", bar: 12, line: 8000 },
+        { label: "Feb", bar: 15, line: 9200 },
+        { label: "Mär", bar: 11, line: 8400 },
+        { label: "Apr", bar: 18, line: 10500 },
+        { label: "Mai", bar: 16, line: 11200 },
+        { label: "Jun", bar: 22, line: 13400 },
+        { label: "Jul", bar: 20, line: 12800 },
+        { label: "Aug", bar: 25, line: 14600 },
+      ];
+  const barMax = Math.max(...series.map((s) => s.bar));
+  const lineMax = Math.max(...series.map((s) => s.line));
+  const w = 600;
+  const h = 240;
+  const padX = 40;
+  const padY = 24;
+  const innerW = w - padX * 2;
+  const innerH = h - padY * 2;
+  const groupW = innerW / series.length;
+  const barW = groupW * 0.55;
+  const points = series.map((s, i) => ({
+    x: padX + i * groupW + groupW / 2,
+    y: padY + innerH - (s.line / lineMax) * innerH,
+    ...s,
+  }));
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Bestellungen + Umsatz · Combo
+      </h3>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((g) => {
+          const y = padY + innerH * g;
+          return <line key={g} x1={padX} y1={y} x2={w - padX} y2={y} stroke="currentColor" strokeOpacity="0.08" />;
+        })}
+        {series.map((s, i) => {
+          const x = padX + i * groupW + (groupW - barW) / 2;
+          const barH = (s.bar / barMax) * innerH;
+          return (
+            <g key={i}>
+              <rect x={x} y={padY + innerH - barH} width={barW} height={barH} rx="2" fill="#cbd5e1" />
+              <text x={x + barW / 2} y={h - 6} textAnchor="middle" className="fill-muted-foreground" fontSize="9">{s.label}</text>
+            </g>
+          );
+        })}
+        <path d={linePath} fill="none" stroke="#0ea5e9" strokeWidth="2.5" strokeLinejoin="round" />
+        {points.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r="4" fill="white" stroke="#0ea5e9" strokeWidth="2" />
+        ))}
+      </svg>
+      <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#cbd5e1]" /> Bestellungen (Anzahl)</span>
+        <span className="inline-flex items-center gap-1"><span className="h-0.5 w-3 bg-[#0ea5e9]" /> Umsatz (€)</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Waterfall-Chart — Revenue-Bewegungen mit positiven + negativen Werten.
+ * Inspiriert von Bild 2 (Power BI Waterfall im DestinAir-Dashboard).
+ */
+export function WaterfallChart({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  const steps = [
+    { label: "Start", value: 8000, type: "total" as const },
+    { label: "Neue Subs", value: 2400, type: "positive" as const },
+    { label: "Renewals", value: 1800, type: "positive" as const },
+    { label: "Churn", value: -900, type: "negative" as const },
+    { label: "Refunds", value: -600, type: "negative" as const },
+    { label: "Ende", value: 10700, type: "total" as const },
+  ];
+  // Berechne Stack-Positionen
+  let running = 0;
+  const computed = steps.map((s) => {
+    if (s.type === "total") {
+      const start = 0;
+      const end = s.value;
+      running = end;
+      return { ...s, start, end };
+    }
+    const start = running;
+    const end = running + s.value;
+    running = end;
+    return { ...s, start, end };
+  });
+  const max = Math.max(...computed.flatMap((s) => [s.start, s.end])) * 1.1;
+  const w = 600;
+  const h = 260;
+  const padX = 36;
+  const padY = 30;
+  const innerW = w - padX * 2;
+  const innerH = h - padY * 2;
+  const groupW = innerW / steps.length;
+  const barW = groupW * 0.6;
+  const colorMap = { total: "#475569", positive: "#10b981", negative: "#ef4444" };
+
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        MRR-Bewegungen · Waterfall
+      </h3>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((g) => {
+          const y = padY + innerH * g;
+          return <line key={g} x1={padX} y1={y} x2={w - padX} y2={y} stroke="currentColor" strokeOpacity="0.08" />;
+        })}
+        {computed.map((s, i) => {
+          const x = padX + i * groupW + (groupW - barW) / 2;
+          const top = padY + innerH - (Math.max(s.start, s.end) / max) * innerH;
+          const barH = (Math.abs(s.end - s.start) / max) * innerH || 4;
+          return (
+            <g key={i}>
+              <rect x={x} y={top} width={barW} height={barH} fill={colorMap[s.type]} rx="3" />
+              <text
+                x={x + barW / 2}
+                y={top - 5}
+                textAnchor="middle"
+                className="fill-foreground"
+                fontSize="9"
+                fontWeight="600"
+              >
+                {s.value > 0 && s.type !== "total" ? "+" : ""}
+                {s.value >= 1000 || s.value <= -1000 ? `${(s.value / 1000).toFixed(1)}k` : s.value}
+              </text>
+              <text
+                x={x + barW / 2}
+                y={h - 6}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                fontSize="9"
+              >
+                {s.label}
+              </text>
+              {/* Verbindungslinie zum naechsten Bar */}
+              {i < computed.length - 1 && (
+                <line
+                  x1={x + barW}
+                  y1={padY + innerH - (s.end / max) * innerH}
+                  x2={x + groupW + (groupW - barW) / 2}
+                  y2={padY + innerH - (s.end / max) * innerH}
+                  stroke="currentColor"
+                  strokeOpacity="0.3"
+                  strokeDasharray="2 2"
+                />
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}

@@ -582,3 +582,171 @@ export function MrrThermometer({ data }: { data: WidgetData }) {
   const mrr = data.ablefyAggregate ? Math.round(data.ablefyAggregate.totalRevenue / 12) : data.activeMembers * data.avgArpu;
   return <ThermometerCard title="MRR · Goal-Tracking" value={mrr} goal={15000} unit="€" />;
 }
+
+/**
+ * Area-Sparkline-Card mit Δ% gross darueber.
+ * Inspiriert von Bild 6 (KPI Infographics „Promotions +45.85% / Competitors +34.87%").
+ */
+export function AreaSparklineCard({
+  title,
+  value,
+  delta,
+  series,
+  color = "#10b981",
+}: {
+  title: string;
+  value?: string;
+  delta: number;
+  series: number[];
+  color?: string;
+}) {
+  const w = 280;
+  const h = 64;
+  const max = Math.max(...series, 1);
+  const min = Math.min(...series) * 0.85;
+  const range = max - min || 1;
+  const points = series.map((v, i) => ({
+    x: (i / Math.max(series.length - 1, 1)) * w,
+    y: h - ((v - min) / range) * (h - 8) - 4,
+  }));
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const areaPath =
+    `M ${points[0]?.x.toFixed(1) ?? 0} ${h} ` +
+    points.map((p) => `L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ") +
+    ` L ${points[points.length - 1]?.x.toFixed(1) ?? 0} ${h} Z`;
+  return (
+    <div className="card-base h-full p-5">
+      <div className="text-xs text-muted-foreground">{title}</div>
+      <div className="mt-1 inline-flex items-baseline gap-2">
+        <span className="text-2xl font-extrabold" style={{ color: delta >= 0 ? color : "#ef4444" }}>
+          {delta >= 0 ? "+" : ""}{delta.toFixed(2).replace(".", ",")}%
+        </span>
+        {value && <span className="text-xs font-mono text-muted-foreground">{value}</span>}
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="mt-3 h-14 w-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id={`as-fill-${title.replace(/\s/g, "")}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill={`url(#as-fill-${title.replace(/\s/g, "")})`} />
+        <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+}
+
+export function PromotionsAreaCard({ data }: { data: WidgetData }) {
+  const series = data.ablefyAggregate?.byMonth
+    ? Object.values(data.ablefyAggregate.byMonth).slice(-7).map((m) => m.count)
+    : [12, 8, 14, 10, 18, 16, 22];
+  const first = series[0] ?? 1;
+  const last = series[series.length - 1] ?? 0;
+  const delta = first > 0 ? ((last - first) / first) * 100 : 0;
+  return <AreaSparklineCard title="Neue Anmeldungen · 7-Tage" delta={delta} series={series} color="#10b981" />;
+}
+
+export function CompetitorsAreaCard({ data }: { data: WidgetData }) {
+  const series = data.ablefyAggregate?.byMonth
+    ? Object.values(data.ablefyAggregate.byMonth).slice(-7).map((m) => m.revenue / 100)
+    : [320, 280, 410, 380, 520, 480, 610];
+  const first = series[0] ?? 1;
+  const last = series[series.length - 1] ?? 0;
+  const delta = first > 0 ? ((last - first) / first) * 100 : 0;
+  return <AreaSparklineCard title="Refund-Rate · Trend" delta={delta} series={series} color="#f59e0b" />;
+}
+
+/**
+ * Trio-Compact: 3 Mini-Bubble-Stats nebeneinander.
+ * Inspiriert von Bild 6 (3 farbige Kreis-Bubbles +3.4 / +1.9 / +5.7).
+ */
+export function MetricTrioCompact({
+  title,
+  metrics,
+}: {
+  title: string;
+  metrics: { label: string; value: string; color: string }[];
+}) {
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${metrics.length}, minmax(0, 1fr))` }}>
+        {metrics.map((m) => (
+          <div key={m.label} className="flex flex-col items-center text-center">
+            <div
+              className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full text-base font-bold text-white shadow-md"
+              style={{ background: m.color }}
+            >
+              {m.value}
+            </div>
+            <div className="mt-2 text-[11px] font-medium text-muted-foreground">{m.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function GrowthTrioCard({ data }: { data: WidgetData }) {
+  const churn = data.activeMembers > 0 ? (data.churnedMembersThisMonth / data.activeMembers) * 100 : 0;
+  return (
+    <MetricTrioCompact
+      title="Wachstum auf einen Blick"
+      metrics={[
+        { label: "Neue Mitglieder", value: `+${data.newMembersThisMonth}`, color: "#10b981" },
+        { label: "Churn (30d)", value: `${churn.toFixed(1).replace(".", ",")}%`, color: churn > 5 ? "#ef4444" : "#f59e0b" },
+        { label: "Wachstum YoY", value: "+34%", color: "#ec4899" },
+      ]}
+    />
+  );
+}
+
+/**
+ * Percentage-Ring-Card — grosser Ring mit %-Wert in der Mitte.
+ * Inspiriert von Bild 6/8 (lila/gruener 65%-Ring).
+ */
+export function PercentageRingCard({
+  title,
+  pct,
+  color = "#7c3aed",
+  subtitle,
+}: {
+  title: string;
+  pct: number; // 0-100
+  color?: string;
+  subtitle?: string;
+}) {
+  const r = 42;
+  const c = 2 * Math.PI * r;
+  const dash = (Math.min(100, Math.max(0, pct)) / 100) * c;
+  return (
+    <div className="card-base flex h-full flex-col items-center justify-center p-5">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="relative h-28 w-28">
+        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+          <circle cx="50" cy="50" r={r} fill="none" stroke="currentColor" strokeOpacity="0.12" strokeWidth="10" />
+          <circle
+            cx="50" cy="50" r={r}
+            fill="none"
+            stroke={color}
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeDasharray={`${dash.toFixed(2)} ${c.toFixed(2)}`}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-extrabold" style={{ color }}>{Math.round(pct)}%</span>
+        </div>
+      </div>
+      {subtitle && <div className="mt-2 text-[11px] text-muted-foreground">{subtitle}</div>}
+    </div>
+  );
+}
+
+export function GoalAchievementRing({ data }: { data: WidgetData }) {
+  const mrr = data.ablefyAggregate ? Math.round(data.ablefyAggregate.totalRevenue / 12) : data.activeMembers * data.avgArpu;
+  const goal = 15000;
+  const pct = Math.min(100, (mrr / goal) * 100);
+  return <PercentageRingCard title="MRR · Goal-Erfuellung" pct={pct} color={pct >= 100 ? "#10b981" : "#7c3aed"} subtitle={`${mrr.toLocaleString("de-DE")} € von ${goal.toLocaleString("de-DE")} €`} />;
+}

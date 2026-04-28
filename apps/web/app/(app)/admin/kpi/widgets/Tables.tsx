@@ -268,3 +268,53 @@ export function SubscriptionStatusBreakdown({ data }: { data: WidgetData }) {
     </div>
   );
 }
+
+/**
+ * Leaderboard-Tabelle mit Avatar + Name + Wert + Mini-Bar.
+ * Inspiriert von Bild 1 (Q3 Performance „Weekly leaderboard past week").
+ */
+export function DealsLeaderboard() {
+  const rows = [
+    { name: "Sara Verkauf", role: "Sales", deals: 18, revenue: 16020, initials: "SV", color: "#7c3aed" },
+    { name: "Max Bauer", role: "Admin", deals: 12, revenue: 10460, initials: "MB", color: "#0ea5e9" },
+    { name: "Andrei Trader IQ", role: "Owner", deals: 7, revenue: 6230, initials: "AT", color: "#10b981" },
+    { name: "Mira Schulz", role: "Moderator", deals: 4, revenue: 3560, initials: "MS", color: "#f59e0b" },
+    { name: "Tom Weber", role: "Staff", deals: 2, revenue: 1780, initials: "TW", color: "#ef4444" },
+  ];
+  const max = rows[0]?.revenue ?? 1;
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Sales-Leaderboard · Diese Woche
+      </h3>
+      <div className="space-y-2.5">
+        {rows.map((r, i) => {
+          const pct = (r.revenue / max) * 100;
+          return (
+            <div key={r.name} className="flex items-center gap-3">
+              <span className="w-5 flex-shrink-0 text-center font-mono text-[11px] text-muted-foreground">{i + 1}</span>
+              <div
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                style={{ background: r.color }}
+              >
+                {r.initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="truncate text-xs font-semibold">{r.name}</span>
+                  <span className="font-mono text-xs">
+                    <strong>{r.revenue.toLocaleString("de-DE")} €</strong>
+                    <span className="ml-1 text-[10px] text-muted-foreground">· {r.deals} Deals</span>
+                  </span>
+                </div>
+                <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: r.color }} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
