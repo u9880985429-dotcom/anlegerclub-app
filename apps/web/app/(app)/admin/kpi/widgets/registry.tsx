@@ -6,6 +6,8 @@ import {
   VisitorsBreakdownCard, MrrSparkline, ChurnGauge, ConversionGauge, MonthlyGoalsProgress,
   ChurnZoneGauge, ConversionZoneGauge, RevenueBigNumber, MrrThermometer,
   PromotionsAreaCard, CompetitorsAreaCard, GrowthTrioCard, GoalAchievementRing,
+  MembersQuadrantCard, ProductTrendList, FeatureUsageProgress,
+  SubscriptionStatusStrip, YoYHistoryList,
 } from "./MetricCards";
 import {
   RevenueAreaChart, LineRevenueChart, VerticalBarChart, HorizontalBarsChart,
@@ -13,6 +15,7 @@ import {
   YoYCompareBars, TargetLineChart, DonutWithCenterStat, TopProductBars, MiniDonutRow,
   StackedVerticalBarsChart, StackedHorizontalBarsChart, BubbleScatterChart,
   ComboBarLineChart, WaterfallChart,
+  HistogramChart, ChurnReasonDonut,
 } from "./DataCharts";
 import {
   CohortRetentionTable, TopTradesTable, LatestOrdersTable, SalesPerformanceTable,
@@ -501,6 +504,79 @@ export const WIDGET_REGISTRY: WidgetCatalogEntry[] = [
     allowedCols: [4, 6, 8, 12],
     inspiration: "Q3-Performance · Weekly Leaderboard",
     render: () => <DealsLeaderboard />,
+  },
+
+  // ─── ITERATION 26: 7 weitere Widgets aus _inputs/2026-04-28-batch3 ────────
+
+  {
+    id: "kpi.membersQuadrant",
+    title: "Mitglieder · 4-Quadranten-Karte",
+    description: "4 Mini-Stats in 2x2-Grid in einer Karte (Aktiv/Pausiert/Beendet/Total).",
+    category: "Kennzahl",
+    defaultCols: 4,
+    allowedCols: [3, 4, 6],
+    inspiration: "Dark KPI-Infographic · 4 Mini-Stats (354/576/62/2348)",
+    render: (data) => <MembersQuadrantCard data={data} />,
+  },
+  {
+    id: "kpi.productTrendList",
+    title: "Produkte · 30-Tage-Trend (Mini-Liste)",
+    description: "Sortierte Liste mit Δ%-Badges pro Produkt. Sehr platzsparend.",
+    category: "Kennzahl",
+    defaultCols: 4,
+    allowedCols: [3, 4, 6],
+    inspiration: "Dashboards-Infographics · Title One bis Eight",
+    render: (data) => <ProductTrendList data={data} />,
+  },
+  {
+    id: "kpi.featureUsage",
+    title: "Feature-Usage · Progress-Liste",
+    description: "Mehrere horizontale Progress-Bars mit %-Wert pro Feature.",
+    category: "Kennzahl",
+    defaultCols: 6,
+    allowedCols: [4, 6, 8],
+    inspiration: "Dashboards-Infographics · Title-Cards mit Progress",
+    render: (data) => <FeatureUsageProgress data={data} />,
+  },
+  {
+    id: "kpi.statusStrip",
+    title: "Subscription-Status · 4-Farben-Strip",
+    description: "Horizontale Status-Strip-Bar mit Legende — Verteilung auf einen Blick.",
+    category: "Kennzahl",
+    defaultCols: 6,
+    allowedCols: [4, 6, 8, 12],
+    inspiration: "Highway Monitoring · 4-Farben-Statusbar",
+    render: (data) => <SubscriptionStatusStrip data={data} />,
+  },
+  {
+    id: "kpi.yoyHistory",
+    title: "YoY-History · Letzte 8 Monate",
+    description: "Liste mit Δ%-Werten je Monat im Vergleich zum Vorjahr (mit farbigem Border-Indicator).",
+    category: "Kennzahl",
+    defaultCols: 4,
+    allowedCols: [3, 4, 6],
+    inspiration: "Dark Theme Year-over-Year-Liste",
+    render: (data) => <YoYHistoryList data={data} />,
+  },
+  {
+    id: "chart.histogram",
+    title: "Histogram · Bestellungen je Tag (30d)",
+    description: "30 dichte Tages-Bars mit Highlight (bester Tag + heute) + Durchschnittslinie.",
+    category: "Verlauf",
+    defaultCols: 8,
+    allowedCols: [6, 8, 12],
+    inspiration: "Highway Monitoring + KPI-Slides Histogram",
+    render: (data) => <HistogramChart data={data} />,
+  },
+  {
+    id: "chart.churnReasonDonut",
+    title: "Churn-Reasons · Donut",
+    description: "Klassifizierte Churn-Gruende (Pricing/Lack of value/Non-payment/...) mit grossem Total in der Mitte.",
+    category: "Verteilung",
+    defaultCols: 6,
+    allowedCols: [4, 6, 8],
+    inspiration: 'Dark Theme „Churn Reason"-Donut',
+    render: (data) => <ChurnReasonDonut data={data} />,
   },
 ];
 

@@ -1244,3 +1244,147 @@ export function WaterfallChart({ data }: { data: WidgetData }) {
     </div>
   );
 }
+
+/**
+ * Histogram-Chart — viele duenne Bars dicht nebeneinander, einer hervorgehoben.
+ * Inspiriert von Highway Monitoring Dark-Theme + Bild 5 Histogram.
+ */
+export function HistogramChart({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  const days = Array.from({ length: 30 }, (_, i) => {
+    const seed = (i * 31 + 7) % 100;
+    return 8 + Math.round(seed / 4) + (i === 21 ? 12 : 0);
+  });
+  const max = Math.max(...days);
+  const w = 600;
+  const h = 200;
+  const padX = 30;
+  const padY = 24;
+  const innerW = w - padX * 2;
+  const innerH = h - padY * 2;
+  const barW = innerW / days.length - 1;
+  const highlightIdx = days.indexOf(Math.max(...days));
+  const today = days[days.length - 1] ?? 0;
+  const avg = days.reduce((s, v) => s + v, 0) / days.length;
+
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3 flex items-baseline justify-between">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Bestellungen je Tag · 30 Tage
+        </h3>
+        <div className="flex items-baseline gap-3 text-xs">
+          <span className="font-mono">Heute: <strong>{today}</strong></span>
+          <span className="font-mono text-muted-foreground">Ø: {avg.toFixed(1).replace(".", ",")}</span>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((g) => {
+          const y = padY + innerH * g;
+          return <line key={g} x1={padX} y1={y} x2={w - padX} y2={y} stroke="currentColor" strokeOpacity="0.06" />;
+        })}
+        <line
+          x1={padX}
+          y1={padY + innerH - (avg / max) * innerH}
+          x2={w - padX}
+          y2={padY + innerH - (avg / max) * innerH}
+          stroke="#94a3b8"
+          strokeWidth="1"
+          strokeDasharray="3 3"
+        />
+        {days.map((v, i) => {
+          const x = padX + i * (innerW / days.length);
+          const barH = (v / max) * innerH;
+          const y = padY + innerH - barH;
+          const isHighlight = i === highlightIdx;
+          const isToday = i === days.length - 1;
+          return (
+            <g key={i}>
+              <rect
+                x={x}
+                y={y}
+                width={barW}
+                height={barH}
+                rx="1"
+                fill={isHighlight ? "#10b981" : isToday ? "#0ea5e9" : "#cbd5e1"}
+              />
+              {(isHighlight || isToday) && (
+                <text x={x + barW / 2} y={y - 4} textAnchor="middle" className={isHighlight ? "fill-profit" : "fill-blue-700"} fontSize="9" fontWeight="700">
+                  {v}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#10b981]" /> Bester Tag</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#0ea5e9]" /> Heute</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#cbd5e1]" /> Übrige Tage</span>
+        <span className="inline-flex items-center gap-1"><span className="h-px w-3 border border-dashed border-slate-400" /> Durchschnitt</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Churn-Reason-Donut — klassifizierte Donut mit grossem Center-Total.
+ * Inspiriert von Bild 1 (dark theme „Churn Reason" mit Total in der Mitte).
+ */
+export function ChurnReasonDonut({ data }: { data: WidgetData }) {
+  const total = data.churnedMembersThisMonth;
+  const reasons = [
+    { label: "Pricing", pct: 42, color: "#3b82f6" },
+    { label: "Lack of value", pct: 25, color: "#60a5fa" },
+    { label: "Non-payment", pct: 17, color: "#10b981" },
+    { label: "Poor fit", pct: 8, color: "#34d399" },
+    { label: "Switched to rival", pct: 8, color: "#ef4444" },
+  ];
+  const r = 42;
+  const c = 2 * Math.PI * r;
+  let acc = 0;
+  const segments = reasons.map((s) => {
+    const dash = (s.pct / 100) * c;
+    const offset = (acc / 100) * c;
+    acc += s.pct;
+    return { ...s, dash, offset };
+  });
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Churn-Reasons (30d)</h3>
+      <div className="mt-4 flex items-center gap-5">
+        <div className="relative h-36 w-36 flex-shrink-0">
+          <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+            {segments.map((s) => (
+              <circle
+                key={s.label}
+                cx="50" cy="50" r={r}
+                fill="none"
+                stroke={s.color}
+                strokeWidth="14"
+                strokeDasharray={`${s.dash.toFixed(2)} ${(c - s.dash).toFixed(2)}`}
+                strokeDashoffset={(-s.offset).toFixed(2)}
+              />
+            ))}
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</div>
+            <div className="text-3xl font-extrabold">{total}</div>
+          </div>
+        </div>
+        <ul className="flex-1 space-y-1.5 text-xs">
+          {segments.map((s) => (
+            <li key={s.label} className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: s.color }} />
+                {s.label}
+              </span>
+              <span className="font-mono font-semibold">{s.pct}%</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}

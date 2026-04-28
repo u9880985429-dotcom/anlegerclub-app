@@ -750,3 +750,250 @@ export function GoalAchievementRing({ data }: { data: WidgetData }) {
   const pct = Math.min(100, (mrr / goal) * 100);
   return <PercentageRingCard title="MRR · Goal-Erfuellung" pct={pct} color={pct >= 100 ? "#10b981" : "#7c3aed"} subtitle={`${mrr.toLocaleString("de-DE")} € von ${goal.toLocaleString("de-DE")} €`} />;
 }
+
+/**
+ * Multi-Quadrant-Stats-Card — 4 Mini-Stats in 2×2-Grid in einer Card.
+ * Inspiriert von Bild 6 (Dark KPI-Infographic „354 / 576 / 62 / 2348").
+ */
+export function MultiQuadrantStatsCard({
+  title,
+  quadrants,
+}: {
+  title: string;
+  quadrants: { label: string; value: string; icon: React.ComponentType<{ className?: string }>; color: string }[];
+}) {
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="grid grid-cols-2 gap-3">
+        {quadrants.map((q) => (
+          <div key={q.label} className="flex flex-col items-center justify-center rounded-md border border-border bg-muted/30 p-3 text-center">
+            <div
+              className="mb-1 flex h-7 w-7 items-center justify-center rounded-full"
+              style={{ background: q.color, color: "white" }}
+            >
+              <q.icon className="h-3.5 w-3.5" />
+            </div>
+            <div className="text-xl font-extrabold">{q.value}</div>
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{q.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function MembersQuadrantCard({ data }: { data: WidgetData }) {
+  return (
+    <MultiQuadrantStatsCard
+      title="Mitglieder · Status-Quadrant"
+      quadrants={[
+        { label: "Aktiv", value: String(data.activeMembers), icon: Users, color: "#10b981" },
+        { label: "Pausiert", value: String(data.pausedMembers), icon: AlertTriangle, color: "#f59e0b" },
+        { label: "Beendet", value: String(data.expiredMembers), icon: AlertTriangle, color: "#ef4444" },
+        { label: "Total", value: String(data.totalUsers), icon: Users, color: "#7c3aed" },
+      ]}
+    />
+  );
+}
+
+/**
+ * Mini-Stats-List — sortierte Liste mit Δ% je Zeile, sehr kompakt.
+ * Inspiriert von Bild 4 dark theme „Title One bis Title Eight".
+ */
+export function MiniStatsList({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { label: string; delta: number; value?: string }[];
+}) {
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="space-y-1.5">
+        {rows.map((r) => {
+          const positive = r.delta >= 0;
+          return (
+            <div key={r.label} className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
+              <span className="truncate text-xs font-medium">{r.label}</span>
+              <span className="flex items-center gap-1.5">
+                {r.value && <span className="font-mono text-[11px] text-muted-foreground">{r.value}</span>}
+                <span
+                  className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                    positive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
+                  }`}
+                >
+                  {positive ? <ArrowUpRight className="h-2.5 w-2.5" /> : <ArrowDownRight className="h-2.5 w-2.5" />}
+                  {positive ? "+" : ""}{r.delta.toFixed(2).replace(".", ",")}%
+                </span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function ProductTrendList({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  return (
+    <MiniStatsList
+      title="Produkte · 30-Tage-Trend"
+      rows={[
+        { label: "All-Access", delta: 12.4, value: "33,8k €" },
+        { label: "Trend Depot", delta: 8.2, value: "28,4k €" },
+        { label: "Stillhalter", delta: 5.7, value: "22,1k €" },
+        { label: "Starter", delta: 3.5, value: "18,2k €" },
+        { label: "Cockpit", delta: -2.1, value: "8,9k €" },
+      ]}
+    />
+  );
+}
+
+/**
+ * Progress-List-Card — mehrere Title + Progress-Bars untereinander.
+ * Inspiriert von Bild 6 „Title One x9% / Title Two x70%".
+ */
+export function ProgressListCard({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { label: string; pct: number; color?: string }[];
+}) {
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="space-y-2.5">
+        {rows.map((r) => (
+          <div key={r.label}>
+            <div className="mb-1 flex items-baseline justify-between text-xs">
+              <span className="font-medium">{r.label}</span>
+              <span className="font-mono font-semibold">{r.pct.toFixed(0)}%</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, r.pct)}%`, background: r.color ?? "#7c3aed" }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function FeatureUsageProgress({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  return (
+    <ProgressListCard
+      title="Feature-Usage · Aktive Mitglieder"
+      rows={[
+        { label: "Trade-Signale gelesen", pct: 92, color: "#10b981" },
+        { label: "Marktupdates geöffnet", pct: 78, color: "#0ea5e9" },
+        { label: "Community gepostet", pct: 41, color: "#7c3aed" },
+        { label: "Webinare besucht", pct: 33, color: "#f59e0b" },
+        { label: "Welcome-Video gesehen", pct: 88, color: "#ec4899" },
+      ]}
+    />
+  );
+}
+
+/**
+ * Status-Strip-Bar — horizontale 4-Farben-Bar als Summary.
+ * Inspiriert von Highway Monitoring (rot-orange-gelb-gruen Status-Bar).
+ */
+export function StatusStripBar({
+  title,
+  segments,
+}: {
+  title: string;
+  segments: { label: string; value: number; color: string }[];
+}) {
+  const total = segments.reduce((s, x) => s + x.value, 0) || 1;
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3 flex items-baseline justify-between">
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+        <div className="font-mono text-xs">
+          <strong>{total}</strong> <span className="text-muted-foreground">gesamt</span>
+        </div>
+      </div>
+      <div className="flex h-8 w-full overflow-hidden rounded-md">
+        {segments.map((s) => {
+          const pct = (s.value / total) * 100;
+          return (
+            <div key={s.label} className="relative flex items-center justify-center text-[10px] font-bold text-white" style={{ width: `${pct}%`, background: s.color }}>
+              {pct >= 8 && s.value}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+        {segments.map((s) => {
+          const pct = (s.value / total) * 100;
+          return (
+            <span key={s.label} className="inline-flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: s.color }} />
+              <span className="text-muted-foreground">{s.label}</span>
+              <span className="font-mono font-semibold">{s.value}</span>
+              <span className="text-muted-foreground">({pct.toFixed(1).replace(".", ",")}%)</span>
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function SubscriptionStatusStrip({ data }: { data: WidgetData }) {
+  return (
+    <StatusStripBar
+      title="Subscription-Status · Verteilung"
+      segments={[
+        { label: "Aktiv", value: data.activeMembers, color: "#10b981" },
+        { label: "Pausiert", value: data.pausedMembers, color: "#f59e0b" },
+        { label: "Beendet", value: data.expiredMembers, color: "#ef4444" },
+      ]}
+    />
+  );
+}
+
+/**
+ * YoY-History-List — Liste von Jahren/Monaten mit Δ% pro Eintrag.
+ * Inspiriert von Bild 5 (Year-over-Year-Liste rechts mit %).
+ */
+export function YoYHistoryList({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  const rows = [
+    { label: "Aug 2025 vs Aug 2024", delta: 9 },
+    { label: "Jul 2025 vs Jul 2024", delta: 5 },
+    { label: "Jun 2025 vs Jun 2024", delta: -3 },
+    { label: "Mai 2025 vs Mai 2024", delta: 9 },
+    { label: "Apr 2025 vs Apr 2024", delta: 12 },
+    { label: "Mär 2025 vs Mär 2024", delta: -2 },
+    { label: "Feb 2025 vs Feb 2024", delta: 7 },
+    { label: "Jan 2025 vs Jan 2024", delta: 14 },
+  ];
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">YoY-Vergleich · Letzte 8 Monate</div>
+      <div className="space-y-1">
+        {rows.map((r) => {
+          const positive = r.delta >= 0;
+          return (
+            <div key={r.label} className="flex items-center justify-between gap-2 rounded-sm border-l-2 px-2 py-1 text-xs" style={{ borderLeftColor: positive ? "#10b981" : "#ef4444" }}>
+              <span className="font-medium text-muted-foreground">{r.label}</span>
+              <span className={`inline-flex items-center gap-1 font-mono font-bold ${positive ? "text-profit" : "text-loss"}`}>
+                {positive ? "▲" : "▼"} {positive ? "+" : ""}{r.delta}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
