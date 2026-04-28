@@ -1,0 +1,68 @@
+﻿Event-Gruppe;Event-Anzeigename (DE);Beschreibung;Empfohlener API-Endpoint zum Daten-Lookup;HTTP-Methode;Auth (Query-Param);Webhook-Payload-Felder (erwartet);KPI-Verwendung;Empfehlung aktivieren
+ORDER;Ratenzahlung aktiv;Mind. eine fällige Rate wurde erfolgreich beglichen;/api/orders/{id};GET;key + secret;order_id, payment_id, status, amount, customer_email;Active Members · MRR;JA
+ORDER;Zahlungsart bei Einmalzahlung geändert;Zahlungsart bei Einmalzahlung durch Käufer geändert;/api/orders/{id};GET;key + secret;order_id, old_method, new_method;Audit-Log (intern);OPTIONAL
+ORDER;Zahlungsart bei Abonnement geändert;Zahlungsart bei Abonnement durch Käufer geändert;/api/orders/{id};GET;key + secret;order_id, old_method, new_method;Audit-Log (intern);OPTIONAL
+ORDER;Zahlungsart bei Limitiertem Abo geändert;Zahlungsart bei Limitiertem Abo durch Käufer geändert;/api/orders/{id};GET;key + secret;order_id, old_method, new_method;Audit-Log (intern);OPTIONAL
+ORDER;Zahlungsart bei Ratenzahlung geändert;Zahlungsart bei Ratenzahlung durch Käufer geändert;/api/orders/{id};GET;key + secret;order_id, old_method, new_method;Audit-Log (intern);OPTIONAL
+ORDER;Ratenzahlung abgeschlossen;Alle Raten sind vollständig beglichen;/api/orders/{id};GET;key + secret;order_id, total_amount, customer_id;Revenue YTD · LTV;JA
+ORDER;Ratenzahlung pausiert;Fällige Rate konnte nicht eingezogen oder Zahlung muss vom Kunde angewiesen werden;/api/orders/{id};GET;key + secret;order_id, paused_at, reason;Payment-Issues KPI;JA
+ORDER;Ratenzahlung storniert;Ratenzahlung wurden von Anbieter oder Kunde storniert;/api/orders/{id};GET;key + secret;order_id, cancelled_at, by;Churn · Cancellation Reason;JA
+ORDER;Raten erstattet;Alle Raten wurden vollständig erstattet;/api/payments/{id};GET;key + secret;order_id, refund_amount;Refund Rate · Loss-KPI;JA
+ORDER;Rate unvollständig;Erste Rate wurde storniert oder von Zahlungsanbieter nicht ausgeführt;/api/orders/{id};GET;key + secret;order_id, failed_at, reason;Failed-Payment-Funnel;JA
+ORDER;Limitiertes Abo aktiv;Mind. eine fällige Abo-Rate wurde erfolgreich beglichen;/api/orders/{id};GET;key + secret;order_id, subscription_id, period_end;Active Members · MRR;JA
+ORDER;Limitiertes Abo bezahlt;Alle Abo-Raten sind vollständig beglichen;/api/orders/{id};GET;key + secret;order_id, total_paid;Revenue YTD;JA
+ORDER;Limitiertes Abo pausiert;Fällige Abo-Rate konnte nicht eingezogen oder Zahlung muss vom Kunde angewiesen werden;/api/orders/{id};GET;key + secret;order_id, paused_at, reason;Payment-Issues KPI;JA
+ORDER;Limitiertes Abo storniert;Limitiertes Abo wurden von Anbieter oder Kunde storniert;/api/orders/{id};GET;key + secret;order_id, cancelled_at;Churn · Cancellation Reason;JA
+ORDER;Raten von limitiertem Abo erstattet;Alle Abo-Raten wurden vollständig erstattet;/api/payments/{id};GET;key + secret;order_id, refund_amount;Refund Rate;JA
+ORDER;Rate von limitiertem Abo unvollständig;Erste Abo-Rate wurde storniert oder von Zahlungsanbieter nicht ausgeführt;/api/orders/{id};GET;key + secret;order_id, failed_at;Failed-Payment-Funnel;JA
+ORDER;Abo aktiv;Mind. eine fällige Abo-Rate wurde erfolgreich beglichen;/api/orders/{id};GET;key + secret;order_id, subscription_id, customer_email;Active Members · MRR · LTV;JA
+ORDER;Abo pausiert;Fällige Abo-Rate konnte nicht eingezogen oder Zahlung muss vom Kunde angewiesen werden;/api/orders/{id};GET;key + secret;order_id, paused_at, reason;Payment-Issues · Re-Engagement;JA
+ORDER;Abo storniert;Abo wurden von Anbieter oder Kunde storniert;/api/orders/{id};GET;key + secret;order_id, cancelled_at, by, reason_text;Churn · Churn-Reason-Donut;JA
+ORDER;Abo-Raten erstattet;Alle Abo-Raten wurden vollständig erstattet;/api/payments/{id};GET;key + secret;order_id, refund_total;Refund Rate · Loss-KPI;JA
+ORDER;Abo unvollständig;Erste Abo-Rate wurde storniert oder von Zahlungsanbieter nicht ausgeführt;/api/orders/{id};GET;key + secret;order_id, failed_at;Failed-Payment-Funnel;JA
+ORDER;Einmal-Zahlung aktiv;Kunde hat per Kauf auf Rechnung oder Vorkasse bezahlt oder befindet sich im Testzeitraum oder fixer Fälligkeitstag;/api/orders/{id};GET;key + secret;order_id, due_date;Pipeline · Outstanding Revenue;JA
+ORDER;Einmal-Zahlung abgeschlossen;Betrag wurde vollständig gezahlt;/api/orders/{id};GET;key + secret;order_id, paid_amount;Revenue · Conversion;JA
+ORDER;Einmal-Zahlung pausiert;Fälliger Betrag konnte nicht eingezogen oder Zahlung muss vom Kunde angewiesen werden;/api/orders/{id};GET;key + secret;order_id, paused_at;Payment-Issues KPI;JA
+ORDER;Einmal-Zahlung storniert;Zahlung wurde von Anbieter oder Kunde storniert;/api/orders/{id};GET;key + secret;order_id, cancelled_at;Churn · Cancellation Reason;JA
+ORDER;Einmal-Zahlung erstattet;Zahlung wurde vollständig erstattet;/api/payments/{id};GET;key + secret;order_id, refund_amount;Refund Rate;JA
+ORDER;Einmal-Zahlung unvollständig;Zahlung wurde storniert oder von Zahlungsanbieter nicht ausgeführt;/api/orders/{id};GET;key + secret;order_id, failed_at;Failed-Payment-Funnel;JA
+ORDER;Raten rückgefordert;Kunde hat alle Zahlungen per Rücklastschrift widerrufen;/api/payments/{id};GET;key + secret;order_id, chargeback_amount, reason;Chargeback Rate · Loss-KPI;JA
+ORDER;Abo-Raten rückgefordert;Kunde hat alle Zahlungen per Rücklastschrift widerrufen;/api/payments/{id};GET;key + secret;order_id, chargeback_amount;Chargeback Rate · Loss-KPI;JA
+ORDER;Zahlung rückgefordert;Kunde hat alle Zahlungen per Rücklastschrift widerrufen;/api/payments/{id};GET;key + secret;payment_id, chargeback_amount;Chargeback Rate · Loss-KPI;JA
+ORDER;Rate ausstehend;Warten auf Zahlungsanbieter;/api/orders/{id};GET;key + secret;order_id, due_date;Outstanding · Cashflow;OPTIONAL
+ORDER;Zahlung ausstehend;Warten auf Zahlungsanbieter;/api/payments/{id};GET;key + secret;payment_id, due_date;Outstanding · Cashflow;OPTIONAL
+ORDER;Abo-Rate ausstehend;Warten auf Zahlungsanbieter;/api/orders/{id};GET;key + secret;order_id, subscription_id, due_date;Outstanding · Cashflow;OPTIONAL
+ORDER;Rate von limitiertem Abo ausstehend;Warten auf Zahlungsanbieter;/api/orders/{id};GET;key + secret;order_id, due_date;Outstanding · Cashflow;OPTIONAL
+ORDER;Ratenzahlung reaktiviert;Pausierte Ratenzahlung reaktiviert;/api/orders/{id};GET;key + secret;order_id, reactivated_at;Re-Engagement KPI;JA
+ORDER;Bestellung reaktiviert;Pausierte Bestellung reaktiviert;/api/orders/{id};GET;key + secret;order_id, reactivated_at;Re-Engagement KPI;JA
+ORDER;Abo reaktiviert;Pausierte Ratenzahlung reaktiviert;/api/orders/{id};GET;key + secret;order_id, reactivated_at;Re-Engagement KPI · MRR;JA
+ORDER;Limitiertes Abo reaktiviert;Pausierte Ratenzahlung reaktiviert;/api/orders/{id};GET;key + secret;order_id, reactivated_at;Re-Engagement KPI · MRR;JA
+PRODUCT;Produkt erstellt;Wird ausgelöst, wenn ein neues Produkt erstellt wurde;/api/products/{id};GET;key + secret;product_id, name, price;Product-Mix-Refresh (intern);OPTIONAL
+PRODUCT;Produkt aktualisiert;Wird ausgelöst, wenn ein Produkt aktualisiert wurde;/api/products/{id};GET;key + secret;product_id, changed_fields;Product-Mix-Refresh (intern);OPTIONAL
+PRODUCT;Produkt veröffentlicht;Wird ausgelöst, wenn ein Produkt veröffentlicht wurde;/api/products/{id};GET;key + secret;product_id, published_at;Public-Listing-Update;OPTIONAL
+PRODUCT;Produkt unveröffentlicht;Wird ausgelöst, wenn ein Produkt unveröffentlicht wurde;/api/products/{id};GET;key + secret;product_id, unpublished_at;Public-Listing-Update;OPTIONAL
+PRODUCT;Produkt gelöscht;Wird ausgelöst, wenn ein Produkt gelöscht wurde;— (entity gone);—;—;product_id;Cache-Invalidation;OPTIONAL
+PAYER;Zugriff geändert;Wird ausgelöst, wenn sich der Produktzugriff eines Kunden ändert;/api/payers/{transfer_ext_id};GET;key + secret;customer_email, product_id, access_state;Subscription-Sync · Access-Manager;JA
+PAYER;E-Mail-Adresse geändert;Kunde hat E-Mail-Adresse geändert;/api/payers/{transfer_ext_id};GET;key + secret;customer_id, old_email, new_email;User-Profil-Sync · Mailing-Update;JA
+SAAS_PLAN;SaaS-Plan aktualisiert;Wird ausgelöst, wenn ein Plan-Abonnement aktualisiert wird;/api/products/{id} (Plan-Info enthalten);GET;key + secret;product_id, plan_id, changes;Plan-Mapping-Refresh;OPTIONAL
+PRICING_PLAN;Preisplan erstellt;Wird ausgelöst, wenn ein neuer Preisplan erstellt wurde;/api/pricing_plans/{id};GET;key + secret;pricing_plan_id, product_id, price;Product-Mapping;OPTIONAL
+PRICING_PLAN;Preisplan aktualisiert;Wird ausgelöst, wenn ein Preisplan aktualisiert wurde;/api/pricing_plans/{id};GET;key + secret;pricing_plan_id, changes;Product-Mapping;OPTIONAL
+PRICING_PLAN;Preisplan aktiviert;Wird ausgelöst, wenn ein Preisplan aktiviert wurde;/api/pricing_plans/{id};GET;key + secret;pricing_plan_id, activated_at;Product-Mapping;OPTIONAL
+PRICING_PLAN;Preisplan deaktiviert;Wird ausgelöst, wenn ein Preisplan deaktiviert wurde;/api/pricing_plans/{id};GET;key + secret;pricing_plan_id, deactivated_at;Product-Mapping;OPTIONAL
+PRICING_PLAN;Preisplan gelöscht;Wird ausgelöst, wenn ein Preisplan gelöscht wurde;— (entity gone);—;—;pricing_plan_id;Cache-Invalidation;OPTIONAL
+PAYMENT;Zahlung erfolgreich;Zahlung wurde erfolgreich ausgeführt;/api/payments/{id};GET;key + secret;payment_id, amount, currency, paid_at;Revenue YTD · MRR;JA
+PAYMENT;Zahlung ausstehend;Warten auf Zahlungsanbieter;/api/payments/{id};GET;key + secret;payment_id, due_date;Cashflow-Forecast;OPTIONAL
+PAYMENT;Zahlung abgebrochen;Kunde hat Zahlung abgebrochen;/api/payments/{id};GET;key + secret;payment_id, cancelled_at;Funnel-Drop-off;JA
+PAYMENT;Zahlungsfehler;Technischer Fehler bei Zahlungsabwicklung;/api/payments/{id};GET;key + secret;payment_id, error_code, error_message;Tech-Failure-Alert;JA
+REFUND;Erstattung erfolgreich;Erstattung wurde erfolgreich ausgeführt;/api/payments/{id};GET;key + secret;payment_id, refund_amount, refund_at;Refund Rate · Net-Revenue;JA
+REFUND;Erstattung ausstehend;Warten auf Zahlungsanbieter;/api/payments/{id};GET;key + secret;payment_id, refund_pending_at;Refund-Pipeline;OPTIONAL
+REFUND;Erstattung storniert;Anbieter hat Erstattung abgebrochen;/api/payments/{id};GET;key + secret;payment_id, cancelled_at;Refund-Pipeline;OPTIONAL
+REFUND;Erstattung fehlerhaft;Technischer Fehler bei Zahlungsabwicklung;/api/payments/{id};GET;key + secret;payment_id, error_code;Tech-Failure-Alert;JA
+CHARGEBACK;Chargeback erfolgreich;Chargeback wurde erfolgreich ausgeführt;/api/payments/{id};GET;key + secret;payment_id, chargeback_amount, chargeback_at;Chargeback Rate · Loss-KPI;JA
+CHARGEBACK;Chargeback ausstehend;Warten auf Zahlungsanbieter;/api/payments/{id};GET;key + secret;payment_id, chargeback_pending_at;Chargeback-Pipeline;OPTIONAL
+CHARGEBACK;Chargeback storniert;Zahlungsanbieter hat Chargeback abgebrochen;/api/payments/{id};GET;key + secret;payment_id, cancelled_at;Chargeback-Pipeline;OPTIONAL
+CHARGEBACK;Chargeback fehlerhaft;Technischer Fehler bei Zahlungsabwicklung;/api/payments/{id};GET;key + secret;payment_id, error_code;Tech-Failure-Alert;OPTIONAL
+LESSON;Lektion angesehen;Kunde hat Kurslektion angesehen;— (kein Public-Endpoint);—;—;customer_id, lesson_id, viewed_at;Engagement KPI · Course-Tracking;OPTIONAL
+LESSON;Lektion abgeschlossen;Kunde hat Kurslektion abgeschlossen;— (kein Public-Endpoint);—;—;customer_id, lesson_id, completed_at;Engagement KPI · Course-Completion;OPTIONAL
+LESSON;Lektion kommentiert;Kunde hat Kurslektion kommentiert;— (kein Public-Endpoint);—;—;customer_id, lesson_id, comment_id;Community KPI;OPTIONAL
+QUIZ;Quiz beantwortet;Kunde hat Quiz abgeschlossen;— (kein Public-Endpoint);—;—;customer_id, quiz_id, score;Engagement KPI · Course-Quality;OPTIONAL
