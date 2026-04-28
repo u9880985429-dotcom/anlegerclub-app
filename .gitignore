@@ -45,3 +45,6 @@ next-env.d.ts
 # scratch
 _logo-light.png
 _logo-dark.png
+
+# bild-uploads fuer claude-sessions (lokal, niemals committen)
+_inputs/
