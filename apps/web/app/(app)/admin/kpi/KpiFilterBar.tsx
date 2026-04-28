@@ -67,18 +67,6 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
     } catch {}
   }, []);
 
-  function applyFilters() {
-    const params = new URLSearchParams();
-    if (product !== "all") params.set("product", product);
-    if (preset !== "last_30_days") params.set("preset", preset);
-    if (preset === "custom") {
-      if (dateFrom) params.set("from", dateFrom);
-      if (dateTo) params.set("to", dateTo);
-    }
-    if (agent !== "all") params.set("agent", agent);
-    router.push(`/admin/kpi${params.toString() ? "?" + params.toString() : ""}`);
-  }
-
   function reset() {
     setProduct("all");
     setPreset("last_30_days");
@@ -124,6 +112,26 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
   }
 
   const hasFilters = product !== "all" || preset !== "last_30_days" || agent !== "all";
+
+  // Filter-Aenderung sofort auf URL spiegeln, damit der DynamicGridLoader
+  // direkt darauf reagiert. „Filter anwenden"-Button ist redundant geworden,
+  // bleibt aber als Force-Re-Render-Trigger.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (product !== "all") params.set("product", product);
+    if (preset !== "last_30_days") params.set("preset", preset);
+    if (preset === "custom") {
+      if (dateFrom) params.set("from", dateFrom);
+      if (dateTo) params.set("to", dateTo);
+    }
+    if (agent !== "all") params.set("agent", agent);
+    const next = params.toString();
+    const current = searchParams.toString();
+    if (next !== current) {
+      router.replace(`/admin/kpi${next ? "?" + next : ""}`, { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, preset, dateFrom, dateTo, agent]);
 
   return (
     <div className="mb-6 space-y-3">
@@ -204,10 +212,7 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button onClick={applyFilters} className="btn-brand inline-flex items-center gap-1">
-            <Filter className="h-3.5 w-3.5" /> Filter anwenden
-          </button>
-          <button onClick={syncFromAblefy} disabled={syncing} className="btn-secondary inline-flex items-center gap-2">
+          <button onClick={syncFromAblefy} disabled={syncing} className="btn-brand inline-flex items-center gap-2">
             {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
             {syncing ? "Lade Daten ..." : "Aus Ablefy synchronisieren"}
           </button>
@@ -216,7 +221,20 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
               <X className="h-3.5 w-3.5" /> Filter zuruecksetzen
             </button>
           )}
+          <span className="text-[11px] text-muted-foreground">
+            <Filter className="mr-1 inline h-3 w-3" />
+            Filter wirken sofort auf alle Charts (clientseitig auf das letzte Aggregat angewendet).
+          </span>
         </div>
+
+        {hasFilters && !usingLiveData && (
+          <div className="mt-3 inline-flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-[11px] text-amber-700">
+            <Sparkles className="mt-0.5 h-3 w-3 flex-shrink-0" />
+            <span>
+              <strong>Demo-Daten reagieren nicht auf Filter</strong> — fuer Live-Filterung erst „Aus Ablefy synchronisieren" druecken, danach reagieren alle Charts auf jede Filter-Aenderung.
+            </span>
+          </div>
+        )}
 
         {error && (
           <div className="mt-3 rounded-md bg-loss/10 p-2 text-xs text-loss">⚠️ {error}</div>
