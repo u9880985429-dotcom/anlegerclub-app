@@ -1,8 +1,13 @@
 /**
- * Phase 1: type-only re-exports of domain enums so app + api can share them
- * without depending on a generated Prisma client (no DB yet).
- * Phase 2: replace these with the actual Prisma client.
+ * Domain-Enums + Prisma-Client-Re-Export.
+ *
+ * Konstanten + Types werden aus Phase 1 als „as const"-Objekte exportiert,
+ * damit App + API sie nutzen koennen, ohne den Prisma-Client zu importieren.
+ * Bei aktivierter DB ist der Prisma-Client zusaetzlich ueber `prisma`
+ * verfuegbar.
  */
+
+export { prisma } from "./client";
 
 export const Role = {
   MEMBER: "MEMBER",

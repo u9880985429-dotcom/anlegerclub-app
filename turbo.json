@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["NEXTAUTH_SECRET", "NEXTAUTH_URL", "NOTIFY_EMAIL_WEBHOOK_URL", "NOTIFY_PUSH_WEBHOOK_URL"]
+      "env": ["NEXTAUTH_SECRET", "NEXTAUTH_URL", "NOTIFY_EMAIL_WEBHOOK_URL", "NOTIFY_PUSH_WEBHOOK_URL", "DATABASE_URL", "DATABASE_URL_UNPOOLED"]
     },
     "dev": {
       "cache": false,

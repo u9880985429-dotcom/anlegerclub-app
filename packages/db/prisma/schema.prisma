@@ -1,21 +1,30 @@
-// Trader IQ – Prisma schema (Phase 2 ready, NOT migrated in Phase 1).
-// Source of truth: spec §11. Edit spec first, mirror here.
+// Trader IQ Anlegerclub — Prisma Schema (Phase 2)
+//
+// Source of truth: spec §11 + Iterations 18+ (SALES-Rolle, PAID-Status,
+// Ablefy-Integration, KPI-Layouts).
+//
+// Migrationen liegen in prisma/migrations/. Vercel-Build ruft `prisma migrate
+// deploy` automatisch auf, damit die Neon-DB synchron bleibt.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 enum Role {
   MEMBER
   MODERATOR
+  STAFF
+  // Sales-Mitarbeiter (Vertrieb). Public sichtbar als „Mitarbeiter".
+  SALES
   ADMIN
   OWNER
-  STAFF
 }
 
 enum SubStatus {
@@ -24,6 +33,8 @@ enum SubStatus {
   CANCELLED
   EXPIRED
   REFUNDED
+  // Mitarbeiter / interne Accounts — gilt als bezahlt + Vollzugriff.
+  PAID
 }
 
 enum ActionType {
@@ -44,62 +55,75 @@ model User {
   lastName      String?
   passwordHash  String?
   role          Role           @default(MEMBER)
+  isTeamMember  Boolean        @default(false)
   ablefyId      String?        @unique
   phoneVerified Boolean        @default(false)
   notifyPush    Boolean        @default(true)
   notifyEmail   Boolean        @default(true)
   loginCount    Int            @default(0)
   onboardedFor  String[]       @default([])
+  // Optionale Stammdaten (Phase 2 ggf. von Ablefy syncen)
+  street        String?
+  zip           String?
+  city          String?
+  country       String?
+  notes         String?
   createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   subscriptions Subscription[]
+  apiKeys       ApiKey[]
+  kpiLayouts    KpiLayout[]
+  auditEntries  AuditLog[]     @relation("AuditActor")
+
+  @@index([role])
 }
 
 model Subscription {
-  id                String    @id @default(uuid())
-  userId            String
-  productSlug       String
-  status            SubStatus
-  ablefyOrderId     String?
-  startedAt         DateTime
-  currentPeriodEnd  DateTime?
-  pausedReason      String?
-  user              User      @relation(fields: [userId], references: [id])
+  id               String    @id @default(uuid())
+  userId           String
+  productSlug      String
+  status           SubStatus
+  ablefyOrderId    String?
+  startedAt        DateTime
+  currentPeriodEnd DateTime?
+  pausedReason     String?
+  user             User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, productSlug])
 }
 
 model TradeSignal {
-  id           String     @id @default(uuid())
-  productSlug  String
-  date         DateTime
-  action       ActionType
-  tickers      String[]
-  title        String
-  bodyMd       String
-  attachments  Json?
-  publishedAt  DateTime?
-  createdById  String
+  id          String     @id @default(uuid())
+  productSlug String
+  date        DateTime
+  action      ActionType
+  tickers     String[]
+  title       String
+  bodyMd      String
+  attachments Json?
+  publishedAt DateTime?
+  createdById String
 }
 
 model MonthlyReport {
-  id            String    @id @default(uuid())
-  productSlug   String
-  monthLabel    String
-  videoAssetId  String?
-  pdfUrl        String?
-  bodyMd        String
-  publishedAt   DateTime?
+  id           String    @id @default(uuid())
+  productSlug  String
+  monthLabel   String
+  videoAssetId String?
+  pdfUrl       String?
+  bodyMd       String
+  publishedAt  DateTime?
 }
 
 model Lesson {
-  id           String   @id @default(uuid())
+  id           String  @id @default(uuid())
   productSlug  String
   section      String
   title        String
   bodyMd       String
   videoAssetId String?
   order        Int
-  visible      Boolean  @default(true)
+  visible      Boolean @default(true)
 }
 
 model OnboardingSlide {
@@ -129,16 +153,16 @@ model Community {
 }
 
 model Post {
-  id           String   @id @default(uuid())
-  communityId  String
-  authorId     String
-  title        String?
-  bodyMd       String
-  pinned       Boolean  @default(false)
-  visible      Boolean  @default(true)
-  hiddenById   String?
-  attachments  Json?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid())
+  communityId String
+  authorId    String
+  title       String?
+  bodyMd      String
+  pinned      Boolean  @default(false)
+  visible     Boolean  @default(true)
+  hiddenById  String?
+  attachments Json?
+  createdAt   DateTime @default(now())
 }
 
 model Comment {
@@ -160,23 +184,30 @@ model Reaction {
 }
 
 model Report {
-  id          String   @id @default(uuid())
-  reporterId  String
-  postId      String?
-  commentId   String?
-  reason      String
-  status      String   @default("OPEN")
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  reporterId String
+  postId     String?
+  commentId  String?
+  reason     String
+  status     String   @default("OPEN")
+  createdAt  DateTime @default(now())
 }
 
 model AuditLog {
   id        String   @id @default(uuid())
-  actorId   String
+  actorId   String?
+  actorName String?
   action    String
   entity    String
   entityId  String
   meta      Json?
   createdAt DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([entity, entityId])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Notification {
@@ -188,4 +219,68 @@ model Notification {
   deeplink  String?
   readAt    DateTime?
   createdAt DateTime  @default(now())
+}
+
+// ─── Ablefy-Integration (Iteration 18+) ───────────────────────────────────
+
+model AblefyEvent {
+  id      String   @id @default(uuid())
+  ts      DateTime @default(now())
+  kind    String
+  status  String
+  summary String
+  payload Json?
+
+  @@index([ts(sort: Desc)])
+  @@index([kind])
+}
+
+// Singleton-Tabelle (genau ein Datensatz, id = "singleton") fuer die globale
+// Ablefy-Konfiguration. Phase 2: API-Secret + Webhook-Secret AES-256-GCM-verschluesselt.
+model AblefyConfig {
+  id             String    @id @default("singleton")
+  enabled        Boolean   @default(false)
+  apiKey         String?
+  apiSecret      String?
+  webhookSecret  String?
+  productMapping Json?
+  lastSyncAt     DateTime?
+  lastTestAt     DateTime?
+  updatedAt      DateTime  @updatedAt
+}
+
+// ─── API-Keys (Iteration 15) ──────────────────────────────────────────────
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  name       String
+  prefix     String // erste 8-12 Zeichen, anzeigbar
+  keyHash    String    @unique // SHA-256 des vollen Keys
+  scopes     String[]
+  ownerId    String?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([prefix])
+  @@index([ownerId])
+}
+
+// ─── KPI-Dashboard-Layouts (Iteration 20) ─────────────────────────────────
+
+model KpiLayout {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String   @default("Standard")
+  // Serialisiertes WidgetInstance[] aus apps/web/lib/kpi-config.ts
+  widgets   Json
+  isDefault Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId])
 }
