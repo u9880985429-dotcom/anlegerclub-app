@@ -1,0 +1,10 @@
+﻿Rang;API-Endpoint;HTTP-Methode;Auth;Anzahl Events;Welche Events;Doku-Link
+1;/api/payments/{id};GET;?key=...&secret=...;16;Raten erstattet · Abo-Raten erstattet · Abo-Raten rückgefordert · Zahlung ausstehend (ORDER) · Alle 4 PAYMENT · Alle 4 REFUND · Alle 4 CHARGEBACK;https://api.myablefy.com/api/swagger_doc/#operation/payments-id-get
+2;/api/orders/{id};GET;?key=...&secret=...;13;4× Zahlungsart geändert · Ratenzahlung abgeschlossen/pausiert/storniert · Abo aktiv/pausiert/storniert/unvollständig/reaktiviert · Rate ausstehend;https://api.myablefy.com/api/swagger_doc/#operation/orders-id-get
+3;/api/payers/{transfer_ext_id};GET;?key=...&secret=...;2;PAYER Zugriff geändert · PAYER E-Mail-Adresse geändert;https://api.myablefy.com/api/swagger_doc/#operation/payers-transfer_ext_id-get
+4;/api/products/{id};GET;?key=...&secret=...;1;SAAS_PLAN aktualisiert (Plan-Info ist Teil des Product-Payloads);https://api.myablefy.com/api/swagger_doc/#operation/products-id-get
+;;;;;;
+;Bonus-Endpoints fuer historischen Sync (kein Webhook-Trigger);;;;;
+A;/api/invoices;GET;?key=...&secret=...&date_from=...&date_to=...;—;Bulk-Pull aller Rechnungen mit Datums-Filter — fuer Initial-Sync und KPI-Aggregat;https://api.myablefy.com/api/swagger_doc/#operation/invoices-get
+B;/api/me;GET;?key=...&secret=...;—;Verbindungstest (Auth-Check);https://api.myablefy.com/api/swagger_doc/#operation/me-get
+C;/api/payments/{id}/refund;POST;Body: key + secret;—;Refund initiieren (nur falls aus dem KPI-Dashboard ausloesbar);https://api.myablefy.com/api/swagger_doc/#operation/payments-id-refund-post

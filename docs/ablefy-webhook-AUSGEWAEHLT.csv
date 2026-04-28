@@ -1,0 +1,33 @@
+﻿Event-Gruppe;Event-Anzeigename (DE);Beschreibung;API-Endpoint zum Daten-Lookup;HTTP-Methode;Auth;KPI-Verwendung
+ORDER;Zahlungsart bei Einmalzahlung geändert;Zahlungsart bei Einmalzahlung durch Käufer geändert;/api/orders/{id};GET;key + secret;Audit-Log
+ORDER;Zahlungsart bei Abonnement geändert;Zahlungsart bei Abonnement durch Käufer geändert;/api/orders/{id};GET;key + secret;Audit-Log
+ORDER;Zahlungsart bei Limitiertem Abo geändert;Zahlungsart bei Limitiertem Abo durch Käufer geändert;/api/orders/{id};GET;key + secret;Audit-Log
+ORDER;Zahlungsart bei Ratenzahlung geändert;Zahlungsart bei Ratenzahlung durch Käufer geändert;/api/orders/{id};GET;key + secret;Audit-Log
+ORDER;Ratenzahlung abgeschlossen;Alle Raten sind vollständig beglichen;/api/orders/{id};GET;key + secret;Revenue YTD · LTV
+ORDER;Ratenzahlung pausiert;Fällige Rate konnte nicht eingezogen oder Zahlung muss vom Kunde angewiesen werden;/api/orders/{id};GET;key + secret;Payment-Issues KPI
+ORDER;Ratenzahlung storniert;Ratenzahlung wurden von Anbieter oder Kunde storniert;/api/orders/{id};GET;key + secret;Churn · Cancellation Reason
+ORDER;Raten erstattet;Alle Raten wurden vollständig erstattet;/api/payments/{id};GET;key + secret;Refund Rate · Loss-KPI
+ORDER;Abo aktiv;Mind. eine fällige Abo-Rate wurde erfolgreich beglichen;/api/orders/{id};GET;key + secret;Active Members · MRR
+ORDER;Abo pausiert;Fällige Abo-Rate konnte nicht eingezogen oder Zahlung muss vom Kunde angewiesen werden;/api/orders/{id};GET;key + secret;Payment-Issues · Re-Engagement
+ORDER;Abo storniert;Abo wurden von Anbieter oder Kunde storniert;/api/orders/{id};GET;key + secret;Churn · Churn-Reason-Donut
+ORDER;Abo-Raten erstattet;Alle Abo-Raten wurden vollständig erstattet;/api/payments/{id};GET;key + secret;Refund Rate · Loss-KPI
+ORDER;Abo unvollständig;Erste Abo-Rate wurde storniert oder von Zahlungsanbieter nicht ausgeführt;/api/orders/{id};GET;key + secret;Failed-Payment-Funnel
+ORDER;Abo-Raten rückgefordert;Kunde hat alle Zahlungen per Rücklastschrift widerrufen;/api/payments/{id};GET;key + secret;Chargeback Rate · Loss-KPI
+ORDER;Rate ausstehend;Warten auf Zahlungsanbieter;/api/orders/{id};GET;key + secret;Outstanding · Cashflow
+ORDER;Zahlung ausstehend;Warten auf Zahlungsanbieter;/api/payments/{id};GET;key + secret;Outstanding · Cashflow
+ORDER;Abo reaktiviert;Pausierte Ratenzahlung reaktiviert;/api/orders/{id};GET;key + secret;Re-Engagement KPI · MRR
+PAYER;Zugriff geändert;Wird ausgelöst, wenn sich der Produktzugriff eines Kunden ändert;/api/payers/{transfer_ext_id};GET;key + secret;Subscription-Sync · Access-Manager
+PAYER;E-Mail-Adresse geändert;Kunde hat E-Mail-Adresse geändert;/api/payers/{transfer_ext_id};GET;key + secret;User-Profil-Sync · Mailing-Update
+SAAS_PLAN;SaaS-Plan aktualisiert;Wird ausgelöst, wenn ein Plan-Abonnement aktualisiert wird;/api/products/{id};GET;key + secret;Plan-Mapping-Refresh
+PAYMENT;Zahlung erfolgreich;Zahlung wurde erfolgreich ausgeführt;/api/payments/{id};GET;key + secret;Revenue YTD · MRR
+PAYMENT;Zahlung ausstehend;Warten auf Zahlungsanbieter;/api/payments/{id};GET;key + secret;Cashflow-Forecast
+PAYMENT;Zahlung abgebrochen;Kunde hat Zahlung abgebrochen;/api/payments/{id};GET;key + secret;Funnel-Drop-off
+PAYMENT;Zahlungsfehler;Technischer Fehler bei Zahlungsabwicklung;/api/payments/{id};GET;key + secret;Tech-Failure-Alert
+REFUND;Erstattung erfolgreich;Erstattung wurde erfolgreich ausgeführt;/api/payments/{id};GET;key + secret;Refund Rate · Net-Revenue
+REFUND;Erstattung ausstehend;Warten auf Zahlungsanbieter;/api/payments/{id};GET;key + secret;Refund-Pipeline
+REFUND;Erstattung storniert;Anbieter hat Erstattung abgebrochen;/api/payments/{id};GET;key + secret;Refund-Pipeline
+REFUND;Erstattung fehlerhaft;Technischer Fehler bei Zahlungsabwicklung;/api/payments/{id};GET;key + secret;Tech-Failure-Alert
+CHARGEBACK;Chargeback erfolgreich;Chargeback wurde erfolgreich ausgeführt;/api/payments/{id};GET;key + secret;Chargeback Rate · Loss-KPI
+CHARGEBACK;Chargeback ausstehend;Warten auf Zahlungsanbieter;/api/payments/{id};GET;key + secret;Chargeback-Pipeline
+CHARGEBACK;Chargeback storniert;Zahlungsanbieter hat Chargeback abgebrochen;/api/payments/{id};GET;key + secret;Chargeback-Pipeline
+CHARGEBACK;Chargeback fehlerhaft;Technischer Fehler bei Zahlungsabwicklung;/api/payments/{id};GET;key + secret;Tech-Failure-Alert

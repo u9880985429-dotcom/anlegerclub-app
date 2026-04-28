@@ -1,7 +1,30 @@
 # Ablefy Webhook → API-Endpoint Mapping
 
-**Datei:** `ablefy-webhook-api-mapping.csv`
-**Zeilen:** 67 Events (ORDER · PRODUCT · PAYER · SAAS_PLAN · PRICING_PLAN · PAYMENT · REFUND · CHARGEBACK · LESSON · QUIZ)
+## Drei Dateien
+
+| Datei | Zeilen | Zweck |
+|---|---|---|
+| `ablefy-webhook-AUSGEWAEHLT.csv` | 32 | **Deine konkret aktivierten Events** + Endpoint pro Event |
+| `ablefy-endpoint-summary.csv` | 4 + 3 Bonus | **Konsolidierung:** alle 32 Events brauchen nur 4 Endpoints |
+| `ablefy-webhook-api-mapping.csv` | 67 | Vollreferenz aller verfuegbaren Webhook-Events (auch nicht-aktivierte) |
+
+## Endpoint-Konsolidierung (TL;DR)
+
+Deine 32 aktivierten Events landen auf nur **4 API-Endpoints**:
+
+```
+/api/payments/{id}             ← 16 Events (alle Zahlung-/Refund-/Chargeback-bezogen)
+/api/orders/{id}               ← 13 Events (Order-Status, Subscription-Lifecycle)
+/api/payers/{transfer_ext_id}  ←  2 Events (Customer-Sync)
+/api/products/{id}             ←  1 Event  (SaaS-Plan-Update)
+```
+
+Plus 3 Bonus-Endpoints (kein Webhook-Trigger):
+- `/api/invoices` GET — Bulk-Pull mit Date-Filter (fuer Initial-Sync)
+- `/api/me` GET — Verbindungstest
+- `/api/payments/{id}/refund` POST — Refund auslösen (optional, riskant)
+
+**Praktisch:** Ich baue den Webhook-Handler so, dass er per `event_type` den richtigen Endpoint wählt + ID aus dem Payload extrahiert + ihn dort abruft.
 
 ## Wie du die CSV öffnest
 
