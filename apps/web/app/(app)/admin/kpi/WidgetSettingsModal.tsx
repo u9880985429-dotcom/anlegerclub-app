@@ -4,6 +4,7 @@ import { X, Check, Search, Sparkles, ArrowRightLeft } from "lucide-react";
 import { WIDGET_REGISTRY } from "./widgets/registry";
 import type { WidgetCatalogEntry } from "./widgets/types";
 import type { WidgetInstance, WidgetSize } from "@/lib/kpi-config";
+import { WidgetThumbnail } from "./WidgetThumbnail";
 
 const COLS_OPTIONS: WidgetSize[] = [3, 4, 6, 8, 12];
 
@@ -202,7 +203,7 @@ export function WidgetSettingsModal({
                 ))}
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {swappable.length === 0 ? (
                   <div className="col-span-full py-6 text-center text-xs text-muted-foreground">
                     Keine Widgets zum Tauschen verfuegbar.
@@ -212,20 +213,18 @@ export function WidgetSettingsModal({
                     <button
                       key={w.id}
                       onClick={() => onSwap(w.id)}
-                      className="text-left rounded-md border border-border bg-card p-3 transition hover:border-brand/40 hover:bg-brand/5"
+                      className="group flex flex-col overflow-hidden rounded-md border border-border bg-card text-left transition hover:border-brand/40 hover:shadow-md"
                     >
-                      <div className="mb-1 flex items-center justify-between gap-2">
-                        <h4 className="text-sm font-semibold">{w.title}</h4>
-                        <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase ${CATEGORY_BADGE[w.category]}`}>
-                          {w.category}
-                        </span>
+                      <WidgetThumbnail entry={w} />
+                      <div className="flex-1 p-3">
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <h4 className="text-xs font-semibold leading-tight">{w.title}</h4>
+                          <span className={`flex-shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase ${CATEGORY_BADGE[w.category]}`}>
+                            {w.category}
+                          </span>
+                        </div>
+                        <p className="line-clamp-2 text-[10px] text-muted-foreground">{w.description}</p>
                       </div>
-                      <p className="line-clamp-2 text-[11px] text-muted-foreground">{w.description}</p>
-                      {w.inspiration && (
-                        <p className="mt-1 text-[10px] text-muted-foreground/80">
-                          <em>{w.inspiration}</em>
-                        </p>
-                      )}
                     </button>
                   ))
                 )}

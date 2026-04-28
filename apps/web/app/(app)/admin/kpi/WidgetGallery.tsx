@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { X, Plus, Search, Sparkles } from "lucide-react";
 import { WIDGET_REGISTRY } from "./widgets/registry";
 import type { WidgetCatalogEntry } from "./widgets/types";
+import { WidgetThumbnail } from "./WidgetThumbnail";
 
 type Category = WidgetCatalogEntry["category"];
 
@@ -102,28 +103,31 @@ export function WidgetGallery({
             </div>
           ) : (
             filtered.map((w) => (
-              <article key={w.id} className="flex flex-col rounded-md border border-border bg-card p-3">
-                <div className="mb-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="text-sm font-semibold">{w.title}</h4>
-                    <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase ${CATEGORY_BADGE[w.category]}`}>
-                      {w.category}
-                    </span>
-                  </div>
-                  {w.inspiration && (
-                    <div className="mt-0.5 text-[10px] text-muted-foreground">
-                      Inspiration: <em>{w.inspiration}</em>
+              <article key={w.id} className="flex flex-col overflow-hidden rounded-md border border-border bg-card transition hover:border-brand/40 hover:shadow-md">
+                <WidgetThumbnail entry={w} />
+                <div className="flex flex-1 flex-col p-3">
+                  <div className="mb-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-sm font-semibold leading-tight">{w.title}</h4>
+                      <span className={`flex-shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase ${CATEGORY_BADGE[w.category]}`}>
+                        {w.category}
+                      </span>
                     </div>
-                  )}
-                </div>
-                <p className="flex-1 text-[11px] text-muted-foreground">{w.description}</p>
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <span className="text-[10px] text-muted-foreground">
-                    Standardgroesse: {w.defaultCols} / 12 Spalten
-                  </span>
-                  <button onClick={() => onAdd(w)} className="btn-brand inline-flex items-center gap-1 text-xs">
-                    <Plus className="h-3 w-3" /> Hinzufuegen
-                  </button>
+                    {w.inspiration && (
+                      <div className="mt-0.5 text-[10px] text-muted-foreground">
+                        <em>{w.inspiration}</em>
+                      </div>
+                    )}
+                  </div>
+                  <p className="flex-1 text-[11px] text-muted-foreground">{w.description}</p>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-muted-foreground">
+                      {w.defaultCols} / 12 Spalten
+                    </span>
+                    <button onClick={() => onAdd(w)} className="btn-brand inline-flex items-center gap-1 text-xs">
+                      <Plus className="h-3 w-3" /> Hinzufuegen
+                    </button>
+                  </div>
                 </div>
               </article>
             ))

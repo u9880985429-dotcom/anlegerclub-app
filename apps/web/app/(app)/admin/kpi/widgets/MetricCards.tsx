@@ -354,3 +354,231 @@ export function MonthlyGoalsProgress({ data }: { data: WidgetData }) {
     />
   );
 }
+
+/**
+ * Zone-Gauge — Tachometer mit 3-Farben-Ampel (gruen/gelb/rot).
+ * Inspiriert vom Yellowfin-BI-Dashboard „KPIs by Product Category".
+ */
+export function ZoneGauge({
+  title,
+  value,
+  goal,
+  unit = "%",
+  zones,
+  invert,
+}: {
+  title: string;
+  value: number;
+  goal: number;
+  unit?: string;
+  /** Schwellen relativ zum max-Wert: [warn, bad]. Default: [0.5, 0.75] (= 50/75 %). */
+  zones?: { warn: number; bad: number };
+  /** Wenn invert=true: niedrig = gut (z.B. Churn). Default: hoch = gut. */
+  invert?: boolean;
+}) {
+  const max = Math.max(goal * 1.5, value * 1.2, goal + 1);
+  const pct = Math.min(1, value / max);
+  const z = zones ?? { warn: 0.5, bad: 0.75 };
+  const color = (() => {
+    const ratio = invert ? 1 - pct : pct;
+    if (ratio >= 1 - (1 - z.bad)) return "#22c55e";
+    if (ratio >= 1 - (1 - z.warn)) return "#f59e0b";
+    return "#ef4444";
+  })();
+  // 3 Bogen-Segmente fuer die Zonen
+  const segs = [
+    { from: 0, to: z.warn, color: invert ? "#22c55e" : "#ef4444" },
+    { from: z.warn, to: z.bad, color: "#f59e0b" },
+    { from: z.bad, to: 1, color: invert ? "#ef4444" : "#22c55e" },
+  ];
+  const r = 70;
+  const cx = 100;
+  const cy = 100;
+  function arc(fromPct: number, toPct: number) {
+    const fromAngle = 180 - fromPct * 180;
+    const toAngle = 180 - toPct * 180;
+    const x1 = cx + r * Math.cos((fromAngle * Math.PI) / 180);
+    const y1 = cy - r * Math.sin((fromAngle * Math.PI) / 180);
+    const x2 = cx + r * Math.cos((toAngle * Math.PI) / 180);
+    const y2 = cy - r * Math.sin((toAngle * Math.PI) / 180);
+    return `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+  }
+  // Zeiger
+  const valueAngle = 180 - pct * 180;
+  const needleX = cx + r * 0.85 * Math.cos((valueAngle * Math.PI) / 180);
+  const needleY = cy - r * 0.85 * Math.sin((valueAngle * Math.PI) / 180);
+
+  return (
+    <div className="card-base flex h-full flex-col items-center p-5">
+      <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <svg viewBox="0 0 200 130" className="w-full max-w-[240px]">
+        {segs.map((s, i) => (
+          <path key={i} d={arc(s.from, s.to)} fill="none" stroke={s.color} strokeWidth="14" strokeLinecap="butt" opacity="0.85" />
+        ))}
+        {/* Zeiger */}
+        <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke="#0f172a" strokeWidth="3" strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r="6" fill="#0f172a" />
+      </svg>
+      <div className="mt-1 text-3xl font-extrabold" style={{ color }}>
+        {value.toFixed(1).replace(".", ",")}{unit}
+      </div>
+      <div className="text-[11px] text-muted-foreground">Ziel: {goal}{unit}</div>
+    </div>
+  );
+}
+
+export function ChurnZoneGauge({ data }: { data: WidgetData }) {
+  const rate = data.activeMembers > 0 ? (data.churnedMembersThisMonth / data.activeMembers) * 100 : 0;
+  return <ZoneGauge title="Churn-Rate (30d)" value={Number(rate.toFixed(2))} goal={5} unit="%" invert />;
+}
+
+export function ConversionZoneGauge() {
+  return <ZoneGauge title="Conversion-Rate Webinar→Kauf" value={3.4} goal={3.0} unit="%" />;
+}
+
+/**
+ * Big-Number-Card mit Variance + 12-Monats-Sparkline.
+ * Inspiriert vom Yellowfin-BI „Sales YTD 33,09m + Variance"-Card.
+ */
+export function BigNumberWithSparkline({
+  label,
+  value,
+  variancePct,
+  varianceAbs,
+  series,
+  unit = "€",
+}: {
+  label: string;
+  value: number;
+  variancePct?: number;
+  varianceAbs?: number;
+  series: number[];
+  unit?: string;
+}) {
+  const w = 280;
+  const h = 70;
+  const max = Math.max(...series, 1);
+  const min = Math.min(...series) * 0.92;
+  const range = max - min || 1;
+  const points = series.map((v, i) => ({
+    x: (i / Math.max(series.length - 1, 1)) * w,
+    y: h - ((v - min) / range) * h,
+  }));
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const areaPath =
+    `M ${points[0]?.x.toFixed(1) ?? 0} ${h} ` +
+    points.map((p) => `L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ") +
+    ` L ${points[points.length - 1]?.x.toFixed(1) ?? 0} ${h} Z`;
+  const positive = (variancePct ?? 0) >= 0;
+  const color = positive ? "#22c55e" : "#ef4444";
+  return (
+    <div className="card-base h-full p-5">
+      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-1 flex flex-wrap items-baseline gap-2">
+        <span className="text-3xl font-extrabold">
+          {(value >= 1_000_000 ? (value / 1_000_000).toFixed(2) : value >= 1_000 ? (value / 1_000).toFixed(1) + "k" : value.toFixed(0))}
+          <span className="ml-1 text-lg text-muted-foreground">{unit}</span>
+        </span>
+        {variancePct !== undefined && (
+          <span className="inline-flex items-baseline gap-1 text-xs font-semibold" style={{ color }}>
+            {positive ? "▲" : "▼"} {Math.abs(variancePct).toFixed(2).replace(".", ",")}%
+          </span>
+        )}
+      </div>
+      {varianceAbs !== undefined && (
+        <div className="text-[11px]" style={{ color }}>
+          Variance: {varianceAbs >= 0 ? "+" : ""}{varianceAbs.toLocaleString("de-DE")} {unit}
+        </div>
+      )}
+      <svg viewBox={`0 0 ${w} ${h}`} className="mt-3 h-16 w-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="bn-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill="url(#bn-fill)" />
+        <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+}
+
+export function RevenueBigNumber({ data }: { data: WidgetData }) {
+  const series = data.ablefyAggregate?.byMonth
+    ? Object.entries(data.ablefyAggregate.byMonth).sort(([a], [b]) => a.localeCompare(b)).slice(-12).map(([, v]) => v.revenue)
+    : [4200, 4480, 4910, 5150, 5680, 6020, 6510, 7080, 7740, 8390, 9050, 9870];
+  const total = series.reduce((s, v) => s + v, 0);
+  const last = series[series.length - 1] ?? 0;
+  const prev = series[series.length - 2] ?? last;
+  const pct = prev > 0 ? ((last - prev) / prev) * 100 : 0;
+  const abs = last - prev;
+  return <BigNumberWithSparkline label="Umsatz YTD · letzter Monat" value={total} variancePct={pct} varianceAbs={abs} series={series} />;
+}
+
+/**
+ * Vertikaler Thermometer-Progress.
+ * Inspiriert von KPI-Dashboard-Slides + Sales-Overview Revenue-Slider.
+ */
+export function ThermometerCard({
+  title,
+  value,
+  goal,
+  unit = "€",
+}: {
+  title: string;
+  value: number;
+  goal: number;
+  unit?: string;
+}) {
+  const pct = Math.min(100, (value / goal) * 100);
+  const above = value >= goal;
+  return (
+    <div className="card-base flex h-full flex-col p-5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="flex flex-1 items-center gap-4">
+        <div className="relative h-40 w-8 flex-shrink-0 rounded-full bg-muted">
+          <div
+            className={`absolute bottom-0 left-0 right-0 rounded-full transition-all ${above ? "bg-profit" : "bg-brand"}`}
+            style={{ height: `${pct}%` }}
+          />
+          <div className="absolute -right-12 top-0 -translate-y-1/2 text-[10px] text-muted-foreground">
+            {(goal * 1).toLocaleString("de-DE")} {unit}
+          </div>
+          <div className="absolute -right-12 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+            {(goal / 2).toLocaleString("de-DE")} {unit}
+          </div>
+          <div className="absolute -right-8 bottom-0 text-[10px] text-muted-foreground">0</div>
+        </div>
+        <div className="flex-1 pl-12">
+          <div className="text-3xl font-extrabold">
+            {value.toLocaleString("de-DE")}
+            <span className="ml-1 text-base text-muted-foreground">{unit}</span>
+          </div>
+          <div className="mt-1 text-xs">
+            <span className={above ? "text-profit" : "text-amber-700"}>
+              {pct.toFixed(0)} % vom Ziel
+            </span>
+            <span className="ml-2 text-muted-foreground">
+              ({goal.toLocaleString("de-DE")} {unit})
+            </span>
+          </div>
+          {above ? (
+            <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-profit/15 px-1.5 py-0.5 text-[10px] font-semibold text-profit">
+              ✓ Ziel uebertroffen
+            </div>
+          ) : (
+            <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+              {(goal - value).toLocaleString("de-DE")} {unit} bis Ziel
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function MrrThermometer({ data }: { data: WidgetData }) {
+  const mrr = data.ablefyAggregate ? Math.round(data.ablefyAggregate.totalRevenue / 12) : data.activeMembers * data.avgArpu;
+  return <ThermometerCard title="MRR · Goal-Tracking" value={mrr} goal={15000} unit="€" />;
+}

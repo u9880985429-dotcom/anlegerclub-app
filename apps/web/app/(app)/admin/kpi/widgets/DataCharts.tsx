@@ -538,3 +538,352 @@ export function FunnelStepsChart({ data }: { data: WidgetData }) {
     </div>
   );
 }
+
+/**
+ * Year-over-Year-Compare-Bars.
+ * Inspiriert vom Yellowfin „Sales YTD 2018 vs 2019".
+ */
+export function YoYCompareBars({ data }: { data: WidgetData }) {
+  const _data = data;
+  void _data;
+  // Phase 2: aus Ablefy-byMonth aktuelles + Vorjahres-Fenster ableiten.
+  const months = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+  const current = [4800, 5100, 5400, 5800, 6100, 6300, 6700, 7100, 7600, 8100, 8500, 9000];
+  const prior = [3900, 4200, 4500, 4700, 5000, 5200, 5500, 5800, 6100, 6500, 6800, 7100];
+  const max = Math.max(...current, ...prior);
+  const w = 600;
+  const h = 240;
+  const padX = 30;
+  const padY = 24;
+  const innerW = w - padX * 2;
+  const innerH = h - padY * 2;
+  const groupW = innerW / months.length;
+  const barW = groupW / 2.6;
+
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Umsatz · Year-over-Year
+      </h3>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((g) => {
+          const y = padY + innerH * g;
+          return <line key={g} x1={padX} y1={y} x2={w - padX} y2={y} stroke="currentColor" strokeOpacity="0.08" />;
+        })}
+        {months.map((m, i) => {
+          const xBase = padX + i * groupW + groupW / 2;
+          const curH = (current[i]! / max) * innerH;
+          const prevH = (prior[i]! / max) * innerH;
+          return (
+            <g key={m}>
+              <rect x={xBase - barW - 1} y={padY + innerH - prevH} width={barW} height={prevH} rx="2" fill="#cbd5e1" />
+              <rect x={xBase + 1} y={padY + innerH - curH} width={barW} height={curH} rx="2" fill="#0ea5e9" />
+              <text x={xBase} y={h - 6} textAnchor="middle" className="fill-muted-foreground" fontSize="9">{m}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#cbd5e1]" /> Vorjahr</span>
+        <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#0ea5e9]" /> Aktuell</span>
+        <span className="ml-auto font-mono">YoY: <strong className="text-profit">+{(((current.reduce((s, v) => s + v, 0) / prior.reduce((s, v) => s + v, 0)) - 1) * 100).toFixed(1).replace(".", ",")} %</strong></span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Line-Chart mit Target-Threshold-Linie.
+ * Inspiriert vom Yellowfin „Volume Sales Versus Target".
+ */
+export function TargetLineChart({ data }: { data: WidgetData }) {
+  const series = data.ablefyAggregate?.byMonth
+    ? Object.entries(data.ablefyAggregate.byMonth).sort(([a], [b]) => a.localeCompare(b)).slice(-9).map(([k, v]) => ({ label: k.slice(2), value: v.revenue }))
+    : [
+        { label: "Aug 25", value: 5150 }, { label: "Sep 25", value: 5680 }, { label: "Okt 25", value: 6020 },
+        { label: "Nov 25", value: 6510 }, { label: "Dez 25", value: 7080 }, { label: "Jan 26", value: 7740 },
+        { label: "Feb 26", value: 8390 }, { label: "Mär 26", value: 9050 }, { label: "Apr 26", value: 9870 },
+      ];
+  const target = 8000;
+  const max = Math.max(...series.map((s) => s.value), target) * 1.1;
+  const min = Math.min(...series.map((s) => s.value)) * 0.9;
+  const w = 600;
+  const h = 220;
+  const padX = 36;
+  const padY = 24;
+  const innerW = w - padX * 2;
+  const innerH = h - padY * 2;
+  const yOf = (v: number) => padY + innerH - ((v - min) / (max - min)) * innerH;
+  const points = series.map((s, i) => ({
+    x: padX + (i / (series.length - 1)) * innerW,
+    y: yOf(s.value),
+    ...s,
+    aboveTarget: s.value >= target,
+  }));
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const targetY = yOf(target);
+  const aboveCount = points.filter((p) => p.aboveTarget).length;
+
+  return (
+    <div className="card-base h-full p-5">
+      <div className="mb-3 flex items-start justify-between">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Umsatz vs. Target</h3>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">{aboveCount} von {points.length} Monaten ueber Target</p>
+        </div>
+        <div className="text-right">
+          <div className="text-xs text-muted-foreground">Target</div>
+          <div className="font-mono text-sm font-semibold">{target.toLocaleString("de-DE")} €</div>
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
+        {[0.25, 0.5, 0.75].map((g) => {
+          const y = padY + innerH * g;
+          return <line key={g} x1={padX} y1={y} x2={w - padX} y2={y} stroke="currentColor" strokeOpacity="0.08" />;
+        })}
+        {/* Target-Linie */}
+        <line x1={padX} y1={targetY} x2={w - padX} y2={targetY} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="4 4" />
+        <text x={w - padX - 5} y={targetY - 5} textAnchor="end" className="fill-loss" fontSize="9" fontWeight="600">
+          Target
+        </text>
+        {/* Linie */}
+        <path d={linePath} fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinejoin="round" />
+        {points.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r="4" fill="white" stroke={p.aboveTarget ? "#22c55e" : "#ef4444"} strokeWidth="2" />
+        ))}
+        {points.map((p, i) => (
+          <text key={`l-${i}`} x={p.x} y={h - 6} textAnchor="middle" className="fill-muted-foreground" fontSize="9">{p.label}</text>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * Donut mit Center-Stat (grosser Wert in der Mitte).
+ * Inspiriert vom Yellowfin „Sales by Account Segment 33m".
+ */
+export function DonutWithCenterStat({ data }: { data: WidgetData }) {
+  const PRODUCT_LABEL_LOCAL: Record<string, string> = {
+    starter: "Starter",
+    trend: "Trend",
+    stillhalter: "Stillhalter",
+    cockpit: "Cockpit",
+    "all-access": "All-Access",
+  };
+  const PRODUCT_COLORS_LOCAL: Record<string, string> = {
+    starter: "#ff741f",
+    trend: "#0ea5e9",
+    stillhalter: "#10b981",
+    cockpit: "#f59e0b",
+    "all-access": "#8b5cf6",
+  };
+  const fromAblefy = data.ablefyAggregate?.byProduct;
+  let entries: { label: string; value: number; color: string }[];
+  if (fromAblefy && Object.keys(fromAblefy).length > 0) {
+    entries = Object.entries(fromAblefy).map(([k, v]) => ({
+      label: PRODUCT_LABEL_LOCAL[k] ?? `Produkt ${k}`,
+      value: v.revenue,
+      color: PRODUCT_COLORS_LOCAL[k] ?? "#94a3b8",
+    }));
+  } else {
+    entries = [
+      { label: "Starter", value: 18200, color: PRODUCT_COLORS_LOCAL.starter! },
+      { label: "Trend", value: 28400, color: PRODUCT_COLORS_LOCAL.trend! },
+      { label: "Stillhalter", value: 22100, color: PRODUCT_COLORS_LOCAL.stillhalter! },
+      { label: "Cockpit", value: 8900, color: PRODUCT_COLORS_LOCAL.cockpit! },
+      { label: "All-Access", value: 33800, color: PRODUCT_COLORS_LOCAL["all-access"]! },
+    ];
+  }
+  const total = entries.reduce((s, e) => s + e.value, 0) || 1;
+  const r = 38;
+  const c = 2 * Math.PI * r;
+  let acc = 0;
+  const segments = entries.map((e) => {
+    const fraction = e.value / total;
+    const dash = fraction * c;
+    const offset = (acc / total) * c;
+    acc += e.value;
+    return { ...e, dash, offset };
+  });
+  const centerLabel = total >= 1_000_000 ? `${(total / 1_000_000).toFixed(2)}M` : total >= 1_000 ? `${(total / 1_000).toFixed(1)}k` : `${total.toFixed(0)}`;
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Umsatz · Produkt-Verteilung
+      </h3>
+      <div className="mt-4 flex items-center gap-5">
+        <div className="relative h-36 w-36 flex-shrink-0">
+          <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+            {segments.map((s) => (
+              <circle
+                key={s.label}
+                cx="50" cy="50" r={r}
+                fill="none"
+                stroke={s.color}
+                strokeWidth="14"
+                strokeDasharray={`${s.dash.toFixed(2)} ${(c - s.dash).toFixed(2)}`}
+                strokeDashoffset={(-s.offset).toFixed(2)}
+              />
+            ))}
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="text-2xl font-extrabold">{centerLabel} €</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Gesamt</div>
+          </div>
+        </div>
+        <ul className="flex-1 space-y-1.5 text-xs">
+          {segments.sort((a, b) => b.value - a.value).map((s) => {
+            const pct = (s.value / total) * 100;
+            return (
+              <li key={s.label} className="flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+                  {s.label}
+                </span>
+                <span className="font-mono">
+                  <strong>{s.value >= 1000 ? (s.value / 1000).toFixed(1) + "k" : s.value.toFixed(0)} €</strong>
+                  <span className="ml-1.5 text-muted-foreground">{pct.toFixed(1).replace(".", ",")}%</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Top-N-Bars (Top-3 / Top-5 horizontal mit %-Labels).
+ * Inspiriert von Geschaefts-KPI „Top 3 by conversion".
+ */
+export function TopProductBars({ data }: { data: WidgetData }) {
+  const PRODUCT_LABEL_LOCAL: Record<string, string> = {
+    starter: "Starter",
+    trend: "Trend",
+    stillhalter: "Stillhalter",
+    cockpit: "Cockpit",
+    "all-access": "All-Access",
+  };
+  const fromAblefy = data.ablefyAggregate?.byProduct;
+  let rows: { label: string; value: number }[];
+  if (fromAblefy && Object.keys(fromAblefy).length > 0) {
+    rows = Object.entries(fromAblefy)
+      .map(([k, v]) => ({ label: PRODUCT_LABEL_LOCAL[k] ?? `Produkt ${k}`, value: v.revenue }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  } else {
+    rows = [
+      { label: "All-Access", value: 33800 },
+      { label: "Trend", value: 28400 },
+      { label: "Stillhalter", value: 22100 },
+      { label: "Starter", value: 18200 },
+      { label: "Cockpit", value: 8900 },
+    ];
+  }
+  const max = rows[0]?.value ?? 1;
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Top {rows.length} Produkte nach Umsatz
+      </h3>
+      <div className="space-y-2">
+        {rows.map((r, i) => {
+          const pct = (r.value / max) * 100;
+          return (
+            <div key={r.label} className="flex items-center gap-3">
+              <span className="w-6 flex-shrink-0 text-center font-mono text-[11px] text-muted-foreground">{i + 1}</span>
+              <span className="w-24 flex-shrink-0 text-xs font-medium">{r.label}</span>
+              <div className="h-5 flex-1 overflow-hidden rounded-md bg-muted">
+                <div className="h-full rounded-md bg-gradient-to-r from-brand to-brand/70" style={{ width: `${pct}%` }} />
+              </div>
+              <span className="w-20 flex-shrink-0 text-right font-mono text-xs">
+                {r.value >= 1000 ? `${(r.value / 1000).toFixed(1)}k €` : `${r.value.toFixed(0)} €`}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Mini-Donut-Row (eine Mini-Donut je Produkt + Mini-Stat).
+ * Inspiriert vom Yellowfin „KPIs by Product Category" (Whiskies/Rums/Vodkas/Tequilas).
+ */
+export function MiniDonutRow({ data }: { data: WidgetData }) {
+  const PRODUCT_LABEL_LOCAL: Record<string, string> = {
+    starter: "Starter",
+    trend: "Trend",
+    stillhalter: "Stillhalter",
+    cockpit: "Cockpit",
+    "all-access": "All-Access",
+  };
+  const PRODUCT_COLORS_LOCAL: Record<string, string> = {
+    starter: "#ff741f",
+    trend: "#0ea5e9",
+    stillhalter: "#10b981",
+    cockpit: "#f59e0b",
+    "all-access": "#8b5cf6",
+  };
+  const fromAblefy = data.ablefyAggregate?.byProduct;
+  let entries: { label: string; value: number; goal: number; color: string }[];
+  if (fromAblefy && Object.keys(fromAblefy).length > 0) {
+    entries = Object.entries(fromAblefy).slice(0, 4).map(([k, v]) => ({
+      label: PRODUCT_LABEL_LOCAL[k] ?? `Produkt ${k}`,
+      value: v.revenue,
+      goal: v.revenue * 1.3,
+      color: PRODUCT_COLORS_LOCAL[k] ?? "#94a3b8",
+    }));
+  } else {
+    entries = [
+      { label: "Starter", value: 18200, goal: 25000, color: PRODUCT_COLORS_LOCAL.starter! },
+      { label: "Trend", value: 28400, goal: 30000, color: PRODUCT_COLORS_LOCAL.trend! },
+      { label: "Stillhalter", value: 22100, goal: 28000, color: PRODUCT_COLORS_LOCAL.stillhalter! },
+      { label: "All-Access", value: 33800, goal: 32000, color: PRODUCT_COLORS_LOCAL["all-access"]! },
+    ];
+  }
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Umsatz je Produkt · Goal-Tracking
+      </h3>
+      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${entries.length}, minmax(0, 1fr))` }}>
+        {entries.map((e) => {
+          const pct = Math.min(1, e.value / e.goal);
+          const r = 30;
+          const c = 2 * Math.PI * r;
+          const dash = pct * c;
+          return (
+            <div key={e.label} className="flex flex-col items-center text-center">
+              <div className="relative h-20 w-20">
+                <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
+                  <circle cx="40" cy="40" r={r} fill="none" stroke="currentColor" strokeOpacity="0.1" strokeWidth="8" />
+                  <circle
+                    cx="40" cy="40" r={r}
+                    fill="none"
+                    stroke={e.color}
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={`${dash.toFixed(2)} ${c.toFixed(2)}`}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xs font-bold" style={{ color: e.color }}>
+                    {(pct * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+              <div className="mt-1 text-[11px] font-semibold">{e.label}</div>
+              <div className="font-mono text-[10px] text-muted-foreground">
+                {e.value >= 1000 ? `${(e.value / 1000).toFixed(1)}k` : e.value.toFixed(0)} / {e.goal >= 1000 ? `${(e.goal / 1000).toFixed(0)}k` : e.goal.toFixed(0)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
