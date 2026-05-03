@@ -6,6 +6,7 @@ import { requireSession } from "@/lib/access";
 import { canManageIntegrations } from "@traderiq/api";
 import { AblefyManager } from "./AblefyManager";
 import { PricingOverviewCard } from "./PricingOverviewCard";
+import { PendingBuyersCard } from "./PendingBuyersCard";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,10 @@ export default async function AblefyIntegrationPage() {
           <Plug className="h-4 w-4 text-brand" /> Konfiguration
         </h2>
         <AblefyManager />
+      </section>
+
+      <section className="mt-6">
+        <PendingBuyersCard />
       </section>
 
       <section className="mt-6">

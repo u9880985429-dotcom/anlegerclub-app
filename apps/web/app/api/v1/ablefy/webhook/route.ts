@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { readAblefyWebhookSecretFromCookieHeader } from "@/lib/ablefy-config";
 import { appendAblefyEvent, type AblefyLookupHintRecord } from "@/lib/ablefy-store";
 import { buildLookupHint } from "@/lib/ablefy-events";
+import { addPendingBuyer } from "@/lib/ablefy-pending-buyers";
 
 export const dynamic = "force-dynamic";
 
@@ -79,11 +80,99 @@ export async function POST(req: Request) {
     lookupHint,
   });
 
+  // Pending-Buyer ableiten — bei kauf-/zahlungsrelevanten Events.
+  if (eventName && shouldTrackBuyer(eventName)) {
+    const buyer = extractBuyerInfo(payload);
+    addPendingBuyer({
+      triggerEvent: eventName,
+      email: buyer.email,
+      firstName: buyer.firstName,
+      lastName: buyer.lastName,
+      orderId: buyer.orderId,
+      paymentId: buyer.paymentId,
+      productId: buyer.productId,
+      amount: buyer.amount,
+    });
+  }
+
   return NextResponse.json({
     ok: true,
     received: true,
     lookupHint: lookupHint ?? null,
   });
+}
+
+/**
+ * Welche Events fuehren zu einem Pending-Buyer-Eintrag? Wir interessieren
+ * uns hauptsaechlich fuer Kauf-/Zahlungs-Events. Stornierungen/Refunds
+ * sammeln wir nicht hier — die hauen ein eigenes Audit-Log.
+ */
+function shouldTrackBuyer(eventName: string): boolean {
+  const e = eventName.toLowerCase();
+  return (
+    e.includes("abo aktiv") ||
+    e.includes("subscription.activated") ||
+    e.includes("zahlung erfolgreich") ||
+    e.includes("payment.succeeded") ||
+    e.includes("ratenzahlung abgeschlossen") ||
+    e.includes("abo reaktiviert")
+  );
+}
+
+interface ExtractedBuyer {
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  orderId: string | null;
+  paymentId: string | null;
+  productId: string | null;
+  amount: number | null;
+}
+
+function extractBuyerInfo(payload: unknown): ExtractedBuyer {
+  if (!payload || typeof payload !== "object") {
+    return { email: null, firstName: null, lastName: null, orderId: null, paymentId: null, productId: null, amount: null };
+  }
+  const p = payload as Record<string, unknown>;
+  const data = (p.data && typeof p.data === "object" ? (p.data as Record<string, unknown>) : {}) as Record<string, unknown>;
+  const buyer = (p.buyer && typeof p.buyer === "object" ? (p.buyer as Record<string, unknown>) : {}) as Record<string, unknown>;
+  const buyerData = (data.buyer && typeof data.buyer === "object" ? (data.buyer as Record<string, unknown>) : {}) as Record<string, unknown>;
+
+  const email = pickString(p.buyer_email, p.email, buyer.email, buyerData.email, data.buyer_email, data.email);
+  const firstName = pickString(p.first_name, p.firstName, buyer.first_name, buyerData.first_name, data.first_name);
+  const lastName = pickString(p.last_name, p.lastName, buyer.last_name, buyerData.last_name, data.last_name);
+  const orderId = pickIdString(p.order_id, p.id, data.order_id, data.id, (p.order as Record<string, unknown>)?.id);
+  const paymentId = pickIdString(p.payment_id, data.payment_id, (p.payment as Record<string, unknown>)?.id);
+  const productId = pickIdString(p.product_id, data.product_id, (p.product as Record<string, unknown>)?.id);
+  const amount = pickNumber(p.amount, p.total, data.amount, data.total);
+  return { email, firstName, lastName, orderId, paymentId, productId, amount };
+}
+
+function pickString(...candidates: unknown[]): string | null {
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim().length > 0) return c.trim();
+  }
+  return null;
+}
+
+function pickIdString(...candidates: unknown[]): string | null {
+  for (const c of candidates) {
+    if (c === null || c === undefined) continue;
+    if (typeof c === "string" && c.trim().length > 0) return c.trim();
+    if (typeof c === "number" && Number.isFinite(c)) return String(c);
+  }
+  return null;
+}
+
+function pickNumber(...candidates: unknown[]): number | null {
+  for (const c of candidates) {
+    if (typeof c === "number" && Number.isFinite(c)) return c;
+    if (typeof c === "string") {
+      const parsed = parseFloat(c.replace(",", "."));
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return null;
 }
 
 function buildSummary(eventName: string | null, hint: AblefyLookupHintRecord | undefined): string {
