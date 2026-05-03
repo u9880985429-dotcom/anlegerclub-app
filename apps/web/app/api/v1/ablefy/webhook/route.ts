@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { readAblefyWebhookSecretFromCookieHeader } from "@/lib/ablefy-config";
-import { appendAblefyEvent } from "@/lib/ablefy-store";
+import { appendAblefyEvent, type AblefyLookupHintRecord } from "@/lib/ablefy-store";
+import { buildLookupHint } from "@/lib/ablefy-events";
 
 export const dynamic = "force-dynamic";
 
@@ -56,16 +57,39 @@ export async function POST(req: Request) {
     }
   }
 
-  // Event ablegen
+  // Event-Typ → Endpoint + ID fuer den Detail-Lookup ableiten.
   const eventName = extractEventName(payload);
+  const hint = buildLookupHint(eventName, payload);
+  const lookupHint: AblefyLookupHintRecord | undefined =
+    hint.endpoint && hint.id
+      ? {
+          endpoint: hint.endpoint,
+          id: hint.id,
+          group: hint.definition?.group ?? null,
+          idSource: hint.idSource,
+        }
+      : undefined;
+
+  const summary = buildSummary(eventName, lookupHint);
   appendAblefyEvent({
     kind: "webhook.received",
     status: "ok",
-    summary: eventName ? `Webhook empfangen: ${eventName}` : "Webhook empfangen (ohne Event-Name).",
+    summary,
     payload,
+    lookupHint,
   });
 
-  return NextResponse.json({ ok: true, received: true });
+  return NextResponse.json({
+    ok: true,
+    received: true,
+    lookupHint: lookupHint ?? null,
+  });
+}
+
+function buildSummary(eventName: string | null, hint: AblefyLookupHintRecord | undefined): string {
+  if (!eventName) return "Webhook empfangen (ohne Event-Name).";
+  if (!hint) return `Webhook empfangen: ${eventName} (kein Endpoint-Mapping)`;
+  return `Webhook empfangen: ${eventName} → /api/${hint.endpoint}/${hint.id}`;
 }
 
 /**
