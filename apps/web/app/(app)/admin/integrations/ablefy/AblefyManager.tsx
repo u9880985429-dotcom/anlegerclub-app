@@ -33,6 +33,62 @@ const ALL_ACCESS_PASS_VARIANTS: AblefyProductMapping[] = [
   { ablefyProductId: "465040", traderiqProductSlug: "all-access", planLabel: "6 Mon. Testzeitraum" },
 ];
 
+/**
+ * Mock-Payloads fuer den Test-Webhook-Simulator. Jeder Eintrag schickt einen
+ * realistischen POST an unseren eigenen /api/v1/ablefy/webhook-Endpoint —
+ * so kann der Empfangs-Pfad (Mapping → LookupHint → Auto-Lookup) ohne echte
+ * Ablefy-Verbindung getestet werden.
+ *
+ * Hinweis: Wenn ein API-Key/-Secret konfiguriert ist, triggert der
+ * AutoLookup nach dem Empfang eine echte Ablefy-API-Anfrage mit den
+ * unten genannten IDs — die Mock-IDs existieren nicht bei Ablefy, daher
+ * wird das Lookup mit "lookup.failed" enden. Fuer den Webhook-Empfang
+ * (Signaturpruefung optional + Hint-Extraktion) ist der Test trotzdem
+ * gueltig.
+ */
+const SIMULATED_WEBHOOKS: { value: string; label: string; payload: Record<string, unknown> }[] = [
+  {
+    value: "abo-aktiv",
+    label: "Abo aktiv (ORDER → /api/orders/{id})",
+    payload: { event: "Abo aktiv", order_id: 999001, data: { order_id: 999001, product_id: 457085, buyer_email: "demo+abo@example.com" } },
+  },
+  {
+    value: "abo-storniert",
+    label: "Abo storniert (ORDER)",
+    payload: { event: "Abo storniert", order_id: 999002, data: { order_id: 999002, product_id: 424736, buyer_email: "demo+cancel@example.com" } },
+  },
+  {
+    value: "zahlung-erfolgreich",
+    label: "Zahlung erfolgreich (PAYMENT → /api/payments/{id})",
+    payload: { event: "Zahlung erfolgreich", payment_id: 5550001, data: { payment_id: 5550001, amount: 97, currency: "EUR" } },
+  },
+  {
+    value: "zahlungsfehler",
+    label: "Zahlungsfehler (PAYMENT)",
+    payload: { event: "Zahlungsfehler", payment_id: 5550002, data: { payment_id: 5550002, amount: 97, currency: "EUR", error: "card_declined" } },
+  },
+  {
+    value: "erstattung-erfolgreich",
+    label: "Erstattung erfolgreich (REFUND → /api/payments/{id})",
+    payload: { event: "Erstattung erfolgreich", payment_id: 5550003, data: { payment_id: 5550003, refund_amount: 97 } },
+  },
+  {
+    value: "chargeback-erfolgreich",
+    label: "Chargeback erfolgreich (CHARGEBACK → /api/payments/{id})",
+    payload: { event: "Chargeback erfolgreich", payment_id: 5550004, data: { payment_id: 5550004, amount: 97 } },
+  },
+  {
+    value: "zugriff-geaendert",
+    label: "Zugriff geändert (PAYER → /api/payers/{transfer_ext_id})",
+    payload: { event: "Zugriff geändert", transfer_ext_id: "PAYER-DEMO-001", data: { transfer_ext_id: "PAYER-DEMO-001", access_changed: true } },
+  },
+  {
+    value: "saas-plan",
+    label: "SaaS-Plan aktualisiert (SAAS_PLAN → /api/products/{id})",
+    payload: { event: "SaaS-Plan aktualisiert", product_id: 424736, data: { product_id: 424736 } },
+  },
+];
+
 interface AblefyEvent {
   id: string;
   ts: string;
@@ -56,6 +112,9 @@ export function AblefyManager() {
   const [events, setEvents] = useState<AblefyEvent[]>([]);
   const [saved, setSaved] = useState(false);
   const [autoLookupCount, setAutoLookupCount] = useState(0);
+  const [simulatorEvent, setSimulatorEvent] = useState<string>("abo-aktiv");
+  const [simulating, setSimulating] = useState(false);
+  const [simulatorResult, setSimulatorResult] = useState<null | { ok: boolean; msg: string }>(null);
   // Sync-Filter
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -237,6 +296,32 @@ export function AblefyManager() {
     if (toAdd.length === 0) return;
     update("productMapping", [...cfg.productMapping, ...toAdd]);
   }
+
+  async function simulateWebhook() {
+    const sim = SIMULATED_WEBHOOKS.find((s) => s.value === simulatorEvent);
+    if (!sim) return;
+    setSimulating(true);
+    setSimulatorResult(null);
+    try {
+      const res = await fetch("/api/v1/ablefy/webhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sim.payload),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        const hint = json.lookupHint ? ` → /api/${json.lookupHint.endpoint}/${json.lookupHint.id}` : " (kein Mapping erkannt)";
+        setSimulatorResult({ ok: true, msg: `Test-Webhook gesendet${hint}` });
+      } else {
+        setSimulatorResult({ ok: false, msg: `Test fehlgeschlagen: ${json.error ?? "unbekannt"}` });
+      }
+    } catch (err) {
+      setSimulatorResult({ ok: false, msg: err instanceof Error ? err.message : "Fehler beim Senden" });
+    } finally {
+      setSimulating(false);
+      fetchEvents();
+    }
+  }
   function updateProductMapping(i: number, patch: Partial<AblefyProductMapping>) {
     const next = cfg.productMapping.map((m, idx) => (idx === i ? { ...m, ...patch } : m));
     update("productMapping", next);
@@ -404,6 +489,36 @@ export function AblefyManager() {
             Hinterleg dasselbe Secret in Ablefy (falls vom Webhook-Setup unterstuetzt) bzw. lass es leer fuer ungesicherte Webhooks im Test. Empfehlung: NIEMALS produktiv ohne Secret.
           </span>
         </Field>
+
+        {/* Test-Webhook-Simulator — funktioniert auch ohne echte Ablefy-Verbindung */}
+        <div className="mt-4 rounded-md border border-dashed border-border bg-muted/30 p-3">
+          <div className="mb-2 text-xs font-semibold">Test-Webhook simulieren</div>
+          <p className="mb-2 text-[11px] text-muted-foreground">
+            Sendet einen lokalen POST an <code className="font-mono">/api/v1/ablefy/webhook</code> mit einem realistischen Mock-Payload. Im Live-Event-Log unten siehst du das Ergebnis. Ideal um die Pipeline (Empfang → LookupHint → Auto-Lookup) zu testen, ohne dass Ablefy live einen Brief schicken muss.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              className="input-base text-xs"
+              value={simulatorEvent}
+              onChange={(e) => setSimulatorEvent(e.target.value)}
+              disabled={simulating}
+            >
+              {SIMULATED_WEBHOOKS.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+            <button onClick={simulateWebhook} disabled={simulating} className="btn-secondary inline-flex items-center gap-1 text-xs">
+              {simulating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+              Senden
+            </button>
+            {simulatorResult && (
+              <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] ${simulatorResult.ok ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
+                {simulatorResult.ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                {simulatorResult.msg}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Produkt-Mapping */}
