@@ -26,7 +26,7 @@ const PRODUCTS = [
   { value: "trend", label: "Trend Depot" },
   { value: "stillhalter", label: "Stillhalter Depot" },
   { value: "cockpit", label: "Trader Cockpit" },
-  { value: "all-access", label: "All-Access" },
+  { value: "all-access", label: "All Access Pass" },
 ];
 
 const PRESETS = [

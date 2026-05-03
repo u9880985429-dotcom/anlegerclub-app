@@ -16,7 +16,21 @@ const PRODUCT_OPTIONS: { value: ProductSlug; label: string }[] = [
   { value: "trend", label: "Trend Depot" },
   { value: "stillhalter", label: "Stillhalter Depot" },
   { value: "cockpit", label: "Trader Cockpit" },
-  { value: "all-access", label: "All-Access" },
+  { value: "all-access", label: "All Access Pass" },
+];
+
+/**
+ * Standard-Mappings fuer den Anlegerclub All Access Pass. Drei Varianten
+ * mit identischem TraderIQ-Slug ("all-access") aber unterschiedlichen
+ * Plan-Labels — wird im Backend (User-Detail) zur Variante-Anzeige genutzt.
+ *
+ * Der "Quick-Add"-Knopf in der Mapping-Tabelle fuegt diese drei Zeilen
+ * in einem Schritt ein — sofern noch nicht vorhanden.
+ */
+const ALL_ACCESS_PASS_VARIANTS: AblefyProductMapping[] = [
+  { ablefyProductId: "424736", traderiqProductSlug: "all-access", planLabel: "ohne Testzeitraum" },
+  { ablefyProductId: "457085", traderiqProductSlug: "all-access", planLabel: "3 Mon. Testzeitraum" },
+  { ablefyProductId: "465040", traderiqProductSlug: "all-access", planLabel: "6 Mon. Testzeitraum" },
 ];
 
 interface AblefyEvent {
@@ -216,6 +230,13 @@ export function AblefyManager() {
     const next: AblefyProductMapping = { ablefyProductId: "", traderiqProductSlug: "starter" };
     update("productMapping", [...cfg.productMapping, next]);
   }
+
+  function addAllAccessVariants() {
+    const existingIds = new Set(cfg.productMapping.map((m) => m.ablefyProductId));
+    const toAdd = ALL_ACCESS_PASS_VARIANTS.filter((v) => !existingIds.has(v.ablefyProductId));
+    if (toAdd.length === 0) return;
+    update("productMapping", [...cfg.productMapping, ...toAdd]);
+  }
   function updateProductMapping(i: number, patch: Partial<AblefyProductMapping>) {
     const next = cfg.productMapping.map((m, idx) => (idx === i ? { ...m, ...patch } : m));
     update("productMapping", next);
@@ -391,12 +412,18 @@ export function AblefyManager() {
           <h3 className="inline-flex items-center gap-2 text-sm font-semibold">
             <Package className="h-4 w-4 text-brand" /> Produkt-Mapping
           </h3>
-          <button onClick={addProductMapping} className="btn-secondary inline-flex items-center gap-1 text-xs">
-            <Plus className="h-3.5 w-3.5" /> Mapping hinzufuegen
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={addAllAccessVariants} className="btn-ghost inline-flex items-center gap-1 text-xs" title="Fuegt die drei Standard-Varianten des Anlegerclub All Access Pass mit den richtigen Ablefy-IDs ein.">
+              <Plus className="h-3.5 w-3.5" /> All Access Pass-Varianten einfuegen
+            </button>
+            <button onClick={addProductMapping} className="btn-secondary inline-flex items-center gap-1 text-xs">
+              <Plus className="h-3.5 w-3.5" /> Mapping hinzufuegen
+            </button>
+          </div>
         </div>
         <p className="mb-3 text-xs text-muted-foreground">
           Welche Ablefy-Produkt-ID gehoert zu welchem TraderIQ-Depot? Wird benoetigt, damit Webhook-Events automatisch das richtige Depot freischalten und KPI-Charts den Product-Mix korrekt zuordnen koennen.
+          Plan-Label macht im Backend (User-Detail) sichtbar, welche Variante (z.B. „3 Mon. Testzeitraum") ein Mitglied gekauft hat.
         </p>
 
         {cfg.productMapping.length === 0 ? (
