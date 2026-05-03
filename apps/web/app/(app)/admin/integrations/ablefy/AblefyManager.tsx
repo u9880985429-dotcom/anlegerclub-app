@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Eye, EyeOff, Copy, Check, Loader2, Send, RefreshCw, Plus, Trash2,
   CheckCircle2, AlertTriangle, Webhook, Key, Package, Activity, ExternalLink,
@@ -8,6 +8,7 @@ import {
   readAblefyConfig, writeAblefyConfig, getAblefyWebhookUrl,
   type AblefyConfig, type AblefyProductMapping,
 } from "@/lib/ablefy-config";
+import type { AblefyLookupHintRecord } from "@/lib/ablefy-store";
 import type { ProductSlug } from "@traderiq/api";
 
 const PRODUCT_OPTIONS: { value: ProductSlug; label: string }[] = [
@@ -24,6 +25,7 @@ interface AblefyEvent {
   kind: string;
   status: "ok" | "warn" | "error";
   summary: string;
+  lookupHint?: AblefyLookupHintRecord;
 }
 
 export function AblefyManager() {
@@ -39,9 +41,18 @@ export function AblefyManager() {
   const [syncResult, setSyncResult] = useState<null | { ok: boolean; msg: string; aggregate?: unknown }>(null);
   const [events, setEvents] = useState<AblefyEvent[]>([]);
   const [saved, setSaved] = useState(false);
+  const [autoLookupCount, setAutoLookupCount] = useState(0);
   // Sync-Filter
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+
+  // Refs persistieren ueber Renders hinweg, ohne Re-Render auszuloesen.
+  // dispatchedRef = Set aus "endpoint/id" — verhindert doppelte Auto-Lookups
+  // waehrend der Server das Lookup-Resultat noch nicht in den Event-Stream
+  // geschrieben hat (Race zwischen Polling-Tick und Server-Antwort).
+  const dispatchedRef = useRef<Set<string>>(new Set());
+  const cfgRef = useRef<AblefyConfig>(cfg);
+  cfgRef.current = cfg;
 
   useEffect(() => {
     setMounted(true);
@@ -80,8 +91,63 @@ export function AblefyManager() {
     try {
       const res = await fetch("/api/v1/ablefy/events?limit=30");
       const json = await res.json();
-      if (json.ok) setEvents(json.events);
+      if (json.ok) {
+        setEvents(json.events);
+        dispatchPendingLookups(json.events as AblefyEvent[]);
+      }
     } catch {}
+  }
+
+  /**
+   * Auto-Trigger: Sucht nach `webhook.received`-Events mit `lookupHint`,
+   * fuer die noch kein passender `lookup.success`/`lookup.failed` existiert,
+   * und ruft `/api/v1/ablefy/lookup` mit den lokalen Credentials auf.
+   *
+   * Idempotent: pro `endpoint/id`-Schluessel feuern wir hoechstens einen
+   * Lookup gleichzeitig (dispatchedRef). Nach 30 Sek wird der Schluessel
+   * freigegeben — falls der Server-Roundtrip kein Resultat in den Stream
+   * geschrieben hat, kann beim naechsten Tick erneut versucht werden.
+   */
+  function dispatchPendingLookups(eventList: AblefyEvent[]) {
+    const c = cfgRef.current;
+    if (!c.enabled || !c.apiKey || !c.apiSecret) return;
+
+    for (const ev of eventList) {
+      if (ev.kind !== "webhook.received" || !ev.lookupHint) continue;
+      const hint = ev.lookupHint;
+      const key = `${hint.endpoint}/${hint.id}`;
+
+      if (dispatchedRef.current.has(key)) continue;
+
+      // Schon ein lookup.* in der Liste, das *nach* dem Webhook kam und auf
+      // /api/{endpoint}/{id} zielt? Dann nichts tun.
+      const webhookTs = new Date(ev.ts).getTime();
+      const alreadyResolved = eventList.some((e) => {
+        if (e.kind !== "lookup.success" && e.kind !== "lookup.failed") return false;
+        if (new Date(e.ts).getTime() < webhookTs) return false;
+        return e.summary.includes(`/api/${key}`);
+      });
+      if (alreadyResolved) continue;
+
+      dispatchedRef.current.add(key);
+      setAutoLookupCount((n) => n + 1);
+      void fetch("/api/v1/ablefy/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apiKey: c.apiKey,
+          apiSecret: c.apiSecret,
+          endpoint: hint.endpoint,
+          id: hint.id,
+        }),
+      })
+        .catch(() => {})
+        .finally(() => {
+          // Schluessel nach kurzem Delay freigeben, damit der naechste
+          // Polling-Tick das eingetragene lookup.*-Event sehen kann.
+          setTimeout(() => dispatchedRef.current.delete(key), 30000);
+        });
+    }
   }
 
   async function testConnection() {
@@ -437,6 +503,12 @@ export function AblefyManager() {
           <h3 className="inline-flex items-center gap-2 text-sm font-semibold">
             <Activity className="h-4 w-4 text-brand" /> Live-Events
             <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{events.length}</span>
+            {cfg.enabled && cfg.apiKey && cfg.apiSecret && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-profit/10 px-1.5 py-0.5 text-[10px] text-profit" title="Webhook-Events werden automatisch durch /api/v1/ablefy/lookup mit Detail-Daten angereichert.">
+                <RefreshCw className="h-2.5 w-2.5" /> Auto-Lookup aktiv
+                {autoLookupCount > 0 && <span className="font-mono">· {autoLookupCount}</span>}
+              </span>
+            )}
           </h3>
           <button onClick={fetchEvents} className="btn-ghost inline-flex items-center gap-1 text-xs">
             <RefreshCw className="h-3 w-3" /> Aktualisieren

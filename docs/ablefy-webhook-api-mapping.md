@@ -26,6 +26,22 @@ Plus 3 Bonus-Endpoints (kein Webhook-Trigger):
 
 **Praktisch:** Ich baue den Webhook-Handler so, dass er per `event_type` den richtigen Endpoint wählt + ID aus dem Payload extrahiert + ihn dort abruft.
 
+## Iteration 31 — Implementierungs-Stand
+
+Der oben beschriebene Lookup ist jetzt implementiert. Drei Bausteine:
+
+| Datei | Zweck |
+|---|---|
+| `apps/web/lib/ablefy-events.ts` | Single-Source-of-Truth fuer die 32 Events (Display-Name + Aliase + Endpoint + ID-Feld-Kandidaten). `buildLookupHint(eventName, payload)` liefert `{ endpoint, id, group }`. |
+| `apps/web/app/api/v1/ablefy/webhook/route.ts` | Bei jedem eingehenden Webhook: HMAC-Check → `buildLookupHint` → Event mit `lookupHint` in den Cache. Antwort enthaelt das Hint-Objekt. |
+| `apps/web/app/api/v1/ablefy/lookup/route.ts` | POST `{ apiKey, apiSecret, endpoint, id, eventName? }` → ruft `https://api.myablefy.com/api/{endpoint}/{id}?key=...&secret=...` und legt das Ergebnis als `lookup.success`/`lookup.failed`-Event ab. |
+
+**Phase-1-Architektur:** Server kennt das Webhook-Signing-Secret (Cookie-Mirror), aber **nicht** API-Key/-Secret. Die liegen nur im Browser-LocalStorage. Daher der Split: Webhook-Handler reichert das Event nur mit `lookupHint` an, der Browser triggert anhand dieses Hints den Lookup-Endpoint mit seinen Credentials.
+
+**Phase-2-Plan:** API-Key/-Secret in Postgres + AES-256-GCM-Vault → Webhook-Handler kann den Lookup direkt anstossen, abgeleitete KPIs (Active Members, MRR, Refund Rate) landen im Subscription/User-Schreibpfad.
+
+**Browser-Auto-Trigger** (kommt in Iter 32): Die `AblefyManager`-Komponente pollt `/api/v1/ablefy/events`, sucht `webhook.received`-Events mit `lookupHint`, fuer die noch kein zugehoeriges `lookup.success` existiert, und ruft `POST /api/v1/ablefy/lookup` mit den localStorage-Credentials auf.
+
 ## Wie du die CSV öffnest
 
 ### Excel (Mac/Windows)

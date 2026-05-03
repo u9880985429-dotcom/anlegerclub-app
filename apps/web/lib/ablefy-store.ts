@@ -12,7 +12,18 @@ export type AblefyEventKind =
   | "sync.started"
   | "sync.completed"
   | "sync.failed"
-  | "test.connection";
+  | "test.connection"
+  | "lookup.success"
+  | "lookup.failed";
+
+export interface AblefyLookupHintRecord {
+  endpoint: "orders" | "payments" | "payers" | "products";
+  id: string;
+  /** Erkannter Event-Group (ORDER/PAYMENT/...) — null wenn unbekannt. */
+  group: string | null;
+  /** Aus welchem Payload-Feld die ID gezogen wurde (zum Debuggen). */
+  idSource: string | null;
+}
 
 export interface AblefyEvent {
   id: string;
@@ -21,6 +32,8 @@ export interface AblefyEvent {
   status: "ok" | "warn" | "error";
   summary: string;
   payload?: unknown;
+  /** Wenn das Event ein dispatchbarer Webhook ist: Hint fuer den Detail-Lookup. */
+  lookupHint?: AblefyLookupHintRecord;
 }
 
 const MAX_EVENTS = 200;
