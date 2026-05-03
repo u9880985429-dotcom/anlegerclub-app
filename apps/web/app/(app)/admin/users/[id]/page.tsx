@@ -5,8 +5,10 @@ import { PageHeader } from "@/components/PageHeader";
 import { allUsers, allSubscriptions, canManagePermissions } from "@traderiq/api";
 import { UserActionsMenu } from "./UserActionsMenu";
 import { GranularPermissions } from "./GranularPermissions";
+import { AblefyPlanLabel } from "@/components/AblefyPlanLabel";
 import { requireSession } from "@/lib/access";
 import { formatGermanDate } from "@/lib/format";
+import { PRODUCT_LABELS } from "@/lib/copy/login-status";
 
 const STATUS_CLASS: Record<string, string> = {
   ACTIVE: "badge-profit",
@@ -81,9 +83,15 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
           {subs.map((s) => (
             <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div>
-                <div className="font-semibold">{s.productSlug}</div>
+                <div className="font-semibold">
+                  {PRODUCT_LABELS[s.productSlug] ?? s.productSlug}
+                  <AblefyPlanLabel ablefyProductId={s.ablefyProductId} />
+                </div>
                 <div className="text-xs text-muted-foreground">
                   Ablefy-Order: <span className="font-mono">{s.ablefyOrderId ?? "—"}</span>
+                  {s.ablefyProductId && (
+                    <> · Product-ID: <span className="font-mono">{s.ablefyProductId}</span></>
+                  )}
                   {s.startedAt && <> · seit {formatGermanDate(s.startedAt)}</>}
                   {s.currentPeriodEnd && <> · läuft bis {formatGermanDate(s.currentPeriodEnd)}</>}
                 </div>

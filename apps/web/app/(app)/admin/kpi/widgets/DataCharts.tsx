@@ -14,7 +14,7 @@ const PRODUCT_LABEL: Record<string, string> = {
   trend: "Trend",
   stillhalter: "Stillhalter",
   cockpit: "Cockpit",
-  "all-access": "All-Access",
+  "all-access": "All Access Pass",
 };
 
 /**
@@ -669,7 +669,7 @@ export function DonutWithCenterStat({ data }: { data: WidgetData }) {
     trend: "Trend",
     stillhalter: "Stillhalter",
     cockpit: "Cockpit",
-    "all-access": "All-Access",
+    "all-access": "All Access Pass",
   };
   const PRODUCT_COLORS_LOCAL: Record<string, string> = {
     starter: "#ff741f",
@@ -764,7 +764,7 @@ export function TopProductBars({ data }: { data: WidgetData }) {
     trend: "Trend",
     stillhalter: "Stillhalter",
     cockpit: "Cockpit",
-    "all-access": "All-Access",
+    "all-access": "All Access Pass",
   };
   const fromAblefy = data.ablefyAggregate?.byProduct;
   let rows: { label: string; value: number }[];
@@ -819,7 +819,7 @@ export function MiniDonutRow({ data }: { data: WidgetData }) {
     trend: "Trend",
     stillhalter: "Stillhalter",
     cockpit: "Cockpit",
-    "all-access": "All-Access",
+    "all-access": "All Access Pass",
   };
   const PRODUCT_COLORS_LOCAL: Record<string, string> = {
     starter: "#ff741f",

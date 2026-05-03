@@ -84,12 +84,14 @@ model Subscription {
   productSlug      String
   status           SubStatus
   ablefyOrderId    String?
+  ablefyProductId  String?
   startedAt        DateTime
   currentPeriodEnd DateTime?
   pausedReason     String?
   user             User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, productSlug])
+  @@index([ablefyProductId])
 }
 
 model TradeSignal {

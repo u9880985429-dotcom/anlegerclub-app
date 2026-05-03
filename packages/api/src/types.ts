@@ -37,6 +37,16 @@ export interface Subscription {
   productSlug: ProductSlug;
   status: SubStatus;
   ablefyOrderId: string | null;
+  /**
+   * Ablefy-Product-ID des gekauften Produkts (Variante). Wird per Webhook-
+   * Lookup oder Sync gesetzt. Erlaubt im Backend (User-Detail) die exakte
+   * Variante anzuzeigen — z.B. "All Access Pass · 3 Mon. Testzeitraum".
+   * Aufloesung von Product-ID → Plan-Label passiert ueber das Produkt-Mapping
+   * in /admin/integrations/ablefy.
+   *
+   * Optional: aeltere Subscriptions (vor Iter 33) haben dieses Feld nicht.
+   */
+  ablefyProductId?: string | null;
   startedAt: string;
   currentPeriodEnd: string | null;
   pausedReason: string | null;
