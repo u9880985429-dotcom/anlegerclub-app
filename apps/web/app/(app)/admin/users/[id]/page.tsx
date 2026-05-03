@@ -6,6 +6,7 @@ import { allUsers, allSubscriptions, canManagePermissions } from "@traderiq/api"
 import { UserActionsMenu } from "./UserActionsMenu";
 import { GranularPermissions } from "./GranularPermissions";
 import { AblefyPlanLabel } from "@/components/AblefyPlanLabel";
+import { AblefyPricingHint } from "@/components/AblefyPricingHint";
 import { requireSession } from "@/lib/access";
 import { formatGermanDate } from "@/lib/format";
 import { PRODUCT_LABELS } from "@/lib/copy/login-status";
@@ -94,6 +95,9 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
                   )}
                   {s.startedAt && <> · seit {formatGermanDate(s.startedAt)}</>}
                   {s.currentPeriodEnd && <> · läuft bis {formatGermanDate(s.currentPeriodEnd)}</>}
+                </div>
+                <div className="mt-1">
+                  <AblefyPricingHint productSlug={s.productSlug} ablefyProductId={s.ablefyProductId} />
                 </div>
               </div>
               <div className="flex items-center gap-2">
