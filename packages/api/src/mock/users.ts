@@ -352,10 +352,191 @@ export const additionalUsers: (User & { sub: Subscription })[] = [
   },
 ];
 
-export const allUsers: User[] = [...demoUsers, ...additionalUsers.map(({ sub: _sub, ...u }) => u)];
+/**
+ * Demo-Faelle fuer das KPI-Modul "Sonstige Daten" (Wechsler / Re-Aktivierungen
+ * / Mail-Dupes / Namens-Dupes). Jeweils 1 User + 1-2 Subs, damit man auf der
+ * /admin/kpi/sonstige-daten-Seite konkrete Faelle sieht.
+ */
+export const anomalyDemoUsers: User[] = [
+  // Case 1: Wechsler — Marie hatte Trend, ist auf All Access Pass aufgestiegen.
+  {
+    id: "u_anom_marie",
+    email: "marie.wechsler@example.com",
+    firstName: "Marie",
+    lastName: "Wechsler",
+    role: "MEMBER",
+    notifyPush: true,
+    notifyEmail: true,
+    loginCount: 47,
+    onboardedFor: ["trend", "starter", "stillhalter", "cockpit"],
+  },
+  // Case 2: Reaktivierung — Frank hatte Starter (refunded), kauft jetzt nochmal Starter.
+  {
+    id: "u_anom_frank",
+    email: "frank.wieder@example.com",
+    firstName: "Frank",
+    lastName: "Wieder",
+    role: "MEMBER",
+    notifyPush: false,
+    notifyEmail: true,
+    loginCount: 14,
+    onboardedFor: ["starter"],
+  },
+  // Case 3a + 3b: Mail-Duplikat — Helena hat sich zweimal mit gleicher Mail registriert.
+  {
+    id: "u_anom_helena_alt",
+    email: "helena.doppel@example.com",
+    firstName: "Helena",
+    lastName: "Doppel",
+    role: "MEMBER",
+    notifyPush: false,
+    notifyEmail: false,
+    loginCount: 3,
+    onboardedFor: ["starter"],
+  },
+  {
+    id: "u_anom_helena_neu",
+    email: "helena.doppel@example.com",
+    firstName: "Helena",
+    lastName: "Doppel",
+    role: "MEMBER",
+    notifyPush: true,
+    notifyEmail: true,
+    loginCount: 28,
+    onboardedFor: ["trend"],
+  },
+  // Case 4a + 4b: Namens-Duplikat — "Klaus Klein" mit zwei verschiedenen Mails.
+  {
+    id: "u_anom_klein_alt",
+    email: "klaus.klein.alt@example.com",
+    firstName: "Klaus",
+    lastName: "Klein",
+    role: "MEMBER",
+    notifyPush: false,
+    notifyEmail: true,
+    loginCount: 6,
+    onboardedFor: ["cockpit"],
+  },
+  {
+    id: "u_anom_klein_neu",
+    email: "klaus.klein.neu@example.com",
+    firstName: "Klaus",
+    lastName: "Klein",
+    role: "MEMBER",
+    notifyPush: true,
+    notifyEmail: true,
+    loginCount: 18,
+    onboardedFor: ["cockpit"],
+  },
+];
+
+export const anomalyDemoSubscriptions: Subscription[] = [
+  // Marie: Trend gekuendigt → All Access Pass aktiv (Wechsler / Up-Sell)
+  {
+    id: "s_anom_marie_trend",
+    userId: "u_anom_marie",
+    productSlug: "trend",
+    status: "CANCELLED",
+    ablefyOrderId: "AF-2024-0420",
+    ablefyProductId: null,
+    startedAt: "2024-08-01T00:00:00Z",
+    currentPeriodEnd: "2025-02-01T00:00:00Z",
+    pausedReason: null,
+  },
+  {
+    id: "s_anom_marie_aap",
+    userId: "u_anom_marie",
+    productSlug: "all-access",
+    status: "ACTIVE",
+    ablefyOrderId: "AF-2025-0911",
+    ablefyProductId: "457085",
+    startedAt: "2025-02-15T00:00:00Z",
+    currentPeriodEnd: "2026-02-15T00:00:00Z",
+    pausedReason: null,
+  },
+
+  // Frank: Starter alt = REFUNDED → Starter neu = ACTIVE (Reaktivierung)
+  {
+    id: "s_anom_frank_old",
+    userId: "u_anom_frank",
+    productSlug: "starter",
+    status: "REFUNDED",
+    ablefyOrderId: "AF-2024-1101",
+    ablefyProductId: null,
+    startedAt: "2024-10-01T00:00:00Z",
+    currentPeriodEnd: "2024-11-01T00:00:00Z",
+    pausedReason: "refund_within_14_days",
+  },
+  {
+    id: "s_anom_frank_new",
+    userId: "u_anom_frank",
+    productSlug: "starter",
+    status: "ACTIVE",
+    ablefyOrderId: "AF-2026-0444",
+    ablefyProductId: null,
+    startedAt: "2026-03-15T00:00:00Z",
+    currentPeriodEnd: "2026-09-15T00:00:00Z",
+    pausedReason: null,
+  },
+
+  // Helena: zwei User-IDs mit gleicher Mail — alte Sub EXPIRED, neue ACTIVE
+  {
+    id: "s_anom_helena_alt",
+    userId: "u_anom_helena_alt",
+    productSlug: "starter",
+    status: "EXPIRED",
+    ablefyOrderId: "AF-2023-0717",
+    ablefyProductId: null,
+    startedAt: "2023-07-01T00:00:00Z",
+    currentPeriodEnd: "2024-07-01T00:00:00Z",
+    pausedReason: null,
+  },
+  {
+    id: "s_anom_helena_neu",
+    userId: "u_anom_helena_neu",
+    productSlug: "trend",
+    status: "ACTIVE",
+    ablefyOrderId: "AF-2026-0212",
+    ablefyProductId: null,
+    startedAt: "2026-01-10T00:00:00Z",
+    currentPeriodEnd: "2027-01-10T00:00:00Z",
+    pausedReason: null,
+  },
+
+  // Klein: zwei User-IDs mit gleichem Namen, gleichem Slug — alte CANCELLED, neue ACTIVE
+  {
+    id: "s_anom_klein_alt",
+    userId: "u_anom_klein_alt",
+    productSlug: "cockpit",
+    status: "CANCELLED",
+    ablefyOrderId: "AF-2024-0905",
+    ablefyProductId: null,
+    startedAt: "2024-09-01T00:00:00Z",
+    currentPeriodEnd: "2025-03-01T00:00:00Z",
+    pausedReason: null,
+  },
+  {
+    id: "s_anom_klein_neu",
+    userId: "u_anom_klein_neu",
+    productSlug: "cockpit",
+    status: "ACTIVE",
+    ablefyOrderId: "AF-2026-0501",
+    ablefyProductId: null,
+    startedAt: "2026-01-20T00:00:00Z",
+    currentPeriodEnd: "2026-07-20T00:00:00Z",
+    pausedReason: null,
+  },
+];
+
+export const allUsers: User[] = [
+  ...demoUsers,
+  ...additionalUsers.map(({ sub: _sub, ...u }) => u),
+  ...anomalyDemoUsers,
+];
 export const allSubscriptions: Subscription[] = [
   ...demoSubscriptions,
   ...additionalUsers.map((u) => u.sub),
+  ...anomalyDemoSubscriptions,
 ];
 
 export function findUserByEmail(email: string): User | undefined {

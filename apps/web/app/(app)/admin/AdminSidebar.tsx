@@ -34,6 +34,7 @@ const ADMIN_NAV: NavSection = {
   ownerAdminOnly: true,
   items: [
     { href: "/admin/kpi", label: "KPI-Dashboard" },
+    { href: "/admin/kpi/sonstige-daten", label: "KPI - sonstige Daten" },
   ],
   subgroups: [
     {
