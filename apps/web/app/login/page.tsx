@@ -105,6 +105,8 @@ function LoginInner() {
           <div className="space-y-1.5">
             <DemoBtn email="andrei@traderiq.net" label="Andrei (Owner · all-access)" onClick={fillDemo} />
             <DemoBtn email="max@traderiq.net" label="Max (Admin · all-access)" onClick={fillDemo} />
+            <DemoBtn email="babsi@traderiq.net" label="Babsi (Kundensicht · all-access)" onClick={fillDemo} />
+            <DemoBtn email="hendrik@traderiq.net" label="Hendrik (Kundensicht · all-access)" onClick={fillDemo} />
           </div>
         </div>
       </div>

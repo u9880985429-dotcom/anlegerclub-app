@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { allSubscriptions } from "@traderiq/api";
+import { allSubscriptions, allUsers } from "@traderiq/api";
 import type { ProductSlug } from "@traderiq/api";
 import { TrendingUp, Users } from "lucide-react";
 import { readAblefyConfig } from "@/lib/ablefy-config";
 import { findPricing, calculateExpectedRevenue, type PricingPlan } from "@/lib/copy/pricing";
 import { PRODUCT_LABELS } from "@/lib/copy/login-status";
-import { getRevenueBucketSlug } from "@/lib/kpi-bucket";
+import { getRevenueBucketSlug, filterKpiRelevantSubs } from "@/lib/kpi-bucket";
 
 /**
  * Pricing-Uebersicht fuer Admins: zeigt pro Pricing-Plan, wie viele aktive
@@ -48,12 +48,13 @@ export function PricingOverviewCard() {
   const rows: PlanRow[] = useMemo(() => {
     if (!mounted) return [];
     const buckets = new Map<string, PlanRow>();
-    // KPI-Bucket-Regel (siehe lib/kpi-bucket.ts): Pro Sub gehoert genau ein
-    // Slug — `getRevenueBucketSlug(s)` liefert ihn. All-Access-User landen im
-    // `all-access`-Bucket, NICHT zusaetzlich in starter/trend/stillhalter/
-    // cockpit. Wuerden wir hier per Access-Logik (`||"all-access"`) zaehlen,
-    // wuerden 1 All-Access-Kunde 4x in der Tabelle erscheinen.
-    for (const s of allSubscriptions) {
+    // KPI-Bucket-Regel (siehe lib/kpi-bucket.ts):
+    //   1) Pro Sub genau ein Slug (`getRevenueBucketSlug`) — All-Access-User
+    //      landen nicht zusaetzlich bei starter/trend/stillhalter/cockpit.
+    //   2) Team-Member (isTeamMember=true: Andrei, Max, Babsi, Hendrik, ...)
+    //      werden komplett herausgefiltert — sie zahlen nichts.
+    const kpiSubs = filterKpiRelevantSubs(allSubscriptions, allUsers);
+    for (const s of kpiSubs) {
       if (!ACTIVE_STATUS.has(s.status)) continue;
       const slug = getRevenueBucketSlug(s);
       const planLabel = s.ablefyProductId ? planLabelByProductId[s.ablefyProductId] ?? null : null;
