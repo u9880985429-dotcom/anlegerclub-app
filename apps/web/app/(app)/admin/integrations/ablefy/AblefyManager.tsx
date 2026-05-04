@@ -34,6 +34,19 @@ const ALL_ACCESS_PASS_VARIANTS: AblefyProductMapping[] = [
 ];
 
 /**
+ * Standard-Mappings fuer die vier Einzeldepots. Pro Depot eine Ablefy-
+ * Product-ID — die Pricing-Plans fuer Monats-/Jahresabo sind in Ablefy
+ * beim selben Product hinterlegt; unsere App muss daher nicht per ID
+ * zwischen Mon/Jahr unterscheiden.
+ */
+const SINGLE_DEPOT_MAPPINGS: AblefyProductMapping[] = [
+  { ablefyProductId: "424738", traderiqProductSlug: "starter" },
+  { ablefyProductId: "424744", traderiqProductSlug: "trend" },
+  { ablefyProductId: "427053", traderiqProductSlug: "stillhalter" },
+  { ablefyProductId: "427056", traderiqProductSlug: "cockpit" },
+];
+
+/**
  * Mock-Payloads fuer den Test-Webhook-Simulator. Jeder Eintrag schickt einen
  * realistischen POST an unseren eigenen /api/v1/ablefy/webhook-Endpoint —
  * so kann der Empfangs-Pfad (Mapping → LookupHint → Auto-Lookup) ohne echte
@@ -297,6 +310,13 @@ export function AblefyManager() {
     update("productMapping", [...cfg.productMapping, ...toAdd]);
   }
 
+  function addSingleDepots() {
+    const existingIds = new Set(cfg.productMapping.map((m) => m.ablefyProductId));
+    const toAdd = SINGLE_DEPOT_MAPPINGS.filter((v) => !existingIds.has(v.ablefyProductId));
+    if (toAdd.length === 0) return;
+    update("productMapping", [...cfg.productMapping, ...toAdd]);
+  }
+
   async function simulateWebhook() {
     const sim = SIMULATED_WEBHOOKS.find((s) => s.value === simulatorEvent);
     if (!sim) return;
@@ -528,6 +548,9 @@ export function AblefyManager() {
             <Package className="h-4 w-4 text-brand" /> Produkt-Mapping
           </h3>
           <div className="flex flex-wrap items-center gap-2">
+            <button onClick={addSingleDepots} className="btn-ghost inline-flex items-center gap-1 text-xs" title="Fuegt die vier Einzeldepots (Starter / Trend / Stillhalter / Cockpit) mit den richtigen Ablefy-IDs ein.">
+              <Plus className="h-3.5 w-3.5" /> Einzeldepots einfuegen
+            </button>
             <button onClick={addAllAccessVariants} className="btn-ghost inline-flex items-center gap-1 text-xs" title="Fuegt die drei Standard-Varianten des Anlegerclub All Access Pass mit den richtigen Ablefy-IDs ein.">
               <Plus className="h-3.5 w-3.5" /> All Access Pass-Varianten einfuegen
             </button>
