@@ -4,6 +4,8 @@ import { readAblefyWebhookSecretFromCookieHeader } from "@/lib/ablefy-config";
 import { appendAblefyEvent, type AblefyLookupHintRecord } from "@/lib/ablefy-store";
 import { buildLookupHint } from "@/lib/ablefy-events";
 import { addPendingBuyer } from "@/lib/ablefy-pending-buyers";
+import { loadAblefyConfigFromDb } from "@/lib/ablefy-config-store";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +23,21 @@ export const dynamic = "force-dynamic";
  * Phase 2: Webhook-Secret aus DB+Vault, Events in Postgres + Live-Push.
  */
 export async function POST(req: Request) {
-  const cookieHeader = req.headers.get("cookie");
-  const cfg = readAblefyWebhookSecretFromCookieHeader(cookieHeader);
+  // Webhook-Secret laden — primaer aus DB (Phase 2), Fallback Cookie (Phase 1).
+  let webhookSecret = "";
+  if (isSupabaseConfigured()) {
+    try {
+      const dbCfg = await loadAblefyConfigFromDb();
+      if (dbCfg.webhookSecret) webhookSecret = dbCfg.webhookSecret;
+    } catch {
+      // DB-Fehler — wir fallen auf Cookie zurueck.
+    }
+  }
+  if (!webhookSecret) {
+    const cookieHeader = req.headers.get("cookie");
+    const cookieCfg = readAblefyWebhookSecretFromCookieHeader(cookieHeader);
+    if (cookieCfg?.webhookSecret) webhookSecret = cookieCfg.webhookSecret;
+  }
 
   // Body als raw String einlesen (wir brauchen ihn fuer HMAC).
   const raw = await req.text();
@@ -36,7 +51,7 @@ export async function POST(req: Request) {
   // Signaturpruefung — Ablefy-Standardheader heisst `X-Webhook-Signature`,
   // ggf. anpassen falls Ablefy einen anderen Header verwendet.
   const signature = req.headers.get("x-webhook-signature") ?? req.headers.get("x-ablefy-signature");
-  if (cfg?.webhookSecret) {
+  if (webhookSecret) {
     if (!signature) {
       appendAblefyEvent({
         kind: "webhook.rejected",
@@ -46,7 +61,7 @@ export async function POST(req: Request) {
       });
       return NextResponse.json({ ok: false, error: "missing_signature" }, { status: 401 });
     }
-    const expected = crypto.createHmac("sha256", cfg.webhookSecret).update(raw).digest("hex");
+    const expected = crypto.createHmac("sha256", webhookSecret).update(raw).digest("hex");
     if (!safeCompare(expected, signature)) {
       appendAblefyEvent({
         kind: "webhook.rejected",
