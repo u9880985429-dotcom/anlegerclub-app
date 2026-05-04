@@ -8,6 +8,7 @@ import {
   getTradeById,
   type ProductSlug,
 } from "@traderiq/api";
+import { listCommentsByPost } from "@/lib/comments-store";
 import { ACTION_BADGE_CLASS, ACTION_LABELS, formatGermanDate } from "@/lib/format";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
 import { CommunityComposer } from "@/components/CommunityComposer";
@@ -28,7 +29,14 @@ export default async function TradeDetailPage({
   const session = await requireProductAccess(params.slug as Exclude<ProductSlug, "all-access">);
   const trade = getTradeById(params.id);
   if (!trade) notFound();
-  const comments = getCommentsByTrade(trade.id);
+  // Iter 43: Comments kommen jetzt aus Supabase (statt Mock). Wenn Supabase
+  // nicht angebunden ist, faellt `listCommentsByPost` auf [] zurueck und
+  // der Mock-Helper liefert (seit Iter 40 ohnehin) auch [].
+  const [dbComments, mockComments] = await Promise.all([
+    listCommentsByPost(trade.id),
+    Promise.resolve(getCommentsByTrade(trade.id)),
+  ]);
+  const comments = [...mockComments, ...dbComments];
   const reactions = getReactionsByTrade(trade.id);
 
   const isStaff = session.user.role === "STAFF" || session.user.role === "OWNER" || session.user.role === "ADMIN" || session.user.role === "MODERATOR";
@@ -89,8 +97,10 @@ export default async function TradeDetailPage({
 
       <div className="mb-4">
         <CommunityComposer
+          postId={trade.id}
           placeholder="Frage stellen oder Erfahrung teilen…"
           contextHint="Fragen zum Signal? Schreib's – die Redaktion und andere Mitglieder helfen. Du kannst auch direkt auf einzelne Antworten reagieren."
+          userRole={session.user.role}
         />
       </div>
 
