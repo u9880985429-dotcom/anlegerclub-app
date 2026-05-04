@@ -156,11 +156,17 @@ export function AblefyManager() {
     try {
       const res = await fetch("/api/v1/ablefy/config");
       const json = await res.json();
-      if (json.ok && json.config) {
-        setCfg(json.config);
-        // Cache lokal mirrorn — wenn DB mal weg ist, behalten wir letzten Stand.
-        writeAblefyConfig(json.config);
-      }
+      if (!json.ok || !json.config) return;
+      // Nur uebernehmen, wenn die DB-Werte tatsaechlich was enthalten —
+      // sonst wuerden wir beim ersten Laden (DB-Singleton mit Default-
+      // Werten) den moeglicherweise gefuellten localStorage ueberschreiben.
+      const c = json.config as AblefyConfig;
+      const dbHasContent = Boolean(
+        c.apiKey || c.apiSecret || c.webhookSecret || (c.productMapping && c.productMapping.length > 0),
+      );
+      if (!dbHasContent) return;
+      setCfg(c);
+      writeAblefyConfig(c);
     } catch {
       // Server-Fehler / Supabase nicht konfiguriert → wir bleiben beim localStorage.
     }
