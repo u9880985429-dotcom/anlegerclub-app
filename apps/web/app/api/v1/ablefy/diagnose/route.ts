@@ -17,12 +17,24 @@ export async function GET() {
   const role = session.user.role;
   const allowed = canManageIntegrations(role);
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
   const result: Record<string, unknown> = {
     actor: { id: session.user.id, role, can_manage_integrations: allowed },
     env: {
-      has_NEXT_PUBLIC_SUPABASE_URL: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
-      has_NEXT_PUBLIC_SUPABASE_ANON_KEY: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-      has_SUPABASE_SERVICE_ROLE_KEY: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      // Volle URL (kein Geheimnis — die Adresse ist eh oeffentlich sichtbar in Network-Tab)
+      NEXT_PUBLIC_SUPABASE_URL_value: url,
+      url_length: url.length,
+      url_starts_with_https: url.startsWith("https://"),
+      url_has_rest_v1_suffix: url.includes("/rest/v1"),
+      url_has_trailing_slash: url.endsWith("/"),
+      // Keys nur Laenge + Anfang (nicht den ganzen Wert)
+      anon_key_length: anonKey.length,
+      anon_key_prefix: anonKey.slice(0, 10),
+      service_key_length: serviceKey.length,
+      service_key_prefix: serviceKey.slice(0, 10),
       supabase_configured: isSupabaseConfigured(),
     },
   };
