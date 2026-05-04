@@ -142,19 +142,52 @@ export function AblefyManager() {
 
   useEffect(() => {
     setMounted(true);
+    // Sofortiger Fallback aus localStorage, damit das UI nicht flackert.
     setCfg(readAblefyConfig());
     setWebhookUrl(getAblefyWebhookUrl());
     fetchEvents();
+    // Async: lade die echte Konfig aus Supabase und ueberschreibe lokal.
+    void loadConfigFromServer();
     const id = setInterval(fetchEvents, 8000);
     return () => clearInterval(id);
   }, []);
+
+  async function loadConfigFromServer() {
+    try {
+      const res = await fetch("/api/v1/ablefy/config");
+      const json = await res.json();
+      if (json.ok && json.config) {
+        setCfg(json.config);
+        // Cache lokal mirrorn — wenn DB mal weg ist, behalten wir letzten Stand.
+        writeAblefyConfig(json.config);
+      }
+    } catch {
+      // Server-Fehler / Supabase nicht konfiguriert → wir bleiben beim localStorage.
+    }
+  }
 
   function update<K extends keyof AblefyConfig>(key: K, value: AblefyConfig[K]) {
     setCfg((prev) => ({ ...prev, [key]: value }));
     setSaved(false);
   }
 
-  function persist() {
+  async function persist() {
+    // Erst zur DB schreiben, dann localStorage mirrorn. So bleibt die App
+    // funktionsfaehig auch wenn der Browser den localStorage clearet.
+    try {
+      const res = await fetch("/api/v1/ablefy/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cfg),
+      });
+      const json = await res.json();
+      if (!json.ok) {
+        // DB konnte nicht schreiben — wir warnen, aber speichern lokal als Fallback.
+        console.warn("[AblefyManager] DB-Save fehlgeschlagen:", json.error);
+      }
+    } catch (err) {
+      console.warn("[AblefyManager] DB-Save Netzwerkfehler:", err);
+    }
     writeAblefyConfig(cfg);
     setSaved(true);
     setTimeout(() => setSaved(false), 2200);
