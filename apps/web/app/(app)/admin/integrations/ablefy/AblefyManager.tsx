@@ -122,6 +122,8 @@ export function AblefyManager() {
   const [testResult, setTestResult] = useState<null | { ok: boolean; msg: string }>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<null | { ok: boolean; msg: string; aggregate?: unknown }>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewResult, setPreviewResult] = useState<null | { ok: boolean; data?: unknown; msg?: string }>(null);
   const [events, setEvents] = useState<AblefyEvent[]>([]);
   const [saved, setSaved] = useState(false);
   const [autoLookupCount, setAutoLookupCount] = useState(0);
@@ -334,6 +336,28 @@ export function AblefyManager() {
     } finally {
       setSyncing(false);
       fetchEvents();
+    }
+  }
+
+  async function runPreview() {
+    setPreviewing(true);
+    setPreviewResult(null);
+    try {
+      const res = await fetch("/api/v1/ablefy/sync/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: cfg.apiKey, apiSecret: cfg.apiSecret }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setPreviewResult({ ok: true, data: json.sample });
+      } else {
+        setPreviewResult({ ok: false, msg: json.error ?? "Fehler" });
+      }
+    } catch (err) {
+      setPreviewResult({ ok: false, msg: err instanceof Error ? err.message : "Fehler" });
+    } finally {
+      setPreviewing(false);
     }
   }
 
@@ -689,6 +713,34 @@ export function AblefyManager() {
             {syncResult.msg}
           </div>
         )}
+
+        <div className="mt-4 rounded-md border border-dashed border-border bg-muted/30 p-3">
+          <div className="mb-2 text-xs font-semibold">Debug: Rohdaten der ersten 3 Rechnungen zeigen</div>
+          <p className="mb-2 text-[11px] text-muted-foreground">
+            Falls der Sync 0,00 € zeigt, liegt das meist an Feldnamen, die ich anders annehme. Klick hier, um die echten Felder einer Ablefy-Rechnung zu sehen — den JSON-Output bitte mir schicken, dann fixe ich das Mapping.
+          </p>
+          <button
+            onClick={runPreview}
+            disabled={previewing || !cfg.apiKey || !cfg.apiSecret}
+            className="btn-secondary inline-flex items-center gap-1 text-xs"
+          >
+            {previewing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            Rohdaten zeigen
+          </button>
+          {previewResult && (
+            <div className="mt-3">
+              {previewResult.ok ? (
+                <pre className="max-h-96 overflow-auto rounded-md border border-border bg-background p-3 text-[10px] leading-tight">
+                  {JSON.stringify(previewResult.data, null, 2)}
+                </pre>
+              ) : (
+                <div className="rounded-md bg-loss/10 p-3 text-xs text-loss">
+                  <AlertTriangle className="mr-1 inline h-3.5 w-3.5" /> {previewResult.msg}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Save */}
