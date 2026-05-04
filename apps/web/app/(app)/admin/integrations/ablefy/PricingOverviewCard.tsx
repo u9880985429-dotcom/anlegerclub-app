@@ -7,6 +7,7 @@ import { TrendingUp, Users } from "lucide-react";
 import { readAblefyConfig } from "@/lib/ablefy-config";
 import { findPricing, calculateExpectedRevenue, type PricingPlan } from "@/lib/copy/pricing";
 import { PRODUCT_LABELS } from "@/lib/copy/login-status";
+import { getRevenueBucketSlug } from "@/lib/kpi-bucket";
 
 /**
  * Pricing-Uebersicht fuer Admins: zeigt pro Pricing-Plan, wie viele aktive
@@ -47,12 +48,18 @@ export function PricingOverviewCard() {
   const rows: PlanRow[] = useMemo(() => {
     if (!mounted) return [];
     const buckets = new Map<string, PlanRow>();
+    // KPI-Bucket-Regel (siehe lib/kpi-bucket.ts): Pro Sub gehoert genau ein
+    // Slug — `getRevenueBucketSlug(s)` liefert ihn. All-Access-User landen im
+    // `all-access`-Bucket, NICHT zusaetzlich in starter/trend/stillhalter/
+    // cockpit. Wuerden wir hier per Access-Logik (`||"all-access"`) zaehlen,
+    // wuerden 1 All-Access-Kunde 4x in der Tabelle erscheinen.
     for (const s of allSubscriptions) {
       if (!ACTIVE_STATUS.has(s.status)) continue;
+      const slug = getRevenueBucketSlug(s);
       const planLabel = s.ablefyProductId ? planLabelByProductId[s.ablefyProductId] ?? null : null;
-      const pricing = findPricing(s.productSlug, planLabel);
+      const pricing = findPricing(slug, planLabel);
       if (!pricing) continue;
-      const key = `${s.productSlug}::${planLabel ?? ""}`;
+      const key = `${slug}::${planLabel ?? ""}`;
       const existing = buckets.get(key);
       if (existing) {
         existing.count++;
@@ -60,7 +67,7 @@ export function PricingOverviewCard() {
       } else {
         buckets.set(key, {
           key,
-          slug: s.productSlug,
+          slug,
           planLabel,
           pricing,
           count: 1,
