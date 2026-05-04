@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { appendAblefyEvent } from "@/lib/ablefy-store";
+import { loadAblefyConfigFromDb } from "@/lib/ablefy-config-store";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/lib/customers-store";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +14,10 @@ interface SyncBody {
   dateTo?: string;
   /** Optional: nur Invoices fuer eine Produkt-ID. */
   productId?: string;
-  /** Maximale Anzahl Seiten — default 5 (entspricht ~500 Invoices). */
+  /** Maximale Anzahl Seiten — default 200 (entspricht ~20.000 Invoices). */
   maxPages?: number;
+  /** Wenn false: nur KPI-Aggregat berechnen, nicht in customers-Tabellen schreiben. Default true. */
+  persistCustomers?: boolean;
 }
 
 interface AggregatedKpi {
@@ -24,14 +29,21 @@ interface AggregatedKpi {
   totalRevenue: number;
   byProduct: Record<string, { count: number; revenue: number }>;
   byMonth: Record<string, { count: number; revenue: number }>;
+  customersUpserted: number;
+  subscriptionsUpserted: number;
 }
 
 /**
  * POST /api/v1/ablefy/sync
  *
- * Holt Invoices ueber /api/invoices (paginiert) und aggregiert zu KPIs.
- * Wir geben das Aggregat direkt zurueck — der Client cached es im
- * KPI-Dashboard. Phase 2: Persistenz in Postgres.
+ * Holt Invoices ueber /api/invoices (paginiert) und macht ZWEI Sachen:
+ *   1. KPI-Aggregat (wie bisher) — fuer Dashboard-Charts.
+ *   2. Iter 48: Customer + Subscription in Supabase persistieren.
+ *
+ * Customer-Persistierung greift nur, wenn Supabase konfiguriert ist UND
+ * die Ablefy-Konfig ein product_mapping hat (sonst koennen wir Ablefy-
+ * Product-IDs nicht auf TraderIQ-Slugs mappen). Pro Invoice ein Customer-
+ * + Subscription-Upsert (ablefyOrderId als unique key).
  */
 export async function POST(req: Request) {
   let body: SyncBody;
@@ -40,17 +52,41 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
   }
-  // maxPages 200 × ~100 invoices/page = max 20.000 Rechnungen pro Sync.
-  // Sollte fuer alle realistischen Anlegerclub-Backloads genuegen.
-  const { apiKey, apiSecret, dateFrom, dateTo, productId, maxPages = 200 } = body;
+  const {
+    apiKey,
+    apiSecret,
+    dateFrom,
+    dateTo,
+    productId,
+    maxPages = 200,
+    persistCustomers = true,
+  } = body;
   if (!apiKey || !apiSecret) {
     return NextResponse.json({ ok: false, error: "missing_credentials" }, { status: 400 });
   }
 
+  // Mapping aus DB laden — fuer Slug-Resolution. Bleibt leer wenn nicht konfiguriert.
+  let productMappingByAblefyId = new Map<string, { slug: string; planLabel?: string }>();
+  if (isSupabaseConfigured() && persistCustomers) {
+    try {
+      const cfg = await loadAblefyConfigFromDb();
+      productMappingByAblefyId = new Map(
+        cfg.productMapping.map((m) => [
+          m.ablefyProductId,
+          { slug: m.traderiqProductSlug, planLabel: m.planLabel },
+        ]),
+      );
+    } catch {
+      // Mapping konnte nicht geladen werden — wir aggregieren trotzdem KPIs,
+      // ueberspringen aber das Customer-Schreiben.
+    }
+  }
+  const canPersistCustomers = persistCustomers && isSupabaseConfigured();
+
   appendAblefyEvent({
     kind: "sync.started",
     status: "ok",
-    summary: `Sync gestartet (date_from=${dateFrom ?? "—"}, date_to=${dateTo ?? "—"}, product=${productId ?? "alle"})`,
+    summary: `Sync gestartet (date_from=${dateFrom ?? "—"}, date_to=${dateTo ?? "—"}, product=${productId ?? "alle"}, persist=${canPersistCustomers})`,
   });
 
   const agg: AggregatedKpi = {
@@ -62,6 +98,8 @@ export async function POST(req: Request) {
     totalRevenue: 0,
     byProduct: {},
     byMonth: {},
+    customersUpserted: 0,
+    subscriptionsUpserted: 0,
   };
 
   try {
@@ -91,8 +129,12 @@ export async function POST(req: Request) {
       const json = (await res.json()) as { invoices?: AblefyInvoice[]; data?: AblefyInvoice[] } | AblefyInvoice[];
       const invoices = Array.isArray(json) ? json : (json.invoices ?? json.data ?? []);
       if (invoices.length === 0) break;
-      for (const inv of invoices) aggregateInvoice(agg, inv);
-      // Wenn weniger als wahrscheinliches Pagesize zurueckkommt, sind wir fertig.
+      for (const inv of invoices) {
+        aggregateInvoice(agg, inv);
+        if (canPersistCustomers) {
+          await persistInvoice(inv, productMappingByAblefyId, agg);
+        }
+      }
       if (invoices.length < 50) break;
     }
   } catch (err) {
@@ -108,7 +150,7 @@ export async function POST(req: Request) {
   appendAblefyEvent({
     kind: "sync.completed",
     status: "ok",
-    summary: `Sync OK · ${agg.invoicesFetched} Invoices · Revenue ${agg.totalRevenue.toFixed(2)} €`,
+    summary: `Sync OK · ${agg.invoicesFetched} Invoices · Revenue ${agg.totalRevenue.toFixed(2)} € · ${agg.customersUpserted} Kunden · ${agg.subscriptionsUpserted} Subs`,
   });
   return NextResponse.json({ ok: true, aggregate: agg });
 }
@@ -122,6 +164,15 @@ interface AblefyInvoice {
   amount?: number | string;
   created_at?: string;
   date?: string;
+  // Buyer-Felder (Annahmen — falls Ablefy was anderes liefert, korrigieren wir)
+  buyer_email?: string;
+  buyer_first_name?: string;
+  buyer_last_name?: string;
+  buyer?: { email?: string; first_name?: string; last_name?: string; transfer_ext_id?: string };
+  payer?: { email?: string; first_name?: string; last_name?: string; transfer_ext_id?: string };
+  transfer_ext_id?: string;
+  order_id?: number | string;
+  currency?: string;
 }
 
 function aggregateInvoice(agg: AggregatedKpi, inv: AblefyInvoice) {
@@ -151,4 +202,90 @@ function aggregateInvoice(agg: AggregatedKpi, inv: AblefyInvoice) {
       agg.byMonth[monthKey].revenue += amount;
     }
   }
+}
+
+/**
+ * Schreibt Customer + Subscription nach Supabase. Defensiv — wenn keine
+ * E-Mail extrahierbar ist, wird die Invoice geskippt (KPI-Aggregat zaehlt
+ * sie trotzdem, sie taucht nur nicht in der Customer-Tabelle auf).
+ */
+async function persistInvoice(
+  inv: AblefyInvoice,
+  mapping: Map<string, { slug: string; planLabel?: string }>,
+  agg: AggregatedKpi,
+): Promise<void> {
+  const email = pickEmail(inv);
+  if (!email) return;
+  const firstName = pickName(inv, "first") ?? null;
+  const lastName = pickName(inv, "last") ?? null;
+  const payerId = pickPayerId(inv);
+  const productKey = String(inv.product_id ?? "");
+  const slugMapping = mapping.get(productKey);
+  if (!slugMapping) return; // Ohne Mapping kann man die Sub keinem Depot zuordnen.
+
+  // 1) Customer upsert
+  const customer = await upsertCustomer({
+    email,
+    firstName,
+    lastName,
+    ablefyPayerId: payerId,
+  });
+  if (customer) agg.customersUpserted++;
+
+  // 2) Subscription upsert
+  const subStatus = mapInvoiceStateToSubStatus(inv);
+  const amount = parseFloat(String(inv.total ?? inv.amount ?? "0")) || 0;
+  const sub = await upsertSubscription({
+    customerEmail: email,
+    productSlug: slugMapping.slug,
+    ablefyProductId: productKey,
+    planLabel: slugMapping.planLabel,
+    ablefyOrderId: inv.order_id != null ? String(inv.order_id) : (inv.id != null ? String(inv.id) : null),
+    status: subStatus,
+    amountCents: Math.round(amount * 100),
+    currency: inv.currency ?? "EUR",
+    startedAt: inv.created_at ?? inv.date ?? null,
+  });
+  if (sub) agg.subscriptionsUpserted++;
+}
+
+function pickEmail(inv: AblefyInvoice): string | null {
+  const candidates = [inv.buyer_email, inv.buyer?.email, inv.payer?.email];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim().length > 0) return c.trim().toLowerCase();
+  }
+  return null;
+}
+
+function pickName(inv: AblefyInvoice, which: "first" | "last"): string | null {
+  if (which === "first") {
+    const candidates = [inv.buyer_first_name, inv.buyer?.first_name, inv.payer?.first_name];
+    for (const c of candidates) {
+      if (typeof c === "string" && c.trim().length > 0) return c.trim();
+    }
+  } else {
+    const candidates = [inv.buyer_last_name, inv.buyer?.last_name, inv.payer?.last_name];
+    for (const c of candidates) {
+      if (typeof c === "string" && c.trim().length > 0) return c.trim();
+    }
+  }
+  return null;
+}
+
+function pickPayerId(inv: AblefyInvoice): string | null {
+  const candidates = [inv.transfer_ext_id, inv.buyer?.transfer_ext_id, inv.payer?.transfer_ext_id];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim().length > 0) return c.trim();
+  }
+  return null;
+}
+
+function mapInvoiceStateToSubStatus(inv: AblefyInvoice): SubscriptionStatus {
+  const ps = inv.payment_state ?? "";
+  const is = inv.invoice_state ?? "";
+  if (ps === "refunded" || is === "refunded") return "refunded";
+  if (is === "cancelled") return "cancelled";
+  if (ps === "paid") return "paid";
+  if (ps === "open") return "active";
+  return "active";
 }
