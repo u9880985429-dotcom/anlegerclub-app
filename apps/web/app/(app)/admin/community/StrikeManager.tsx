@@ -24,14 +24,12 @@ const REASONS: StrikeReason[] = [
 
 const SEVERITIES: StrikeSeverity[] = ["WARN", "STRIKE", "MUTE_24H", "MUTE_7D", "BAN"];
 
+// Iter 40: Test-Mitglieder entfernt — der Form-Picker startet leer und wird ab
+// Phase 2 dynamisch aus der echten Mitgliederliste befuellt.
 const COMMON_USERS: { id: string; name: string }[] = [
   { id: "u_anonA", name: "Anonym A." },
   { id: "u_anonB", name: "Anonym B." },
   { id: "u_anonC", name: "Anonym C." },
-  { id: "u_anna", name: "Anna Huber" },
-  { id: "u_klaus", name: "Klaus Berger" },
-  { id: "u_jonas", name: "Jonas Weiß" },
-  { id: "u_petra", name: "Petra Fischer" },
 ];
 
 export function StrikeManager() {
@@ -193,8 +191,8 @@ function StrikeForm({
       reason,
       severity,
       excerpt,
-      issuedById: "u_admin",
-      issuedByName: "Admin Trader IQ",
+      issuedById: "u_max",
+      issuedByName: "Max Bauer",
       expiresAt,
     });
   }

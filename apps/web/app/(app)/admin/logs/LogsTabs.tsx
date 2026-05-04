@@ -51,7 +51,7 @@ const WEBHOOK_LOGS: LogRow[] = [
 const TRACKING_LOGS: LogRow[] = [
   { id: "t1", ts: "2026-04-27 09:00:00", status: "ok", primary: "GA4 / page_view", secondary: "/dashboard", meta: "Client-ID 18a... · 12 events" },
   { id: "t2", ts: "2026-04-27 08:55:00", status: "ok", primary: "Tracify / pageView", secondary: "/depot/trend", meta: "Visitor 9c2... · 1 event" },
-  { id: "t3", ts: "2026-04-27 08:54:32", status: "ok", primary: "Custom Pixel / signup", secondary: "/onboarding/starter", meta: "uid u_starter_only · 1 event" },
+  { id: "t3", ts: "2026-04-27 08:54:32", status: "ok", primary: "Custom Pixel / signup", secondary: "/onboarding/starter", meta: "uid u_max · 1 event" },
   { id: "t4", ts: "2026-04-27 08:52:11", status: "warn", primary: "Meta-Pixel / PageView", secondary: "blocked-by-consent", meta: "User hat Marketing-Cookies abgelehnt" },
 ];
 
