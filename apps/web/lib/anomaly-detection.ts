@@ -1,4 +1,5 @@
 import type { Subscription, User, ProductSlug } from "@traderiq/api";
+import { filterKpiRelevantSubs } from "@/lib/kpi-bucket";
 
 /**
  * Anomalie-Detection fuer das KPI-Modul "sonstige Daten".
@@ -100,9 +101,12 @@ function userLabel(u: User | undefined): { email: string; fullName: string } {
  * mit dem User-ID-Match).
  */
 function groupPersons(users: User[], subs: Subscription[]): PersonGroup[] {
+  // KPI-Bucket-Regel: interne Mitarbeiter-/Pre-Boarding-Subs ausschliessen,
+  // damit sie nicht als „Wechsler" / „Re-Aktivierungen" auftauchen.
+  const kpiSubs = filterKpiRelevantSubs(subs, users);
   const userById = new Map(users.map((u) => [u.id, u]));
   const subsByUserId = new Map<string, SubSummary[]>();
-  for (const s of subs) {
+  for (const s of kpiSubs) {
     const list = subsByUserId.get(s.userId) ?? [];
     list.push(buildSubSummary(s));
     subsByUserId.set(s.userId, list);

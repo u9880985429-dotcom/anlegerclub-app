@@ -1,4 +1,4 @@
-import type { ProductSlug, Subscription } from "@traderiq/api";
+import type { ProductSlug, Subscription, User } from "@traderiq/api";
 import type { AblefyProductMapping } from "@/lib/ablefy-config";
 
 /**
@@ -34,6 +34,45 @@ import type { AblefyProductMapping } from "@/lib/ablefy-config";
  */
 export function getRevenueBucketSlug(sub: Pick<Subscription, "productSlug">): ProductSlug {
   return sub.productSlug;
+}
+
+/**
+ * Praefix von Ablefy-Order-IDs, die kein echter Kauf sind: Owner-/Admin-
+ * Accounts, Mitarbeiter-Pre-Boarding, kostenfreie Test-Pässe etc. Diese
+ * Subscriptions haben in echten Phase-2-Daten kein zugehoeriges Ablefy-
+ * Order-Objekt — wir markieren sie via Praefix `AF-INTERNAL-`.
+ */
+const INTERNAL_ORDER_PREFIX = "AF-INTERNAL-";
+
+/**
+ * Wahr, wenn die Subscription **nicht** in KPIs / Forecasts / Anomalien
+ * einbezogen werden soll. Trifft zu fuer:
+ *   - Subs mit `ablefyOrderId` beginnend mit `AF-INTERNAL-` (Owner, Admin,
+ *     Mitarbeiter-Pre-Boarding, kostenfreie Zugaenge).
+ *
+ * Phase 2: ergaenzt um ein eigenes DB-Feld `isInternal` auf der Sub —
+ * dann kann die Order-ID aussagekraeftig gesetzt werden, ohne dass das
+ * KPI-Verhalten davon abhaengt.
+ */
+export function isInternalSubscription(sub: Pick<Subscription, "ablefyOrderId">): boolean {
+  return typeof sub.ablefyOrderId === "string" && sub.ablefyOrderId.startsWith(INTERNAL_ORDER_PREFIX);
+}
+
+/**
+ * Hilfs-Filter: liefert nur die KPI-relevanten Subs (= keine internen
+ * Mitarbeiter-/Pre-Boarding-Subs). `users` ist optional und wird derzeit
+ * nicht ausgewertet — Phase 2 wird hier auch isTeamMember=true raus-
+ * filtern, damit ein nachtraeglich auf Mitarbeiter umgestellter Account
+ * sofort ausgeschlossen wird, auch wenn die Order-ID schon real war.
+ */
+export function filterKpiRelevantSubs(
+  subs: Subscription[],
+  users?: Pick<User, "id" | "isTeamMember">[],
+): Subscription[] {
+  const teamUserIds = users
+    ? new Set(users.filter((u) => u.isTeamMember).map((u) => u.id))
+    : new Set<string>();
+  return subs.filter((s) => !isInternalSubscription(s) && !teamUserIds.has(s.userId));
 }
 
 export interface SlugBucket {
