@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink, Smartphone, Shield, ChevronRight } from "lucide-react";
+import { ExternalLink, Shield, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { TutorialSettings } from "@/components/TutorialSettings";
 import { AvatarUploader } from "@/components/AvatarUploader";
@@ -8,7 +8,7 @@ import { PasswordChangeForm } from "@/components/PasswordChangeForm";
 import { requireSession } from "@/lib/access";
 import { findSubscriptionsForUser, isTeamRole } from "@traderiq/api";
 import type { ProductSlug } from "@traderiq/api";
-import { PRODUCT_LABELS, PRODUCT_LINKS } from "@/lib/copy/login-status";
+import { PRODUCT_LABELS } from "@/lib/copy/login-status";
 
 export const dynamic = "force-dynamic";
 
@@ -53,8 +53,6 @@ export default async function SettingsPage() {
       <Section title="Sicherheit">
         <div className="space-y-3 text-sm">
           <PasswordChangeForm />
-          <Row icon={Smartphone} title="2-Faktor-Authentifizierung (SMS-OTP)" subtitle="Phase 2: Twilio Verify" />
-          <Row icon={Shield} title="Aktive Sitzungen" subtitle="2 Geräte aktiv" />
         </div>
       </Section>
 
@@ -63,7 +61,6 @@ export default async function SettingsPage() {
         <div className="card-base divide-y divide-border">
           {subs.length === 0 && <div className="p-4 text-sm text-muted-foreground">Keine aktiven Abos.</div>}
           {subs.map((s) => {
-            const link = PRODUCT_LINKS.find((l) => l.slug === s.productSlug);
             const statusBadge =
               s.status === "ACTIVE"
                 ? "badge-profit"
@@ -80,11 +77,14 @@ export default async function SettingsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={statusBadge}>{s.status}</span>
-                  {link && (
-                    <a href={link.url} target="_blank" rel="noreferrer" className="btn-secondary inline-flex items-center gap-2">
-                      Bei Ablefy verwalten <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
+                  <a
+                    href="https://myablefy.com/payer/orders"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-secondary inline-flex items-center gap-2"
+                  >
+                    Bei Ablefy verwalten <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
                 </div>
               </div>
             );
