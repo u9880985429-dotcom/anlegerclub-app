@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Send, AlertTriangle, ShieldCheck, ImagePlus, X } from "lucide-react";
 import { filterText } from "@traderiq/api";
 import type { Role } from "@traderiq/api";
@@ -10,6 +11,11 @@ interface CommunityComposerProps {
   contextHint?: string;
   /** Rolle des aktuell eingeloggten Users — entscheidet über das Upload-Limit. */
   userRole?: Role;
+  /**
+   * Wenn gesetzt: Beitrag wird via POST /api/v1/comments persistiert (Supabase).
+   * Wenn nicht gesetzt: Demo-Modus (lokal, Beitrag verschwindet beim Reload).
+   */
+  postId?: string;
 }
 
 interface Attachment {
@@ -39,17 +45,20 @@ const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
  * - Smiley-Picker mit den vom Spec erlaubten Reaktionen.
  * - Bis zu 4 Bilder pro Beitrag, je 5 MB max.
  */
-export function CommunityComposer({ placeholder = "Was möchtest du teilen?", contextHint, userRole }: CommunityComposerProps) {
+export function CommunityComposer({ placeholder = "Was möchtest du teilen?", contextHint, userRole, postId }: CommunityComposerProps) {
+  const router = useRouter();
   const MAX_ATTACHMENTS = maxAttachmentsForRole(userRole);
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<
     | { kind: "idle" }
     | { kind: "blocked"; reason: string }
     | { kind: "warning"; reason: string }
-    | { kind: "ok" }
+    | { kind: "ok"; persisted: boolean; profanityMaskedCount?: number }
+    | { kind: "error"; reason: string }
   >({ kind: "idle" });
 
   function insertEmoji(e: string) {
@@ -94,9 +103,11 @@ export function CommunityComposer({ placeholder = "Was möchtest du teilen?", co
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim() && attachments.length === 0) return;
+
+    // Wordfilter clientseitig vorab — schneller Feedback, ohne Server-Roundtrip.
     const result = filterText(text);
     if (result.blocked) {
       setStatus({
@@ -106,18 +117,65 @@ export function CommunityComposer({ placeholder = "Was möchtest du teilen?", co
       });
       return;
     }
-    if (result.flaggedProfanity.length > 0) {
-      setText(result.cleaned);
-      setStatus({
-        kind: "warning",
-        reason: `Beleidigungen wurden automatisch maskiert (${result.flaggedProfanity.length} Wort/e). Beitrag wurde abgesendet, die Moderation wurde informiert.`,
-      });
-      // Bei Warnung Bilder behalten, Text bleibt.
+
+    // Wenn `postId` nicht gesetzt ist, bleibt der Composer im Demo-Modus
+    // (z.B. auf der „Aktie im Fokus"-Page, die noch keine Post-Persistierung hat).
+    if (!postId) {
+      if (result.flaggedProfanity.length > 0) {
+        setText(result.cleaned);
+        setStatus({
+          kind: "warning",
+          reason: `Beleidigungen wurden automatisch maskiert (${result.flaggedProfanity.length} Wort/e). Beitrag wurde abgesendet, die Moderation wurde informiert.`,
+        });
+        return;
+      }
+      setStatus({ kind: "ok", persisted: false });
+      setText("");
+      setAttachments([]);
       return;
     }
-    setStatus({ kind: "ok" });
-    setText("");
-    setAttachments([]);
+
+    // Echte Persistierung via API → Supabase.
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/v1/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId, bodyMd: result.cleaned }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        const err = json.error ?? "unbekannter Fehler";
+        if (err === "supabase_not_configured") {
+          setStatus({
+            kind: "error",
+            reason: "Backend noch nicht angebunden — bitte gleich nochmal probieren.",
+          });
+        } else if (err === "blocked_by_filter") {
+          setStatus({
+            kind: "blocked",
+            reason: "Beitrag wurde vom Filter abgelehnt (Werbung / externe Links).",
+          });
+        } else {
+          setStatus({ kind: "error", reason: `Konnte nicht senden: ${err}` });
+        }
+        return;
+      }
+      setText("");
+      setAttachments([]);
+      setStatus({
+        kind: "ok",
+        persisted: true,
+        profanityMaskedCount: json.profanityMaskedCount ?? 0,
+      });
+      // Server-Component aktualisieren, damit der neue Comment gleich auftaucht.
+      router.refresh();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Netzwerkfehler";
+      setStatus({ kind: "error", reason: `Konnte nicht senden: ${msg}` });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -192,10 +250,10 @@ export function CommunityComposer({ placeholder = "Was möchtest du teilen?", co
         </div>
         <button
           type="submit"
-          disabled={!text.trim() && attachments.length === 0}
-          className="btn-brand inline-flex items-center gap-2"
+          disabled={submitting || (!text.trim() && attachments.length === 0)}
+          className="btn-brand inline-flex items-center gap-2 disabled:opacity-50"
         >
-          <Send className="h-4 w-4" /> Posten
+          <Send className="h-4 w-4" /> {submitting ? "Sende..." : "Posten"}
         </button>
       </div>
 
@@ -218,9 +276,21 @@ export function CommunityComposer({ placeholder = "Was möchtest du teilen?", co
           <span>{status.reason}</span>
         </div>
       )}
-      {status.kind === "ok" && (
+      {status.kind === "ok" && status.persisted && (
         <div className="mt-3 rounded-md border border-profit/40 bg-profit/5 p-3 text-xs text-profit">
-          Beitrag wurde abgesendet (Demo: nur lokal). Push/Mail-Webhook wird in Phase 2 ausgelöst, Bild-Upload zu Cloudflare R2 / Vercel Blob.
+          Dein Beitrag wurde gespeichert. ✓
+          {(status.profanityMaskedCount ?? 0) > 0 && ` Hinweis: ${status.profanityMaskedCount} Wort/e wurden maskiert, Moderation wurde informiert.`}
+        </div>
+      )}
+      {status.kind === "ok" && !status.persisted && (
+        <div className="mt-3 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700">
+          Beitrag wurde abgesendet (Demo: nur lokal — diese Seite hat noch keine Persistierung).
+        </div>
+      )}
+      {status.kind === "error" && (
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive">
+          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <span>{status.reason}</span>
         </div>
       )}
     </form>

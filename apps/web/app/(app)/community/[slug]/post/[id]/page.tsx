@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MessageSquare } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
 import { requireProductAccess } from "@/lib/access";
 import { getCommentsByPost, getPostById, type ProductSlug } from "@traderiq/api";
+import { listCommentsByPost } from "@/lib/comments-store";
+import { CommunityComposer } from "@/components/CommunityComposer";
 import { formatRelative } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -12,10 +13,14 @@ const VALID_SLUGS: ProductSlug[] = ["starter", "trend", "stillhalter", "cockpit"
 
 export default async function PostDetailPage({ params }: { params: { slug: string; id: string } }) {
   if (!VALID_SLUGS.includes(params.slug as ProductSlug)) notFound();
-  await requireProductAccess(params.slug as Exclude<ProductSlug, "all-access">);
+  const session = await requireProductAccess(params.slug as Exclude<ProductSlug, "all-access">);
   const post = getPostById(params.id);
   if (!post) notFound();
-  const comments = getCommentsByPost(post.id);
+  const [dbComments, mockComments] = await Promise.all([
+    listCommentsByPost(post.id),
+    Promise.resolve(getCommentsByPost(post.id)),
+  ]);
+  const comments = [...mockComments, ...dbComments];
 
   return (
     <>
@@ -63,18 +68,11 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
           </article>
         ))}
 
-        {/* Reply stub */}
-        <div className="card-base p-4">
-          <textarea
-            className="input-base h-16 resize-none"
-            placeholder="Antwort schreiben…"
-            disabled
-          />
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Senden ab Phase 2</span>
-            <button className="btn-brand opacity-50" disabled>Antworten</button>
-          </div>
-        </div>
+        <CommunityComposer
+          postId={post.id}
+          placeholder="Antwort schreiben…"
+          userRole={session.user.role}
+        />
       </div>
     </>
   );

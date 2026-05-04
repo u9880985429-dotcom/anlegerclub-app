@@ -11,6 +11,7 @@
     "clean": "rm -rf .next .turbo node_modules/.cache"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
     "@traderiq/api": "workspace:*",
     "@traderiq/db": "workspace:*",
     "@traderiq/ui": "workspace:*",
