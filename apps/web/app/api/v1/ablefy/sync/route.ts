@@ -40,7 +40,9 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
   }
-  const { apiKey, apiSecret, dateFrom, dateTo, productId, maxPages = 5 } = body;
+  // maxPages 200 × ~100 invoices/page = max 20.000 Rechnungen pro Sync.
+  // Sollte fuer alle realistischen Anlegerclub-Backloads genuegen.
+  const { apiKey, apiSecret, dateFrom, dateTo, productId, maxPages = 200 } = body;
   if (!apiKey || !apiSecret) {
     return NextResponse.json({ ok: false, error: "missing_credentials" }, { status: 400 });
   }
