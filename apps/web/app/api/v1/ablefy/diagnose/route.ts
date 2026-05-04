@@ -115,5 +115,24 @@ export async function GET() {
     };
   }
 
+  // Sample-Daten: erste customer + erste sub
+  try {
+    const { data: c0 } = await supabase.from("customers").select("*").limit(1).maybeSingle();
+    if (c0) {
+      const { data: subsForC0 } = await supabase
+        .from("customer_subscriptions")
+        .select("*")
+        .eq("customer_email", (c0 as Record<string, unknown>).email)
+        .limit(5);
+      result.sample_first_customer = c0;
+      result.sample_first_customer_subs = subsForC0 ?? [];
+      result.sample_first_customer_subs_count = (subsForC0 ?? []).length;
+    } else {
+      result.sample_first_customer = null;
+    }
+  } catch (err) {
+    result.sample_error = err instanceof Error ? err.message : "unknown";
+  }
+
   return NextResponse.json(result);
 }
