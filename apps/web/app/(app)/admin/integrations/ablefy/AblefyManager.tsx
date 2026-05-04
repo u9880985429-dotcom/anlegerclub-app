@@ -124,6 +124,9 @@ export function AblefyManager() {
   const [syncResult, setSyncResult] = useState<null | { ok: boolean; msg: string; aggregate?: unknown }>(null);
   const [previewing, setPreviewing] = useState(false);
   const [previewResult, setPreviewResult] = useState<null | { ok: boolean; data?: unknown; msg?: string }>(null);
+  const [diagnosing, setDiagnosing] = useState(false);
+  const [diagnoseResult, setDiagnoseResult] = useState<null | unknown>(null);
+  const [persistMsg, setPersistMsg] = useState<null | { ok: boolean; msg: string }>(null);
   const [events, setEvents] = useState<AblefyEvent[]>([]);
   const [saved, setSaved] = useState(false);
   const [autoLookupCount, setAutoLookupCount] = useState(0);
@@ -180,8 +183,9 @@ export function AblefyManager() {
   }
 
   async function persist() {
-    // Erst zur DB schreiben, dann localStorage mirrorn. So bleibt die App
-    // funktionsfaehig auch wenn der Browser den localStorage clearet.
+    setPersistMsg(null);
+    let dbOk = false;
+    let dbDetail = "";
     try {
       const res = await fetch("/api/v1/ablefy/config", {
         method: "PUT",
@@ -189,16 +193,35 @@ export function AblefyManager() {
         body: JSON.stringify(cfg),
       });
       const json = await res.json();
-      if (!json.ok) {
-        // DB konnte nicht schreiben — wir warnen, aber speichern lokal als Fallback.
-        console.warn("[AblefyManager] DB-Save fehlgeschlagen:", json.error);
-      }
+      dbOk = res.ok && json.ok === true;
+      dbDetail = `HTTP ${res.status}${json.error ? ` · ${json.error}` : ""}`;
     } catch (err) {
-      console.warn("[AblefyManager] DB-Save Netzwerkfehler:", err);
+      dbDetail = `Netzwerkfehler: ${err instanceof Error ? err.message : "unbekannt"}`;
     }
     writeAblefyConfig(cfg);
     setSaved(true);
     setTimeout(() => setSaved(false), 2200);
+    setPersistMsg({
+      ok: dbOk,
+      msg: dbOk
+        ? "✅ Lokal + in Datenbank gespeichert (bleibt ueberall sichtbar)"
+        : `⚠️ Nur lokal im Browser gespeichert — Datenbank-Save fehlgeschlagen: ${dbDetail}`,
+    });
+    setTimeout(() => setPersistMsg(null), 8000);
+  }
+
+  async function runDiagnose() {
+    setDiagnosing(true);
+    setDiagnoseResult(null);
+    try {
+      const res = await fetch("/api/v1/ablefy/diagnose");
+      const json = await res.json();
+      setDiagnoseResult(json);
+    } catch (err) {
+      setDiagnoseResult({ error: err instanceof Error ? err.message : "Fehler" });
+    } finally {
+      setDiagnosing(false);
+    }
   }
 
   function generateWebhookSecret() {
@@ -443,12 +466,28 @@ export function AblefyManager() {
               </div>
             </div>
           </div>
-          <Toggle
-            label={cfg.enabled ? "Aktiviert" : "Deaktiviert"}
-            enabled={cfg.enabled}
-            onChange={(v) => update("enabled", v)}
-          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={runDiagnose}
+              disabled={diagnosing}
+              className="btn-secondary inline-flex items-center gap-1 text-xs"
+              title="Pruefe Supabase-Anbindung + DB-Tabellen + ob die Konfig wirklich in DB steht."
+            >
+              {diagnosing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Activity className="h-3.5 w-3.5" />}
+              Diagnose
+            </button>
+            <Toggle
+              label={cfg.enabled ? "Aktiviert" : "Deaktiviert"}
+              enabled={cfg.enabled}
+              onChange={(v) => update("enabled", v)}
+            />
+          </div>
         </div>
+        {diagnoseResult !== null && (
+          <pre className="mt-3 max-h-80 overflow-auto rounded-md border border-border bg-background p-3 text-[10px] leading-tight">
+            {JSON.stringify(diagnoseResult, null, 2)}
+          </pre>
+        )}
       </div>
 
       {/* API-Credentials */}
@@ -744,7 +783,14 @@ export function AblefyManager() {
       </div>
 
       {/* Save */}
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap items-end justify-end gap-2">
+        <div className="flex-1 text-right">
+          {persistMsg && (
+            <div className={`inline-block rounded-md px-3 py-2 text-xs ${persistMsg.ok ? "bg-profit/15 text-profit" : "bg-amber-500/15 text-amber-700"}`}>
+              {persistMsg.msg}
+            </div>
+          )}
+        </div>
         {saved && (
           <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-1 text-xs text-profit">
             <CheckCircle2 className="h-3.5 w-3.5" /> Gespeichert
