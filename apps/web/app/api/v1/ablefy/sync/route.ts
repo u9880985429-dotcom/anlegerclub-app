@@ -130,8 +130,10 @@ export async function POST(req: Request) {
       const invoices = Array.isArray(json) ? json : (json.invoices ?? json.data ?? []);
       if (invoices.length === 0) break;
       for (const inv of invoices) {
-        aggregateInvoice(agg, inv);
-        if (canPersistCustomers) {
+        const productKey = String(inv.product_id ?? "");
+        const isMapped = productMappingByAblefyId.has(productKey);
+        aggregateInvoice(agg, inv, isMapped);
+        if (canPersistCustomers && isMapped) {
           await persistInvoice(inv, productMappingByAblefyId, agg);
         }
       }
@@ -158,34 +160,62 @@ export async function POST(req: Request) {
 interface AblefyInvoice {
   id?: number | string;
   product_id?: number | string;
+  // Echte Felder (verifiziert via /api/invoices-Antwort)
+  state?: string;            // "paid" | "unpaid" | (ggf. weitere)
+  invoice_amount?: number | string;
+  payer_email?: string;
+  payer_name?: string;       // "Vorname Nachname" — splitten
+  // Backwards-Kompat-Felder (aelterer Annahme-Stand, falls Ablefy ein anderes
+  // Format auch liefert)
   invoice_state?: string;
   payment_state?: string;
   total?: number | string;
   amount?: number | string;
-  created_at?: string;
-  date?: string;
-  // Buyer-Felder (Annahmen — falls Ablefy was anderes liefert, korrigieren wir)
   buyer_email?: string;
   buyer_first_name?: string;
   buyer_last_name?: string;
   buyer?: { email?: string; first_name?: string; last_name?: string; transfer_ext_id?: string };
   payer?: { email?: string; first_name?: string; last_name?: string; transfer_ext_id?: string };
+  // Andere Felder
+  transfer_ids?: (number | string)[];
   transfer_ext_id?: string;
   order_id?: number | string;
   currency?: string;
+  created_at?: string;
+  date?: string;
 }
 
-function aggregateInvoice(agg: AggregatedKpi, inv: AblefyInvoice) {
+/** Liefert den Bruttobetrag der Invoice in EUR (Float). Probiert mehrere Felder. */
+function pickInvoiceAmount(inv: AblefyInvoice): number {
+  const candidates = [inv.invoice_amount, inv.total, inv.amount];
+  for (const c of candidates) {
+    if (c == null) continue;
+    const n = typeof c === "number" ? c : parseFloat(String(c));
+    if (!isNaN(n)) return n;
+  }
+  return 0;
+}
+
+/** Liefert den normalisierten Status. Ablefy nutzt aktuell `state`. */
+function pickInvoiceState(inv: AblefyInvoice): string {
+  return (inv.state ?? inv.payment_state ?? inv.invoice_state ?? "").toLowerCase();
+}
+
+function aggregateInvoice(agg: AggregatedKpi, inv: AblefyInvoice, isMappedProduct: boolean) {
+  // KPI-Aggregat nur fuer Produkte die im Mapping stehen (= Anlegerclub-Produkte).
+  // Andere Trader-IQ-Produkte (z.B. FFM Graduate-Mastermind) werden ignoriert,
+  // damit die Anlegerclub-KPIs nicht verwaessert werden.
+  if (!isMappedProduct) return;
+
   agg.invoicesFetched++;
-  const amount = parseFloat(String(inv.total ?? inv.amount ?? "0")) || 0;
+  const amount = pickInvoiceAmount(inv);
   agg.totalRevenue += amount;
 
-  const ps = inv.payment_state ?? "";
-  const is = inv.invoice_state ?? "";
-  if (ps === "paid") agg.paid++;
-  else if (ps === "open") agg.open++;
-  if (is === "cancelled") agg.cancelled++;
-  if (ps === "refunded" || is === "refunded") agg.refunded++;
+  const state = pickInvoiceState(inv);
+  if (state === "paid") agg.paid++;
+  else if (state === "unpaid" || state === "open") agg.open++;
+  if (state === "cancelled" || state === "canceled") agg.cancelled++;
+  if (state === "refunded") agg.refunded++;
 
   const productKey = String(inv.product_id ?? "unknown");
   if (!agg.byProduct[productKey]) agg.byProduct[productKey] = { count: 0, revenue: 0 };
@@ -234,7 +264,7 @@ async function persistInvoice(
 
   // 2) Subscription upsert
   const subStatus = mapInvoiceStateToSubStatus(inv);
-  const amount = parseFloat(String(inv.total ?? inv.amount ?? "0")) || 0;
+  const amount = pickInvoiceAmount(inv);
   const sub = await upsertSubscription({
     customerEmail: email,
     productSlug: slugMapping.slug,
@@ -250,7 +280,7 @@ async function persistInvoice(
 }
 
 function pickEmail(inv: AblefyInvoice): string | null {
-  const candidates = [inv.buyer_email, inv.buyer?.email, inv.payer?.email];
+  const candidates = [inv.payer_email, inv.buyer_email, inv.buyer?.email, inv.payer?.email];
   for (const c of candidates) {
     if (typeof c === "string" && c.trim().length > 0) return c.trim().toLowerCase();
   }
@@ -258,6 +288,18 @@ function pickEmail(inv: AblefyInvoice): string | null {
 }
 
 function pickName(inv: AblefyInvoice, which: "first" | "last"): string | null {
+  // Ablefy liefert den Namen primaer als `payer_name` ("Vorname Nachname"
+  // zusammen). Wir splitten am letzten Whitespace: alles davor = first,
+  // letzter Token = last.
+  if (typeof inv.payer_name === "string" && inv.payer_name.trim().length > 0) {
+    const parts = inv.payer_name.trim().split(/\s+/);
+    if (parts.length === 1) {
+      return which === "first" ? parts[0]! : null;
+    }
+    if (which === "first") return parts.slice(0, -1).join(" ");
+    return parts[parts.length - 1]!;
+  }
+  // Fallback auf alte Annahmen-Felder
   if (which === "first") {
     const candidates = [inv.buyer_first_name, inv.buyer?.first_name, inv.payer?.first_name];
     for (const c of candidates) {
@@ -281,11 +323,10 @@ function pickPayerId(inv: AblefyInvoice): string | null {
 }
 
 function mapInvoiceStateToSubStatus(inv: AblefyInvoice): SubscriptionStatus {
-  const ps = inv.payment_state ?? "";
-  const is = inv.invoice_state ?? "";
-  if (ps === "refunded" || is === "refunded") return "refunded";
-  if (is === "cancelled") return "cancelled";
-  if (ps === "paid") return "paid";
-  if (ps === "open") return "active";
+  const state = pickInvoiceState(inv);
+  if (state === "refunded") return "refunded";
+  if (state === "cancelled" || state === "canceled") return "cancelled";
+  if (state === "paid") return "paid";
+  if (state === "unpaid" || state === "open") return "active";
   return "active";
 }
