@@ -6,6 +6,7 @@ import { buildLookupHint } from "@/lib/ablefy-events";
 import { addPendingBuyer } from "@/lib/ablefy-pending-buyers";
 import { loadAblefyConfigFromDb } from "@/lib/ablefy-config-store";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/lib/customers-store";
 
 export const dynamic = "force-dynamic";
 
@@ -110,11 +111,92 @@ export async function POST(req: Request) {
     });
   }
 
+  // Iter 49: Auto-Customer-Anlage und/oder Status-Update bei lifecycle-events.
+  // Wirkt auch auf Storno-/Refund-/Chargeback-Events, damit der Status korrekt
+  // sinkt. Login-Faehigkeit kommt erst in Sprint A (Passwort-Setzen-Flow).
+  if (eventName && isSupabaseConfigured()) {
+    const lifecycleStatus = mapEventToSubStatus(eventName);
+    if (lifecycleStatus !== null) {
+      const buyer = extractBuyerInfo(payload);
+      if (buyer.email && buyer.productId) {
+        try {
+          const dbCfg = await loadAblefyConfigFromDb();
+          const mapping = dbCfg.productMapping.find((m) => m.ablefyProductId === buyer.productId);
+          if (mapping) {
+            await upsertCustomer({
+              email: buyer.email,
+              firstName: buyer.firstName,
+              lastName: buyer.lastName,
+              status: "active",
+            });
+            await upsertSubscription({
+              customerEmail: buyer.email,
+              productSlug: mapping.traderiqProductSlug,
+              ablefyProductId: buyer.productId,
+              planLabel: mapping.planLabel,
+              ablefyOrderId: buyer.orderId ?? buyer.paymentId,
+              status: lifecycleStatus,
+              amountCents: buyer.amount != null ? Math.round(buyer.amount * 100) : null,
+              startedAt: new Date().toISOString(),
+            });
+          }
+        } catch (err) {
+          // Auto-Anlage ist Bonus — wenn DB hakt, ist das Pending-Buyer-Event
+          // immer noch da, der Owner kann manuell nachfassen.
+          console.warn("[webhook] auto-customer-upsert failed:", err);
+        }
+      }
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     received: true,
     lookupHint: lookupHint ?? null,
   });
+}
+
+/**
+ * Welcher Sub-Status entspricht dem Webhook-Event? Liefert `null` wenn
+ * der Event NICHT zu einem Status-Update fuehren soll (z.B. SaaS-Plan-
+ * Update, Zugriffsaenderung — die treffen den Sub-Status nicht direkt).
+ */
+function mapEventToSubStatus(eventName: string): SubscriptionStatus | null {
+  const e = eventName.toLowerCase();
+  // Aktivierungen / erfolgreiche Zahlungen
+  if (
+    e.includes("abo aktiv") ||
+    e.includes("subscription.activated") ||
+    e.includes("abo reaktiviert") ||
+    e.includes("ratenzahlung abgeschlossen")
+  ) return "active";
+  if (
+    e.includes("zahlung erfolgreich") ||
+    e.includes("payment.succeeded") ||
+    e.includes("payment.success") ||
+    e.includes("payment.completed")
+  ) return "paid";
+  // Pause
+  if (e.includes("abo pausiert") || e.includes("ratenzahlung pausiert")) return "paused";
+  // Stornos
+  if (
+    e.includes("abo storniert") ||
+    e.includes("ratenzahlung storniert") ||
+    e.includes("subscription.cancelled")
+  ) return "cancelled";
+  // Refunds + Chargebacks
+  if (
+    e.includes("erstattung erfolgreich") ||
+    e.includes("refund.succeeded") ||
+    e.includes("raten erstattet") ||
+    e.includes("abo-raten erstattet")
+  ) return "refunded";
+  if (
+    e.includes("chargeback erfolgreich") ||
+    e.includes("rückgefordert") ||
+    e.includes("ruckgefordert")
+  ) return "refunded";
+  return null;
 }
 
 /**
