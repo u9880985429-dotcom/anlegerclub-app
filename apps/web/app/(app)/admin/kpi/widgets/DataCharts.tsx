@@ -1,6 +1,8 @@
 "use client";
 import { TrendingUp, RefreshCcw, PieChart as PieIcon, BarChart3, Layers } from "lucide-react";
 import type { WidgetData } from "./types";
+import { readAblefyConfig } from "@/lib/ablefy-config";
+import { aggregateAblefyByProductIntoSlug } from "@/lib/kpi-bucket";
 
 const PRODUCT_COLORS: Record<string, string> = {
   starter: "#ff741f",
@@ -16,6 +18,32 @@ const PRODUCT_LABEL: Record<string, string> = {
   cockpit: "Cockpit",
   "all-access": "All Access Pass",
 };
+
+/**
+ * Mappt das `byProduct`-Aggregat (Keys = Ablefy-Product-IDs) auf Slugs.
+ * KPI-Bucket-Regel: alle drei All-Access-Varianten (424736 / 457085 /
+ * 465040) landen im einen `all-access`-Bucket. Sonst wuerde unser
+ * Kuchendiagramm die Test-Variante als separates Stueck zeigen — das
+ * verfaelscht die Wahrnehmung der Member- und Revenue-Verteilung.
+ *
+ * Erwartet das Mapping aus `readAblefyConfig().productMapping`. Wenn der
+ * User noch kein Mapping gepflegt hat, landet alles im `unmapped`-Bucket
+ * und wir lassen das Widget auf seinen Mock-Fallback zurueckfallen.
+ */
+function bucketizedByProductFromBrowser(
+  byProduct: Record<string, { count: number; revenue: number }> | undefined,
+): Record<string, { count: number; revenue: number }> | undefined {
+  if (!byProduct || Object.keys(byProduct).length === 0) return byProduct;
+  const cfg = typeof window !== "undefined" ? readAblefyConfig() : null;
+  const mappings = cfg?.productMapping ?? [];
+  const bucketed = aggregateAblefyByProductIntoSlug(byProduct, mappings);
+  // Wenn alles in `unmapped` gelandet ist, hat der User noch kein Mapping
+  // gepflegt — gib Original zurueck damit das Widget auf den Mock-Fallback
+  // schalten kann (ueber `Object.keys(...).length === 0` ist nicht der Fall,
+  // aber wir wollen rohe IDs nicht als Achsen-Labels zeigen).
+  if (Object.keys(bucketed).length === 1 && bucketed.unmapped) return undefined;
+  return bucketed;
+}
 
 /**
  * Area-Chart fuer MRR-Verlauf.
@@ -372,7 +400,7 @@ export function ChurnDonut({ data }: { data: WidgetData }) {
  */
 export function ProductMixPie({ data }: { data: WidgetData }) {
   // Aus Ablefy-Mapping wenn vorhanden, sonst Mock.
-  const fromAblefy = data.ablefyAggregate?.byProduct;
+  const fromAblefy = bucketizedByProductFromBrowser(data.ablefyAggregate?.byProduct);
   let entries: { label: string; value: number; color: string }[];
   if (fromAblefy && Object.keys(fromAblefy).length > 0) {
     entries = Object.entries(fromAblefy).map(([k, v]) => ({
@@ -678,7 +706,7 @@ export function DonutWithCenterStat({ data }: { data: WidgetData }) {
     cockpit: "#f59e0b",
     "all-access": "#8b5cf6",
   };
-  const fromAblefy = data.ablefyAggregate?.byProduct;
+  const fromAblefy = bucketizedByProductFromBrowser(data.ablefyAggregate?.byProduct);
   let entries: { label: string; value: number; color: string }[];
   if (fromAblefy && Object.keys(fromAblefy).length > 0) {
     entries = Object.entries(fromAblefy).map(([k, v]) => ({
@@ -766,7 +794,7 @@ export function TopProductBars({ data }: { data: WidgetData }) {
     cockpit: "Cockpit",
     "all-access": "All Access Pass",
   };
-  const fromAblefy = data.ablefyAggregate?.byProduct;
+  const fromAblefy = bucketizedByProductFromBrowser(data.ablefyAggregate?.byProduct);
   let rows: { label: string; value: number }[];
   if (fromAblefy && Object.keys(fromAblefy).length > 0) {
     rows = Object.entries(fromAblefy)
@@ -828,7 +856,7 @@ export function MiniDonutRow({ data }: { data: WidgetData }) {
     cockpit: "#f59e0b",
     "all-access": "#8b5cf6",
   };
-  const fromAblefy = data.ablefyAggregate?.byProduct;
+  const fromAblefy = bucketizedByProductFromBrowser(data.ablefyAggregate?.byProduct);
   let entries: { label: string; value: number; goal: number; color: string }[];
   if (fromAblefy && Object.keys(fromAblefy).length > 0) {
     entries = Object.entries(fromAblefy).slice(0, 4).map(([k, v]) => ({
