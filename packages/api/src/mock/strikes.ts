@@ -50,43 +50,8 @@ export const SEVERITY_BADGE_CLASS: Record<StrikeSeverity, string> = {
   BAN: "bg-red-500/15 text-red-700",
 };
 
-export const initialStrikes: Strike[] = [
-  {
-    id: "strk_1",
-    userId: "u_anonA",
-    userName: "Anonym A.",
-    reason: "Beleidigung",
-    severity: "STRIKE",
-    excerpt: 'Wer das immer noch nicht checkt, ist echt ein V*********t.',
-    issuedById: "u_admin",
-    issuedByName: "Admin Trader IQ",
-    createdAt: "2026-04-25T11:30:00Z",
-    expiresAt: null,
-  },
-  {
-    id: "strk_2",
-    userId: "u_anonA",
-    userName: "Anonym A.",
-    reason: "Werbung / Promo",
-    severity: "MUTE_24H",
-    excerpt: "Telegram-Gruppe-Verlinkung im Stillhalter-Channel.",
-    issuedById: "u_admin",
-    issuedByName: "Admin Trader IQ",
-    createdAt: "2026-04-26T09:15:00Z",
-    expiresAt: "2026-04-27T09:15:00Z",
-  },
-  {
-    id: "strk_3",
-    userId: "u_anonB",
-    userName: "Anonym B.",
-    reason: "Beleidigung",
-    severity: "WARN",
-    excerpt: 'Hört auf mit dem Schwachsinn, du H*********n.',
-    issuedById: "u_mira",
-    issuedByName: "Mira Schulz (MOD)",
-    createdAt: "2026-04-26T16:42:00Z",
-  },
-];
+// Iter 40: Test-Strikes entfernt — kommen ab Phase 2 aus echten Mod-Aktionen.
+export const initialStrikes: Strike[] = [];
 
 export interface StrikeSummary {
   userId: string;

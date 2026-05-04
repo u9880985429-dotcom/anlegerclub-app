@@ -103,10 +103,8 @@ function LoginInner() {
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">traderiq2026</code>
           </p>
           <div className="space-y-1.5">
-            <DemoBtn email="max@traderiq.net" label="Max (active · all-access)" onClick={fillDemo} />
-            <DemoBtn email="paused@traderiq.net" label="Lisa (paused → /locked)" onClick={fillDemo} />
-            <DemoBtn email="expired@traderiq.net" label="Tom (expired → /locked)" onClick={fillDemo} />
-            <DemoBtn email="staff@traderiq.net" label="Admin (staff · /admin)" onClick={fillDemo} />
+            <DemoBtn email="andrei@traderiq.net" label="Andrei (Owner · all-access)" onClick={fillDemo} />
+            <DemoBtn email="max@traderiq.net" label="Max (Admin · all-access)" onClick={fillDemo} />
           </div>
         </div>
       </div>

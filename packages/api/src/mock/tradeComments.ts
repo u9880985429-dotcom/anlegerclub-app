@@ -3,44 +3,12 @@
  * Jeder Trade hat seine eigene "Mini-Community".
  */
 
-import type { Comment, Role } from "../types";
+import type { Comment } from "../types";
 import { allTrades } from "./trades";
-import { getPublicDisplayName, getTeamBadge, isTeamRole } from "./displayName";
 
-const AUTHORS: Record<string, { firstName: string; lastName: string; role: Role; isTeamMember?: boolean }> = {
-  u_anna: { firstName: "Anna", lastName: "Huber", role: "MEMBER" },
-  u_klaus: { firstName: "Klaus", lastName: "Berger", role: "MEMBER" },
-  u_mira: { firstName: "Mira", lastName: "Schulz", role: "MODERATOR", isTeamMember: false },
-  u_jonas: { firstName: "Jonas", lastName: "Weiß", role: "MEMBER" },
-  u_petra: { firstName: "Petra", lastName: "Fischer", role: "MEMBER" },
-};
-
-const TEMPLATES: { authorId: string; body: string }[] = [
-  { authorId: "u_anna", body: "Stop wie immer auf Tagestief? Bin dabei, Position aufgebaut. 💪" },
-  { authorId: "u_klaus", body: "Habe noch eine kleine Resttranche, der Trend schaut gut aus." },
-  { authorId: "u_mira", body: "Erinnerung: bei IB sollte man auf Premarket-Liquidität achten – ggf. auf Open warten." },
-  { authorId: "u_jonas", body: "Danke für die schnelle Info – Roll bei mir bereits ausgeführt. ✅" },
-  { authorId: "u_petra", body: "Bin neu hier – könnt ihr die Stop-Anpassung kurz konkret machen?" },
-];
-
-export const tradeComments: Comment[] = allTrades.flatMap((t, idx) =>
-  Array.from({ length: 2 + (idx % 3) }).map((_, i) => {
-    const tpl = TEMPLATES[(idx + i) % TEMPLATES.length]!;
-    const meta = AUTHORS[tpl.authorId]!;
-    return {
-      id: `tc_${t.id}_${i}`,
-      postId: t.id,
-      authorId: tpl.authorId,
-      authorName: getPublicDisplayName(meta),
-      authorIsTeam: isTeamRole(meta.role, meta.isTeamMember),
-      authorTeamBadge: getTeamBadge(meta),
-      bodyMd: tpl.body,
-      parentId: null,
-      visible: true,
-      createdAt: new Date(Date.parse(t.date) + (i + 1) * 3 * 60 * 60 * 1000).toISOString(),
-    };
-  }),
-);
+// Iter 40: Test-Kommentare entfernt — Trade-Diskussionen entstehen ab Phase 2
+// durch echte Mitglieder-Beitraege.
+export const tradeComments: Comment[] = [];
 
 export interface TradeReactionState {
   tradeId: string;
