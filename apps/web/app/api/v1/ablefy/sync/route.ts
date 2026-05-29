@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/access";
 import { canManageIntegrations } from "@traderiq/api";
 import { appendAblefyEvent } from "@/lib/ablefy-store";
-import { loadAblefyConfigFromDb } from "@/lib/ablefy-config-store";
+import { loadAblefyConfigFromDb } from "@/modules/ablefy";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/modules/customers";
 

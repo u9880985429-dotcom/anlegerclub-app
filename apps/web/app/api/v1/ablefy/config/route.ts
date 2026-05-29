@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSession } from "@/lib/access";
 import { canManageIntegrations } from "@traderiq/api";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { loadAblefyConfigFromDb, saveAblefyConfigToDb } from "@/lib/ablefy-config-store";
+import { loadAblefyConfigFromDb, saveAblefyConfigToDb } from "@/modules/ablefy";
 
 export const dynamic = "force-dynamic";
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@traderiq/db";
+import { getKpiLayout, saveKpiLayout } from "@/modules/kpi";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +32,8 @@ export async function GET() {
   }
 
   try {
-    const layout = await prisma.kpiLayout.findFirst({
-      where: { userId: session.user.id, name: "Standard" },
-    });
-    return NextResponse.json({ ok: true, widgets: layout?.widgets ?? null });
+    const widgets = await getKpiLayout(session.user.id);
+    return NextResponse.json({ ok: true, widgets });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: "db_unavailable", message: err instanceof Error ? err.message : "unknown" },
@@ -64,30 +62,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    // User-Row lazy anlegen (wir migrieren Users erst spaeter komplett).
-    await prisma.user.upsert({
-      where: { id: session.user.id },
-      create: {
-        id: session.user.id,
-        email: session.user.email ?? `${session.user.id}@traderiq.local`,
-        firstName: session.user.firstName ?? null,
-        lastName: session.user.lastName ?? null,
-        role: session.user.role,
-      },
-      update: {},
-    });
-
-    await prisma.kpiLayout.upsert({
-      where: { userId_name: { userId: session.user.id, name: "Standard" } },
-      create: {
-        userId: session.user.id,
-        name: "Standard",
-        widgets: body.widgets as object,
-        isDefault: true,
-      },
-      update: {
-        widgets: body.widgets as object,
-      },
+    await saveKpiLayout({
+      userId: session.user.id,
+      email: session.user.email ?? `${session.user.id}@traderiq.local`,
+      firstName: session.user.firstName ?? null,
+      lastName: session.user.lastName ?? null,
+      role: session.user.role,
+      widgets: body.widgets as object,
     });
     return NextResponse.json({ ok: true });
   } catch (err) {

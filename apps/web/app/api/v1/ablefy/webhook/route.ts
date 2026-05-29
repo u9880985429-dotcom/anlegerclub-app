@@ -4,7 +4,7 @@ import { readAblefyWebhookSecretFromCookieHeader } from "@/lib/ablefy-config";
 import { appendAblefyEvent, type AblefyLookupHintRecord } from "@/lib/ablefy-store";
 import { buildLookupHint } from "@/lib/ablefy-events";
 import { addPendingBuyer } from "@/lib/ablefy-pending-buyers";
-import { loadAblefyConfigFromDb } from "@/lib/ablefy-config-store";
+import { loadAblefyConfigFromDb } from "@/modules/ablefy";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/modules/customers";
 
