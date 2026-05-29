@@ -33,6 +33,14 @@ Umgesetzt:
   test/lookup/sync/sync-preview nutzen ihn. Verhaltensgleich (URLs/Responses identisch).
 - **Weitere Fixes:** notify-Routen abgesichert; echte Sync-Seitengroesse statt
   geratener 50; CANCELLED zaehlt in KPI mit; EarningsBrowser memoized (Tempo).
+- **Stufe 5 Teil 2 (God-Routes entschlackt):** Sync-Domaenenlogik in
+  `modules/ablefy/sync-service.ts` (`runAblefySync`), Webhook-Helfer in
+  `modules/ablefy/webhook-helpers.ts`; beide Routen sind jetzt duenn (Auth +
+  Parsen + Aufruf + Response-Mapping). Verhaltensgleich.
+- **Stufe 6 (Teil 1+2):** KPI-Logik (`kpi-bucket`, `anomaly-detection`) ins
+  `modules/kpi`-Modul gezogen; die zwei Riesen-Widgets (`DataCharts` 1418 /
+  `MetricCards` 999 Z.) in kleine, gebuendelte Dateien aufgeteilt (die Original-
+  Dateien bleiben duenne Re-Export-Barrels → Importpfade unveraendert). Verhaltensgleich.
 
 **NOCH OFFEN (vom Inhaber bewusst zurueckgestellt / braucht Entscheidung):**
 - **Webhook-Secret** ist in Ablefy (noch) NICHT gesetzt → die Sperre fuer
@@ -41,12 +49,13 @@ Umgesetzt:
   setzen, dann hier auf "ablehnen" umstellen (`webhook/route.ts`, else-Zweig).
 - **Perf (groesser, nicht angefasst):** `EarningsBrowser` virtualisieren;
   `listCustomers` paginieren; KPI-Widget-Re-Renders memoizen.
-- **Architektur — verbleibend (Stufe 3, 4 und 5-Teil-1 sind erledigt):**
-  Stufe 5 Teil 2 (Webhook/Sync emittieren ein gemeinsames Kauf-Event, das das
-  customers-Modul konsumiert — echte Control-Flow-Aenderung, daher mit Bedacht +
-  Smoke-Test); Stufe 6 (comments/kpi-Service-Layer + die Riesen-Komponenten
-  DataCharts/MetricCards aufteilen); Stufe 7 (Datenmodell auf EINE Quelle —
-  beruehrt Prisma-Schema/SQL/Migration → gemeinsam mit IT/DB). Siehe Abschnitt 4.
+- **Architektur — verbleibend (Stufe 3-6 sind erledigt):**
+  (a) Kommentar-"zwei-Wahrheiten": Bearbeiten/Loeschen/Verstecken sind in der UI
+  noch Attrappe → echte Funktion ist eine PRODUKT-Entscheidung (kein reines
+  Refactoring, daher offen gelassen).
+  (b) Stufe 7 (Kunden-Datenmodell auf EINE Quelle — beruehrt Prisma-Schema / SQL /
+  Migration → gemeinsam mit IT/DB).
+  Siehe Abschnitt 4.
 - Kleinkram: `DynamicGridLoader` Produktfilter auf Totals; Sync-Pagination-Heuristik
   (`<50`); notify-Routen vor Phase-2-Aktivierung absichern; CANCELLED-Bucket KPI.
 
