@@ -25,6 +25,14 @@ Umgesetzt:
   Keine Route/Seite spricht mehr direkt mit Supabase/Prisma (einzige Ausnahme:
   `diagnose`-Health-Probe, bewusst). Verhalten ueberall unveraendert, verifiziert
   per Typecheck + Build.
+- **Stufe 4 (customers-Service):** doppelte Zugriffsregel + die zwei Ablefy-Status-
+  Mappings (Sync/Webhook) in `apps/web/modules/customers/service.ts` zusammengefuehrt;
+  access.ts/sync/webhook nutzen jetzt die EINE Quelle. Verhaltensgleich.
+- **Stufe 5 Teil 1 (Ablefy-API-Client):** der 4x kopierte HTTP-Aufruf zu Ablefy in
+  einem `createAblefyApiClient` (`apps/web/modules/ablefy/api-client.ts`) gebuendelt;
+  test/lookup/sync/sync-preview nutzen ihn. Verhaltensgleich (URLs/Responses identisch).
+- **Weitere Fixes:** notify-Routen abgesichert; echte Sync-Seitengroesse statt
+  geratener 50; CANCELLED zaehlt in KPI mit; EarningsBrowser memoized (Tempo).
 
 **NOCH OFFEN (vom Inhaber bewusst zurueckgestellt / braucht Entscheidung):**
 - **Webhook-Secret** ist in Ablefy (noch) NICHT gesetzt → die Sperre fuer
@@ -33,10 +41,12 @@ Umgesetzt:
   setzen, dann hier auf "ablehnen" umstellen (`webhook/route.ts`, else-Zweig).
 - **Perf (groesser, nicht angefasst):** `EarningsBrowser` virtualisieren;
   `listCustomers` paginieren; KPI-Widget-Re-Renders memoizen.
-- **Architektur Stufe 4-7** (Stufe 3 ist erledigt): customers-Service mit EINER
-  Zugriffs-/Status-Logik (Stufe 4); ablefy-API-Client + duenne Routen (Stufe 5);
-  comments/kpi-Service-Layer (Stufe 6); Datenmodell vereinheitlichen (Stufe 7).
-  Siehe Abschnitt 4. Groessere, gestaffelte Arbeit.
+- **Architektur — verbleibend (Stufe 3, 4 und 5-Teil-1 sind erledigt):**
+  Stufe 5 Teil 2 (Webhook/Sync emittieren ein gemeinsames Kauf-Event, das das
+  customers-Modul konsumiert — echte Control-Flow-Aenderung, daher mit Bedacht +
+  Smoke-Test); Stufe 6 (comments/kpi-Service-Layer + die Riesen-Komponenten
+  DataCharts/MetricCards aufteilen); Stufe 7 (Datenmodell auf EINE Quelle —
+  beruehrt Prisma-Schema/SQL/Migration → gemeinsam mit IT/DB). Siehe Abschnitt 4.
 - Kleinkram: `DynamicGridLoader` Produktfilter auf Totals; Sync-Pagination-Heuristik
   (`<50`); notify-Routen vor Phase-2-Aktivierung absichern; CANCELLED-Bucket KPI.
 
