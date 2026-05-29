@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { requireProductAccess } from "@/lib/access";
 import { getCommentsByPost, getPostById, type ProductSlug } from "@traderiq/api";
-import { listCommentsByPost } from "@/lib/comments-store";
+import { listCommentsByPost } from "@/modules/comments";
 import { CommunityComposer } from "@/components/CommunityComposer";
 import { formatRelative } from "@/lib/format";
 
