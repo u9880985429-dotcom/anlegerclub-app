@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/access";
 import { canManageIntegrations } from "@traderiq/api";
 import { appendAblefyEvent } from "@/lib/ablefy-store";
-import { loadAblefyConfigFromDb } from "@/modules/ablefy";
+import { loadAblefyConfigFromDb, createAblefyApiClient } from "@/modules/ablefy";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import {
   upsertCustomer,
@@ -127,31 +127,33 @@ export async function POST(req: Request) {
   // bei leeren Seiten ab; danach bei jeder Seite mit weniger als pageSize.
   let pageSize: number | null = null;
 
+  const client = createAblefyApiClient({ apiKey, apiSecret });
+
   try {
     for (let page = 1; page <= maxPages; page++) {
-      const url = new URL("https://api.myablefy.com/api/invoices");
-      url.searchParams.set("key", apiKey);
-      url.searchParams.set("secret", apiSecret);
-      url.searchParams.set("page", String(page));
-      if (dateFrom) url.searchParams.set("date_from", dateFrom);
-      if (dateTo) url.searchParams.set("date_to", dateTo);
-      if (productId) url.searchParams.set("product_id", productId);
+      const searchParams: Record<string, string> = { page: String(page) };
+      if (dateFrom) searchParams.date_from = dateFrom;
+      if (dateTo) searchParams.date_to = dateTo;
+      if (productId) searchParams.product_id = productId;
 
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      const res = await client.getRaw("invoices", searchParams);
       if (!res.ok) {
-        const text = await res.text();
         appendAblefyEvent({
           kind: "sync.failed",
           status: "error",
           summary: `Sync abgebrochen auf Seite ${page}: HTTP ${res.status}`,
-          payload: text.slice(0, 500),
+          payload: res.text.slice(0, 500),
         });
         return NextResponse.json(
-          { ok: false, error: "ablefy_http_error", status: res.status, page, body: text.slice(0, 500) },
+          { ok: false, error: "ablefy_http_error", status: res.status, page, body: res.text.slice(0, 500) },
           { status: 502 },
         );
       }
-      const json = (await res.json()) as { invoices?: AblefyInvoice[]; data?: AblefyInvoice[] } | AblefyInvoice[];
+      // Wie vorher `await res.json()`: ungueltiges JSON wirft (gleiche
+      // SyntaxError) und landet im aeusseren catch -> sync.failed.
+      const json = (res.jsonOk ? res.json : JSON.parse(res.text)) as
+        | { invoices?: AblefyInvoice[]; data?: AblefyInvoice[] }
+        | AblefyInvoice[];
       const invoices = Array.isArray(json) ? json : (json.invoices ?? json.data ?? []);
       if (invoices.length === 0) break;
       if (pageSize === null) pageSize = invoices.length;
