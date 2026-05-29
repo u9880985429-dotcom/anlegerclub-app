@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { Search, TrendingDown, TrendingUp } from "lucide-react";
 import type { EarningsEntry } from "@traderiq/api";
 
@@ -49,7 +49,7 @@ export function EarningsBrowser({ entries }: EarningsBrowserProps) {
   );
 }
 
-function EarningsCard({ entry }: { entry: EarningsEntry }) {
+const EarningsCard = memo(function EarningsCard({ entry }: { entry: EarningsEntry }) {
   const isUp = entry.changeSinceLastEarnings >= 0;
   const reportDate = new Date(entry.date);
   const formatted = reportDate.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -101,7 +101,7 @@ function EarningsCard({ entry }: { entry: EarningsEntry }) {
       </div>
     </article>
   );
-}
+});
 
 /**
  * IV als Stand-Alone-Chart-Visualisierung — ohne Farb-Bewertung,
@@ -111,21 +111,26 @@ function EarningsCard({ entry }: { entry: EarningsEntry }) {
  * Wir leiten eine simulierte IV-Kurve aus der Preis-Historie ab (rolling stddev)
  * und rendern Balken neben dem Spotwert. Die Farbe ist neutral (Brand-Orange).
  */
-function IVPanel({ value, priceHistory }: { value: number; priceHistory: number[] }) {
-  const xTicks = buildXTicks(priceHistory.length, 3);
-  // Simulierte IV-Kurve aus rolling stddev (10 Werte) der Preis-Historie.
-  const rolling: number[] = [];
-  const WIN = 10;
-  for (let i = 0; i < priceHistory.length; i++) {
-    const slice = priceHistory.slice(Math.max(0, i - WIN), i + 1);
-    const mean = slice.reduce((a, b) => a + b, 0) / slice.length;
-    const v = Math.sqrt(slice.reduce((a, b) => a + (b - mean) ** 2, 0) / slice.length);
-    rolling.push((v / Math.max(mean, 1)) * 100);
-  }
-  const lastRoll = rolling[rolling.length - 1] ?? 1;
-  const factor = value / Math.max(lastRoll, 0.01);
-  const series = rolling.map((r) => Math.max(r * factor, 0.5));
-  const max = Math.max(...series, 1);
+const IVPanel = memo(function IVPanel({ value, priceHistory }: { value: number; priceHistory: number[] }) {
+  // Teure Ableitung der IV-Kurve (rolling stddev + Skalierung) memoisieren —
+  // unveraendert solange value/priceHistory gleich bleiben.
+  const { series, max, xTicks } = useMemo(() => {
+    const xTicks = buildXTicks(priceHistory.length, 3);
+    // Simulierte IV-Kurve aus rolling stddev (10 Werte) der Preis-Historie.
+    const rolling: number[] = [];
+    const WIN = 10;
+    for (let i = 0; i < priceHistory.length; i++) {
+      const slice = priceHistory.slice(Math.max(0, i - WIN), i + 1);
+      const mean = slice.reduce((a, b) => a + b, 0) / slice.length;
+      const v = Math.sqrt(slice.reduce((a, b) => a + (b - mean) ** 2, 0) / slice.length);
+      rolling.push((v / Math.max(mean, 1)) * 100);
+    }
+    const lastRoll = rolling[rolling.length - 1] ?? 1;
+    const factor = value / Math.max(lastRoll, 0.01);
+    const series = rolling.map((r) => Math.max(r * factor, 0.5));
+    const max = Math.max(...series, 1);
+    return { series, max, xTicks };
+  }, [value, priceHistory]);
   return (
     <div>
       <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Implizite Volatilität</div>
@@ -150,7 +155,7 @@ function IVPanel({ value, priceHistory }: { value: number; priceHistory: number[
       </div>
     </div>
   );
-}
+});
 
 /**
  * Candlestick-Chart — wie auf trendspider.com gezeigt.
@@ -185,46 +190,51 @@ function buildXTicks(numCandles: number, count = 5): { ratio: number; label: str
   return ticks;
 }
 
-function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
+const CandlestickChart = memo(function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
   const W = 640;
   const H = 380;
   const PAD_X = 30;
   const PAD_Y = 12;
   const PAD_BOTTOM = 28; // Platz für Datumsticks unten
 
-  // OHLC pro Tag: Open = Vortages-Close, Close = aktueller Tag.
-  // High/Low werden synthetisch aus der lokalen Range geschätzt.
-  type Candle = { o: number; h: number; l: number; c: number };
-  const candles: Candle[] = [];
-  for (let i = 1; i < values.length; i++) {
-    const o = values[i - 1]!;
-    const c = values[i]!;
-    const range = Math.abs(c - o);
-    const intradayWick = range * 0.5 + c * 0.0035;
-    const h = Math.max(o, c) + intradayWick;
-    const l = Math.min(o, c) - intradayWick;
-    candles.push({ o, h, l, c });
-  }
+  // Teure OHLC-/Achsen-Ableitung memoisieren — haengt nur von `values` ab.
+  const { candles, sy, slotW, bodyW, yTicks, xTicks, xAxisY } = useMemo(() => {
+    // OHLC pro Tag: Open = Vortages-Close, Close = aktueller Tag.
+    // High/Low werden synthetisch aus der lokalen Range geschätzt.
+    type Candle = { o: number; h: number; l: number; c: number };
+    const candles: Candle[] = [];
+    for (let i = 1; i < values.length; i++) {
+      const o = values[i - 1]!;
+      const c = values[i]!;
+      const range = Math.abs(c - o);
+      const intradayWick = range * 0.5 + c * 0.0035;
+      const h = Math.max(o, c) + intradayWick;
+      const l = Math.min(o, c) - intradayWick;
+      candles.push({ o, h, l, c });
+    }
 
-  const allValues = candles.flatMap((c) => [c.h, c.l]);
-  const min = Math.min(...allValues);
-  const max = Math.max(...allValues);
-  const range = max - min || 1;
+    const allValues = candles.flatMap((c) => [c.h, c.l]);
+    const min = Math.min(...allValues);
+    const max = Math.max(...allValues);
+    const range = max - min || 1;
 
-  const plotH = H - PAD_Y - PAD_BOTTOM;
-  const sy = (v: number) => PAD_Y + (1 - (v - min) / range) * plotH;
-  const slotW = (W - 2 * PAD_X) / candles.length;
-  const bodyW = Math.max(slotW * 0.66, 2);
+    const plotH = H - PAD_Y - PAD_BOTTOM;
+    const sy = (v: number) => PAD_Y + (1 - (v - min) / range) * plotH;
+    const slotW = (W - 2 * PAD_X) / candles.length;
+    const bodyW = Math.max(slotW * 0.66, 2);
 
-  // Y-axis ticks (Preisachse links)
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
-    y: PAD_Y + t * plotH,
-    val: max - t * range,
-  }));
+    // Y-axis ticks (Preisachse links)
+    const yTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
+      y: PAD_Y + t * plotH,
+      val: max - t * range,
+    }));
 
-  // X-axis ticks (Datumsachse unten)
-  const xTicks = buildXTicks(values.length, 5);
-  const xAxisY = PAD_Y + plotH;
+    // X-axis ticks (Datumsachse unten)
+    const xTicks = buildXTicks(values.length, 5);
+    const xAxisY = PAD_Y + plotH;
+
+    return { candles, sy, slotW, bodyW, yTicks, xTicks, xAxisY };
+  }, [values]);
 
   return (
     <div>
@@ -303,4 +313,4 @@ function CandlestickChart({ values }: { values: number[]; positive: boolean }) {
       </svg>
     </div>
   );
-}
+});

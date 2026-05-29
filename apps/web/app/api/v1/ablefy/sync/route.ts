@@ -122,6 +122,11 @@ export async function POST(req: Request) {
   const pendingCustomers = new Map<string, PendingCustomer>();
   const pendingSubs = new Map<string, PendingSub>();
 
+  // Echte Seitengroesse: aus der ERSTEN nicht-leeren Seite gemerkt (Ablefy
+  // gibt keine Page-Size zurueck). Solange unbekannt (null), brechen wir nur
+  // bei leeren Seiten ab; danach bei jeder Seite mit weniger als pageSize.
+  let pageSize: number | null = null;
+
   try {
     for (let page = 1; page <= maxPages; page++) {
       const url = new URL("https://api.myablefy.com/api/invoices");
@@ -149,6 +154,7 @@ export async function POST(req: Request) {
       const json = (await res.json()) as { invoices?: AblefyInvoice[]; data?: AblefyInvoice[] } | AblefyInvoice[];
       const invoices = Array.isArray(json) ? json : (json.invoices ?? json.data ?? []);
       if (invoices.length === 0) break;
+      if (pageSize === null) pageSize = invoices.length;
       for (const inv of invoices) {
         const productKey = String(inv.product_id ?? "");
         const isMapped = productMappingByAblefyId.has(productKey);
@@ -157,7 +163,7 @@ export async function POST(req: Request) {
           collectForPersist(inv, productMappingByAblefyId, pendingCustomers, pendingSubs);
         }
       }
-      if (invoices.length < 50) break;
+      if (pageSize !== null && invoices.length < pageSize) break;
     }
     // Erst nach dem Einsammeln schreiben — gebuendelt + nebenlaeufig (in Choerten).
     if (canPersistCustomers) {

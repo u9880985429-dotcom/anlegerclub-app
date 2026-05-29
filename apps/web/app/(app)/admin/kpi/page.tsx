@@ -28,7 +28,7 @@ export default async function KpiDashboardPage() {
   const kpiSubs = filterKpiRelevantSubs(allSubscriptions, allUsers);
   const activeMembers = kpiSubs.filter((s) => s.status === "ACTIVE" || s.status === "PAID").length;
   const pausedMembers = kpiSubs.filter((s) => s.status === "PAUSED").length;
-  const expiredMembers = kpiSubs.filter((s) => s.status === "EXPIRED" || s.status === "REFUNDED").length;
+  const expiredMembers = kpiSubs.filter((s) => s.status === "EXPIRED" || s.status === "REFUNDED" || s.status === "CANCELLED").length;
   const totalUsers = allUsers.length;
   const avgArpu = 89;
   const newMembersThisMonth = 14;
