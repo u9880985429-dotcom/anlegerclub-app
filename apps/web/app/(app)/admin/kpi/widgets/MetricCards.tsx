@@ -41,16 +41,36 @@ export function MetricCard({ label, value, delta, deltaSentiment, icon: Icon, ac
   );
 }
 
+/**
+ * MRR-Schaetzung aus dem letzten VOLLEN Monat (`byMonth`). Frueher wurde der
+ * gesamte Zeitraum-Umsatz einfach durch 12 geteilt — bei z.B. 30-Tage-Filter
+ * voellig falsch. Faellt auf totalRevenue/12 zurueck, wenn keine Monatsdaten da.
+ */
+function estimateMrr(agg: NonNullable<WidgetData["ablefyAggregate"]>): number {
+  const byMonth = agg.byMonth;
+  if (byMonth) {
+    const months = Object.keys(byMonth).sort(); // 'YYYY-MM' sortiert chronologisch
+    if (months.length > 0) {
+      // Letzter Eintrag kann der laufende (unvollstaendige) Monat sein — bei
+      // >=2 Monaten den vorletzten (= letzter voller Monat) nehmen.
+      const key = months.length >= 2 ? months[months.length - 2] : months[months.length - 1];
+      const rev = key ? byMonth[key]?.revenue ?? 0 : 0;
+      if (rev > 0) return Math.round(rev);
+    }
+  }
+  return Math.round(agg.totalRevenue / 12);
+}
+
 export function MrrCard({ data }: { data: WidgetData }) {
   const mrr = data.ablefyAggregate
-    ? Math.round(data.ablefyAggregate.totalRevenue / 12)
+    ? estimateMrr(data.ablefyAggregate)
     : data.activeMembers * data.avgArpu;
   return <MetricCard label="MRR (Monthly Recurring Revenue)" value={`${mrr.toLocaleString("de-DE")} €`} delta="+8,2 %" deltaSentiment="up" icon={Euro} accent />;
 }
 
 export function ArrCard({ data }: { data: WidgetData }) {
   const arr = data.ablefyAggregate
-    ? data.ablefyAggregate.totalRevenue
+    ? estimateMrr(data.ablefyAggregate) * 12
     : data.activeMembers * data.avgArpu * 12;
   return (
     <MetricCard

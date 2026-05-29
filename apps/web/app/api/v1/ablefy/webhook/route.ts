@@ -129,15 +129,17 @@ export async function POST(req: Request) {
               lastName: buyer.lastName,
               status: "active",
             });
-            // Subscription nur anlegen, wenn der Customer-Upsert geklappt hat —
-            // sonst entstehen verwaiste Subscriptions ohne zugehoerigen Kunden.
-            if (customer) {
+            // Subscription nur anlegen, wenn (1) der Customer-Upsert geklappt hat
+            // und (2) eine order_id vorliegt. KEIN payment_id-Fallback — eine
+            // Subscription hat viele Zahlungen, das wuerde Duplikate erzeugen
+            // (identische Order-Schluessel-Regel wie im Sync).
+            if (customer && buyer.orderId) {
               await upsertSubscription({
                 customerEmail: buyer.email,
                 productSlug: mapping.traderiqProductSlug,
                 ablefyProductId: buyer.productId,
                 planLabel: mapping.planLabel,
-                ablefyOrderId: buyer.orderId ?? buyer.paymentId,
+                ablefyOrderId: buyer.orderId,
                 status: lifecycleStatus,
                 amountCents: buyer.amount != null ? Math.round(buyer.amount * 100) : null,
                 startedAt: new Date().toISOString(),

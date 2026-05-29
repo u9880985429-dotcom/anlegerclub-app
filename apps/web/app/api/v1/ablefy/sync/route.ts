@@ -7,6 +7,8 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/lib/customers-store";
 
 export const dynamic = "force-dynamic";
+// Vollstaendiger Sync kann viele Seiten ziehen — mehr Zeit erlauben (Vercel Pro).
+export const maxDuration = 300;
 
 interface SyncBody {
   apiKey?: string;
@@ -108,6 +110,12 @@ export async function POST(req: Request) {
     subscriptionsUpserted: 0,
   };
 
+  // Sammeln statt sofort schreiben: pro E-Mail genau ein Customer, pro Order
+  // genau eine Subscription. Vermeidet tausende doppelte DB-Schreibvorgaenge
+  // (Timeout-Gefahr) und sorgt fuer korrekte Zaehlung + Status-Vorrang.
+  const pendingCustomers = new Map<string, PendingCustomer>();
+  const pendingSubs = new Map<string, PendingSub>();
+
   try {
     for (let page = 1; page <= maxPages; page++) {
       const url = new URL("https://api.myablefy.com/api/invoices");
@@ -140,10 +148,14 @@ export async function POST(req: Request) {
         const isMapped = productMappingByAblefyId.has(productKey);
         aggregateInvoice(agg, inv, isMapped);
         if (canPersistCustomers && isMapped) {
-          await persistInvoice(inv, productMappingByAblefyId, agg);
+          collectForPersist(inv, productMappingByAblefyId, pendingCustomers, pendingSubs);
         }
       }
       if (invoices.length < 50) break;
+    }
+    // Erst nach dem Einsammeln schreiben — gebuendelt + nebenlaeufig (in Choerten).
+    if (canPersistCustomers) {
+      await persistCollected(pendingCustomers, pendingSubs, agg);
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : "fetch_failed";
@@ -215,18 +227,21 @@ function aggregateInvoice(agg: AggregatedKpi, inv: AblefyInvoice, isMappedProduc
 
   agg.invoicesFetched++;
   const amount = pickInvoiceAmount(inv);
-  agg.totalRevenue += amount;
-
   const state = pickInvoiceState(inv);
   if (state === "paid") agg.paid++;
   else if (state === "unpaid" || state === "open") agg.open++;
   if (state === "cancelled" || state === "canceled") agg.cancelled++;
   if (state === "refunded") agg.refunded++;
 
+  // Umsatz NUR aus bezahlten Rechnungen. Unbezahlte/stornierte/erstattete
+  // Rechnungen wurden frueher faelschlich als Umsatz mitgezaehlt.
+  const paidAmount = state === "paid" ? amount : 0;
+  agg.totalRevenue += paidAmount;
+
   const productKey = String(inv.product_id ?? "unknown");
   if (!agg.byProduct[productKey]) agg.byProduct[productKey] = { count: 0, revenue: 0 };
   agg.byProduct[productKey].count++;
-  agg.byProduct[productKey].revenue += amount;
+  agg.byProduct[productKey].revenue += paidAmount;
 
   const dateStr = inv.created_at ?? inv.date;
   if (dateStr) {
@@ -235,54 +250,143 @@ function aggregateInvoice(agg: AggregatedKpi, inv: AblefyInvoice, isMappedProduc
       const monthKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
       if (!agg.byMonth[monthKey]) agg.byMonth[monthKey] = { count: 0, revenue: 0 };
       agg.byMonth[monthKey].count++;
-      agg.byMonth[monthKey].revenue += amount;
+      agg.byMonth[monthKey].revenue += paidAmount;
     }
   }
 }
 
+const STATUS_RANK: Record<SubscriptionStatus, number> = {
+  active: 0,
+  paid: 1,
+  paused: 2,
+  expired: 3,
+  cancelled: 4,
+  refunded: 5,
+};
+
+/** Der "staerkere" (terminale) Status gewinnt — z.B. refunded schlaegt active. */
+function strongerStatus(a: SubscriptionStatus, b: SubscriptionStatus): SubscriptionStatus {
+  return STATUS_RANK[b] > STATUS_RANK[a] ? b : a;
+}
+
+/** Frueheres der beiden ISO-Daten (Kaufdatum soll das aelteste sein). */
+function pickEarliest(a: string | null, b: string | null): string | null {
+  if (!a) return b;
+  if (!b) return a;
+  return new Date(a).getTime() <= new Date(b).getTime() ? a : b;
+}
+
 /**
- * Schreibt Customer + Subscription nach Supabase. Defensiv — wenn keine
- * E-Mail extrahierbar ist, wird die Invoice geskippt (KPI-Aggregat zaehlt
- * sie trotzdem, sie taucht nur nicht in der Customer-Tabelle auf).
+ * Order-Schluessel = AUSSCHLIESSLICH order_id. KEIN Fallback auf payment_id/
+ * invoice_id — sonst entstehen Duplikate (eine Subscription hat viele
+ * Zahlungen/Rechnungen). Identisch zur Ableitung im Webhook.
  */
-async function persistInvoice(
+function deriveOrderKey(inv: AblefyInvoice): string | null {
+  if (inv.order_id != null && String(inv.order_id).trim() !== "") return String(inv.order_id);
+  return null;
+}
+
+type PendingCustomer = { firstName: string | null; lastName: string | null; ablefyPayerId: string | null };
+type PendingSub = {
+  email: string;
+  slug: string;
+  planLabel?: string;
+  productId: string;
+  status: SubscriptionStatus;
+  amountCents: number | null;
+  currency: string;
+  startedAt: string | null;
+};
+
+/**
+ * Sammelt Customer + Subscription aus einer Invoice in zwei Maps — schreibt
+ * NICHT direkt. Pro E-Mail genau ein Customer (letzte nicht-leere Info gewinnt),
+ * pro Order genau eine Subscription (staerkster Status + fruehestes Datum).
+ */
+function collectForPersist(
   inv: AblefyInvoice,
   mapping: Map<string, { slug: string; planLabel?: string }>,
-  agg: AggregatedKpi,
-): Promise<void> {
+  customers: Map<string, PendingCustomer>,
+  subs: Map<string, PendingSub>,
+): void {
   const email = pickEmail(inv);
   if (!email) return;
-  const firstName = pickName(inv, "first") ?? null;
-  const lastName = pickName(inv, "last") ?? null;
-  const payerId = pickPayerId(inv);
   const productKey = String(inv.product_id ?? "");
   const slugMapping = mapping.get(productKey);
   if (!slugMapping) return; // Ohne Mapping kann man die Sub keinem Depot zuordnen.
 
-  // 1) Customer upsert
-  const customer = await upsertCustomer({
-    email,
-    firstName,
-    lastName,
-    ablefyPayerId: payerId,
+  const firstName = pickName(inv, "first");
+  const lastName = pickName(inv, "last");
+  const payerId = pickPayerId(inv);
+  const prevC = customers.get(email);
+  customers.set(email, {
+    firstName: firstName ?? prevC?.firstName ?? null,
+    lastName: lastName ?? prevC?.lastName ?? null,
+    ablefyPayerId: payerId ?? prevC?.ablefyPayerId ?? null,
   });
-  if (customer) agg.customersUpserted++;
 
-  // 2) Subscription upsert
-  const subStatus = mapInvoiceStateToSubStatus(inv);
-  const amount = pickInvoiceAmount(inv);
-  const sub = await upsertSubscription({
-    customerEmail: email,
-    productSlug: slugMapping.slug,
-    ablefyProductId: productKey,
-    planLabel: slugMapping.planLabel,
-    ablefyOrderId: inv.order_id != null ? String(inv.order_id) : (inv.id != null ? String(inv.id) : null),
-    status: subStatus,
-    amountCents: Math.round(amount * 100),
-    currency: inv.currency ?? "EUR",
-    startedAt: inv.created_at ?? inv.date ?? null,
+  const orderKey = deriveOrderKey(inv);
+  if (!orderKey) return; // ohne Order-ID nicht dedupierbar -> nicht persistieren
+  const status = mapInvoiceStateToSubStatus(inv);
+  const startedAt = inv.created_at ?? inv.date ?? null;
+  const amountCents = Math.round(pickInvoiceAmount(inv) * 100);
+  const prevS = subs.get(orderKey);
+  if (!prevS) {
+    subs.set(orderKey, {
+      email,
+      slug: slugMapping.slug,
+      planLabel: slugMapping.planLabel,
+      productId: productKey,
+      status,
+      amountCents,
+      currency: inv.currency ?? "EUR",
+      startedAt,
+    });
+  } else {
+    subs.set(orderKey, {
+      ...prevS,
+      status: strongerStatus(prevS.status, status),
+      startedAt: pickEarliest(prevS.startedAt, startedAt),
+    });
+  }
+}
+
+/** Fuehrt async-Arbeit in Choerten mit begrenzter Nebenlaeufigkeit aus. */
+async function runChunked<T>(items: T[], size: number, fn: (item: T) => Promise<void>): Promise<void> {
+  for (let i = 0; i < items.length; i += size) {
+    await Promise.all(items.slice(i, i + size).map(fn));
+  }
+}
+
+/** Schreibt die gesammelten Kunden + Subscriptions gebuendelt nach Supabase. */
+async function persistCollected(
+  customers: Map<string, PendingCustomer>,
+  subs: Map<string, PendingSub>,
+  agg: AggregatedKpi,
+): Promise<void> {
+  await runChunked([...customers.entries()], 10, async ([email, c]) => {
+    const res = await upsertCustomer({
+      email,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      ablefyPayerId: c.ablefyPayerId,
+    });
+    if (res) agg.customersUpserted++;
   });
-  if (sub) agg.subscriptionsUpserted++;
+  await runChunked([...subs.entries()], 10, async ([orderKey, s]) => {
+    const res = await upsertSubscription({
+      customerEmail: s.email,
+      productSlug: s.slug,
+      ablefyProductId: s.productId,
+      planLabel: s.planLabel,
+      ablefyOrderId: orderKey,
+      status: s.status,
+      amountCents: s.amountCents,
+      currency: s.currency,
+      startedAt: s.startedAt,
+    });
+    if (res) agg.subscriptionsUpserted++;
+  });
 }
 
 function pickEmail(inv: AblefyInvoice): string | null {
