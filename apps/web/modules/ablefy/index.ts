@@ -10,3 +10,13 @@ export { loadAblefyConfigFromDb, saveAblefyConfigToDb } from "./config-repositor
 
 export { createAblefyApiClient } from "./api-client";
 export type { AblefyApiClient, AblefyApiClientConfig, AblefyRawResponse } from "./api-client";
+
+export { runAblefySync } from "./sync-service";
+export type {
+  RunAblefySyncParams,
+  AggregatedKpi,
+  AblefySyncResult,
+  AblefySyncOk,
+  AblefySyncHttpError,
+  AblefySyncFailure,
+} from "./sync-service";
