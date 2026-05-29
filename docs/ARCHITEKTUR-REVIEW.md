@@ -1,5 +1,34 @@
 # Architektur-Review Anlegerclub
 
+## 0. Stand & wie es weitergeht (zuletzt: Mai 2026)
+
+> **Diese Notiz ist fuer die naechste Claude-Sitzung.** Der Inhaber wollte Claude
+> neu starten und danach selbst **„weiter. autonom"** sagen.
+
+**Stufe 1 ist erledigt, committet und gepusht** (Commit „Stufe 1: Kritische
+Sicherheits- + Korrektheitsfixes"): Auth-Guards auf 6 Ablefy-Routen
+(events/pending-buyers/sync/test/lookup/sync-preview), diagnose-PII-Leck
+geschlossen, `upsertSubscription` robust umgebaut (select-then-update/insert
+statt onConflict → Abos werden jetzt zuverlaessig gespeichert + Kaufdatum
+bleibt bei Storno erhalten), Webhook-Sub nur bei erfolgreichem Customer,
+KPI-/Admin-Zaehlungen korrigiert, NaN-Chart-Guard, `packages/db`+`packages/api`
+`@types/node` ergaenzt → Monorepo typecheckt **7/7 sauber**.
+
+**SOBALD der Inhaber „weiter. autonom" sagt: diese 3 Fragen ERNEUT stellen:**
+1. **Naechster Schritt?** (a) autonom weiter inkl. Stufe 2  (b) nur restliche Bugfixes  (c) stoppen
+2. **Webhook-Secret in Ablefy gesetzt?** Ja → unsignierte Webhooks blockieren · Nein/unklar → Sperre offen lassen
+3. **Hochladen/Push?** (beim letzten Mal mit „Ja" beantwortet — Stufe 1 ist bereits gepusht)
+
+**Dann zu tun (medium-risk, brauchen Sorgfalt — Details in Abschnitt 5+6):**
+- Umsatz im Sync nur fuer bezahlte Rechnungen (`state==='paid'`), Refunds separat.
+- Webhook-ohne-Secret ablehnen (erst wenn Secret gesetzt ist).
+- Order-Key Webhook vs. Sync vereinheitlichen; Status-Prioritaet (refunded/cancelled gewinnen, schwaecheren Status nicht ueberschreiben).
+- MRR/ARR-Berechnung korrigieren (MetricCards).
+- Perf: Sync-Upserts pro Seite batchen (Timeout-Gefahr bei Full-Sync); `EarningsBrowser` virtualisieren.
+- Dann **Stufe 2**: `middleware.ts` als zentrales Sicherheits-Gate (siehe Abschnitt 4).
+
+---
+
 ## 1. In einfachen Worten (fuer den Inhaber)
 
 Stell dir deine App wie ein Haus vor, das gerade gebaut wird. Das gute Nachricht zuerst: Das Fundament ist solider als bei vielen Projekten in dieser Phase. Es gibt schon erkennbare "Raeume" (Kunden, Zahlungen, Kommentare, Auswertungen), und an einigen Stellen sind die Waende sauber gezogen. Es ist also **kein** Spaghetti-Chaos, in dem nichts mehr zu retten waere.
