@@ -6,3 +6,21 @@
  */
 
 export { getKpiLayout, saveKpiLayout, type SaveKpiLayoutInput } from "./layout-repository";
+
+export {
+  getRevenueBucketSlug,
+  isInternalSubscription,
+  filterKpiRelevantSubs,
+  aggregateAblefyByProductIntoSlug,
+  countSubscriptionsBySlug,
+  type SlugBucket,
+} from "./bucket";
+
+export {
+  detectSwitchers,
+  detectReactivations,
+  type MatchStrategy,
+  type SubSummary,
+  type SwitcherEntry,
+  type ReactivationEntry,
+} from "./anomaly";

@@ -7,7 +7,7 @@ import { TrendingUp, Users } from "lucide-react";
 import { readAblefyConfig } from "@/lib/ablefy-config";
 import { findPricing, calculateExpectedRevenue, type PricingPlan } from "@/lib/copy/pricing";
 import { PRODUCT_LABELS } from "@/lib/copy/login-status";
-import { getRevenueBucketSlug, filterKpiRelevantSubs } from "@/lib/kpi-bucket";
+import { getRevenueBucketSlug, filterKpiRelevantSubs } from "@/modules/kpi";
 
 /**
  * Pricing-Uebersicht fuer Admins: zeigt pro Pricing-Plan, wie viele aktive
@@ -48,7 +48,7 @@ export function PricingOverviewCard() {
   const rows: PlanRow[] = useMemo(() => {
     if (!mounted) return [];
     const buckets = new Map<string, PlanRow>();
-    // KPI-Bucket-Regel (siehe lib/kpi-bucket.ts):
+    // KPI-Bucket-Regel (siehe modules/kpi/bucket.ts):
     //   1) Pro Sub genau ein Slug (`getRevenueBucketSlug`) — All-Access-User
     //      landen nicht zusaetzlich bei starter/trend/stillhalter/cockpit.
     //   2) Team-Member (isTeamMember=true: Andrei, Max, Babsi, Hendrik, ...)

@@ -3,7 +3,7 @@ import { Crown } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { requireSession } from "@/lib/access";
 import { allSubscriptions, allUsers } from "@traderiq/api";
-import { filterKpiRelevantSubs } from "@/lib/kpi-bucket";
+import { filterKpiRelevantSubs } from "@/modules/kpi";
 import { KpiFilterBar } from "./KpiFilterBar";
 import { DynamicGridLoader } from "./DynamicGridLoader";
 

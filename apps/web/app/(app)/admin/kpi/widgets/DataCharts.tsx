@@ -2,7 +2,7 @@
 import { TrendingUp, RefreshCcw, PieChart as PieIcon, BarChart3, Layers } from "lucide-react";
 import type { WidgetData } from "./types";
 import { readAblefyConfig } from "@/lib/ablefy-config";
-import { aggregateAblefyByProductIntoSlug } from "@/lib/kpi-bucket";
+import { aggregateAblefyByProductIntoSlug } from "@/modules/kpi";
 
 const PRODUCT_COLORS: Record<string, string> = {
   starter: "#ff741f",

@@ -3,7 +3,7 @@ import { ArrowLeftRight, RotateCcw, Mail, User as UserIcon, Hash } from "lucide-
 import { PageHeader } from "@/components/PageHeader";
 import { requireSession } from "@/lib/access";
 import { allSubscriptions, allUsers } from "@traderiq/api";
-import { detectSwitchers, detectReactivations, type MatchStrategy } from "@/lib/anomaly-detection";
+import { detectSwitchers, detectReactivations, type MatchStrategy } from "@/modules/kpi";
 import { PRODUCT_LABELS } from "@/lib/copy/login-status";
 import { formatGermanDate } from "@/lib/format";
 
