@@ -20,3 +20,12 @@ export type {
   AblefySyncHttpError,
   AblefySyncFailure,
 } from "./sync-service";
+
+export {
+  extractEventName,
+  buildSummary,
+  shouldTrackBuyer,
+  extractBuyerInfo,
+  safeCompare,
+} from "./webhook-helpers";
+export type { ExtractedBuyer } from "./webhook-helpers";
