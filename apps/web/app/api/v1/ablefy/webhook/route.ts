@@ -6,7 +6,7 @@ import { buildLookupHint } from "@/lib/ablefy-events";
 import { addPendingBuyer } from "@/lib/ablefy-pending-buyers";
 import { loadAblefyConfigFromDb } from "@/lib/ablefy-config-store";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/lib/customers-store";
+import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/modules/customers";
 
 export const dynamic = "force-dynamic";
 

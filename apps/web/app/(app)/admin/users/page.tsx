@@ -5,7 +5,7 @@ import { Search, Filter, ChevronRight, Mail, Database } from "lucide-react";
 import { RoleDropdown } from "./RoleDropdown";
 import { TeamInvite } from "./TeamInvite";
 import { requireSession } from "@/lib/access";
-import { listCustomers, listSubsByCustomerEmails, type Customer, type CustomerSubscription } from "@/lib/customers-store";
+import { listCustomers, listSubsByCustomerEmails, type Customer, type CustomerSubscription } from "@/modules/customers";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { PRODUCT_LABELS } from "@/lib/copy/login-status";
 import { InviteCustomerButton } from "./InviteCustomerButton";

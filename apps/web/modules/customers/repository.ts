@@ -1,52 +1,21 @@
-import { getSupabaseAdmin } from "./supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
+import type {
+  Customer,
+  CustomerStatus,
+  CustomerSubscription,
+  SubscriptionStatus,
+  UpsertCustomerInput,
+  UpsertSubscriptionInput,
+} from "./types";
 
 /**
- * Persistente Customer-CRUD via Supabase. Faellt auf null/[] zurueck,
- * wenn Supabase nicht konfiguriert ist (lokale Entwicklung).
+ * customers-REPOSITORY — der EINZIGE Ort mit Supabase-Zugriff fuer Kunden +
+ * Abos ("der Schalter"). Faellt auf null/[] zurueck, wenn Supabase nicht
+ * konfiguriert ist (lokale Entwicklung).
  *
- * Phase-2-Anfang: Datenmodell fuer echte Ablefy-Kunden, getrennt vom
- * bestehenden Mock-User-System (`packages/api/src/mock/users.ts`).
- * Sobald Sprint A (Login + Auth) fertig ist, ersetzen die Customers
- * die Mock-Daten komplett. Bis dahin laufen beide parallel:
- *   - Mock-Users (Andrei/Max/Babsi/Hendrik) → Login-faehig
- *   - Customers in Supabase → im Admin sichtbar, NOCH NICHT login-faehig
+ * Wichtig: andere Module/Seiten importieren NICHT diese Datei direkt, sondern
+ * die oeffentliche Tuer `@/modules/customers` (index.ts).
  */
-
-export type CustomerStatus = "active" | "blocked" | "deleted";
-export type SubscriptionStatus =
-  | "active"
-  | "paid"
-  | "paused"
-  | "cancelled"
-  | "expired"
-  | "refunded";
-
-export interface Customer {
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  ablefyPayerId: string | null;
-  status: CustomerStatus;
-  notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CustomerSubscription {
-  id: string;
-  customerEmail: string;
-  productSlug: string;
-  ablefyProductId: string | null;
-  planLabel: string | null;
-  ablefyOrderId: string | null;
-  status: SubscriptionStatus;
-  amountCents: number | null;
-  currency: string;
-  startedAt: string | null;
-  currentPeriodEnd: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface DbCustomerRow {
   email: string;
@@ -108,15 +77,6 @@ function rowToSub(row: DbSubRow): CustomerSubscription {
 
 // ─── Customers ────────────────────────────────────────────────────────────
 
-export interface UpsertCustomerInput {
-  email: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  ablefyPayerId?: string | null;
-  status?: CustomerStatus;
-  notes?: string | null;
-}
-
 export async function upsertCustomer(input: UpsertCustomerInput): Promise<Customer | null> {
   const supabase = getSupabaseAdmin();
   if (!supabase) return null;
@@ -139,7 +99,7 @@ export async function upsertCustomer(input: UpsertCustomerInput): Promise<Custom
     .select("*")
     .single();
   if (error || !data) {
-    console.error("[customers-store] upsertCustomer:", error?.message);
+    console.error("[customers-repo] upsertCustomer:", error?.message);
     return null;
   }
   return rowToCustomer(data as DbCustomerRow);
@@ -158,7 +118,7 @@ export async function listCustomers(options: {
   if (options.limit) q = q.limit(options.limit);
   const { data, error } = await q;
   if (error) {
-    console.error("[customers-store] listCustomers:", error.message);
+    console.error("[customers-repo] listCustomers:", error.message);
     return [];
   }
   return ((data ?? []) as DbCustomerRow[]).map(rowToCustomer);
@@ -175,19 +135,6 @@ export async function countCustomers(): Promise<number> {
 }
 
 // ─── Subscriptions ────────────────────────────────────────────────────────
-
-export interface UpsertSubscriptionInput {
-  customerEmail: string;
-  productSlug: string;
-  ablefyProductId?: string | null;
-  planLabel?: string | null;
-  ablefyOrderId?: string | null;
-  status?: SubscriptionStatus;
-  amountCents?: number | null;
-  currency?: string;
-  startedAt?: string | null;
-  currentPeriodEnd?: string | null;
-}
 
 export async function upsertSubscription(input: UpsertSubscriptionInput): Promise<CustomerSubscription | null> {
   const supabase = getSupabaseAdmin();
@@ -233,7 +180,7 @@ export async function upsertSubscription(input: UpsertSubscriptionInput): Promis
         .select("*")
         .single();
       if (error || !data) {
-        console.error("[customers-store] updateSubscription:", error?.message);
+        console.error("[customers-repo] updateSubscription:", error?.message);
         return null;
       }
       return rowToSub(data as DbSubRow);
@@ -245,7 +192,7 @@ export async function upsertSubscription(input: UpsertSubscriptionInput): Promis
       .select("*")
       .single();
     if (error || !data) {
-      console.error("[customers-store] insertSubscription (with order):", error?.message);
+      console.error("[customers-repo] insertSubscription (with order):", error?.message);
       return null;
     }
     return rowToSub(data as DbSubRow);
@@ -258,7 +205,7 @@ export async function upsertSubscription(input: UpsertSubscriptionInput): Promis
     .select("*")
     .single();
   if (error || !data) {
-    console.error("[customers-store] insertSubscription:", error?.message);
+    console.error("[customers-repo] insertSubscription:", error?.message);
     return null;
   }
   return rowToSub(data as DbSubRow);
@@ -280,7 +227,7 @@ export async function listSubsByCustomerEmails(emails: string[]): Promise<Custom
       .select("*")
       .in("customer_email", slice);
     if (error) {
-      console.error("[customers-store] listSubsByCustomerEmails:", error.message);
+      console.error("[customers-repo] listSubsByCustomerEmails:", error.message);
       continue;
     }
     for (const row of (data ?? []) as DbSubRow[]) out.push(rowToSub(row));
