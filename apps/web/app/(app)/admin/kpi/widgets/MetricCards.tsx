@@ -194,7 +194,7 @@ export function SparklineCard({
   const range = max - min || 1;
   const path = series
     .map((v, i) => {
-      const x = (i / (series.length - 1)) * w;
+      const x = (i / Math.max(series.length - 1, 1)) * w;
       const y = h - ((v - min) / range) * h;
       return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
     })

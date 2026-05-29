@@ -78,7 +78,7 @@ export function RevenueAreaChart({ data }: { data: WidgetData }) {
   const innerW = w - padX * 2;
   const innerH = h - padY * 2;
   const points = series.map((s, i) => {
-    const x = padX + (i / (series.length - 1)) * innerW;
+    const x = padX + (i / Math.max(series.length - 1, 1)) * innerW;
     const y = padY + innerH - ((s.value - min) / (max - min)) * innerH;
     return { x, y, ...s };
   });
@@ -157,7 +157,7 @@ export function LineRevenueChart({ data }: { data: WidgetData }) {
   const innerW = w - padX * 2;
   const innerH = h - padY * 2;
   const points = series.map((s, i) => ({
-    x: padX + (i / (series.length - 1)) * innerW,
+    x: padX + (i / Math.max(series.length - 1, 1)) * innerW,
     y: padY + innerH - ((s.value - min) / (max - min)) * innerH,
     ...s,
   }));
@@ -643,7 +643,7 @@ export function TargetLineChart({ data }: { data: WidgetData }) {
   const innerH = h - padY * 2;
   const yOf = (v: number) => padY + innerH - ((v - min) / (max - min)) * innerH;
   const points = series.map((s, i) => ({
-    x: padX + (i / (series.length - 1)) * innerW,
+    x: padX + (i / Math.max(series.length - 1, 1)) * innerW,
     y: yOf(s.value),
     ...s,
     aboveTarget: s.value >= target,

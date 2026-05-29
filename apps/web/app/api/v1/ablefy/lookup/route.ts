@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/access";
+import { canManageIntegrations } from "@traderiq/api";
 import { appendAblefyEvent } from "@/lib/ablefy-store";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,10 @@ interface LookupBody {
  * abgeleitete KPIs (Active Members, MRR, Refund Rate ...).
  */
 export async function POST(req: Request) {
+  const session = await requireSession();
+  if (!canManageIntegrations(session.user.role)) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
   let body: LookupBody;
   try {
     body = await req.json();

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/access";
+import { canManageIntegrations } from "@traderiq/api";
 import { appendAblefyEvent } from "@/lib/ablefy-store";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +18,10 @@ export const dynamic = "force-dynamic";
  * In Phase 2 leitet der Endpoint Credentials aus dem Server-Vault.
  */
 export async function POST(req: Request) {
+  const session = await requireSession();
+  if (!canManageIntegrations(session.user.role)) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
   let body: { apiKey?: string; apiSecret?: string };
   try {
     body = await req.json();

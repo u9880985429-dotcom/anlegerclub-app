@@ -193,37 +193,68 @@ export async function upsertSubscription(input: UpsertSubscriptionInput): Promis
   const supabase = getSupabaseAdmin();
   if (!supabase) return null;
   const normalizedEmail = input.customerEmail.trim().toLowerCase();
-  // Wenn ablefyOrderId vorhanden ist, on-conflict auf ablefy_order_id —
-  // sonst kann es zu Duplikaten kommen, aber das ist tolerabel im Worst-Case.
-  const baseRow = {
+
+  // Felder, die bei JEDEM Event aktualisiert werden duerfen (Status, Betrag, ...).
+  // `started_at` (= Kaufdatum) und `ablefy_order_id` werden bewusst NICHT hier
+  // gefuehrt, damit Folge-Events (Storno/Refund) das Kaufdatum nicht ueberschreiben.
+  const mutable = {
     customer_email: normalizedEmail,
     product_slug: input.productSlug,
     ablefy_product_id: input.ablefyProductId ?? null,
     plan_label: input.planLabel ?? null,
-    ablefy_order_id: input.ablefyOrderId ?? null,
     status: input.status ?? "active",
     amount_cents: input.amountCents ?? null,
     currency: input.currency ?? "EUR",
-    started_at: input.startedAt ?? null,
     current_period_end: input.currentPeriodEnd ?? null,
     updated_at: new Date().toISOString(),
   };
+
+  // Mit Order-ID: "erst nachsehen, dann gezielt schreiben". Das ist robust
+  // unabhaengig vom DB-Unique-Index (kein ON CONFLICT noetig) UND bewahrt das
+  // urspruengliche Kaufdatum bei Folge-Events.
   if (input.ablefyOrderId) {
+    const { data: existing } = await supabase
+      .from("customer_subscriptions")
+      .select("id, started_at")
+      .eq("ablefy_order_id", input.ablefyOrderId)
+      .maybeSingle();
+
+    if (existing) {
+      const existingRow = existing as { id: string; started_at: string | null };
+      const patch: Record<string, unknown> = { ...mutable };
+      // started_at nur nachtragen, wenn bisher leer und jetzt ein Datum kommt.
+      if (!existingRow.started_at && input.startedAt) {
+        patch.started_at = input.startedAt;
+      }
+      const { data, error } = await supabase
+        .from("customer_subscriptions")
+        .update(patch)
+        .eq("id", existingRow.id)
+        .select("*")
+        .single();
+      if (error || !data) {
+        console.error("[customers-store] updateSubscription:", error?.message);
+        return null;
+      }
+      return rowToSub(data as DbSubRow);
+    }
+
     const { data, error } = await supabase
       .from("customer_subscriptions")
-      .upsert(baseRow, { onConflict: "ablefy_order_id", ignoreDuplicates: false })
+      .insert({ ...mutable, ablefy_order_id: input.ablefyOrderId, started_at: input.startedAt ?? null })
       .select("*")
       .single();
     if (error || !data) {
-      console.error("[customers-store] upsertSubscription (with order):", error?.message);
+      console.error("[customers-store] insertSubscription (with order):", error?.message);
       return null;
     }
     return rowToSub(data as DbSubRow);
   }
+
   // Ohne Order-ID: Insert (kein dedup moeglich).
   const { data, error } = await supabase
     .from("customer_subscriptions")
-    .insert(baseRow)
+    .insert({ ...mutable, ablefy_order_id: null, started_at: input.startedAt ?? null })
     .select("*")
     .single();
   if (error || !data) {
@@ -243,19 +274,6 @@ export async function listSubsByCustomerEmails(emails: string[]): Promise<Custom
     .in("customer_email", normalized);
   if (error) {
     console.error("[customers-store] listSubsByCustomerEmails:", error.message);
-    return [];
-  }
-  return ((data ?? []) as DbSubRow[]).map(rowToSub);
-}
-
-export async function listAllCustomerSubscriptions(): Promise<CustomerSubscription[]> {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("customer_subscriptions")
-    .select("*");
-  if (error) {
-    console.error("[customers-store] listAllCustomerSubscriptions:", error.message);
     return [];
   }
   return ((data ?? []) as DbSubRow[]).map(rowToSub);

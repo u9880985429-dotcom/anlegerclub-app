@@ -123,22 +123,26 @@ export async function POST(req: Request) {
           const dbCfg = await loadAblefyConfigFromDb();
           const mapping = dbCfg.productMapping.find((m) => m.ablefyProductId === buyer.productId);
           if (mapping) {
-            await upsertCustomer({
+            const customer = await upsertCustomer({
               email: buyer.email,
               firstName: buyer.firstName,
               lastName: buyer.lastName,
               status: "active",
             });
-            await upsertSubscription({
-              customerEmail: buyer.email,
-              productSlug: mapping.traderiqProductSlug,
-              ablefyProductId: buyer.productId,
-              planLabel: mapping.planLabel,
-              ablefyOrderId: buyer.orderId ?? buyer.paymentId,
-              status: lifecycleStatus,
-              amountCents: buyer.amount != null ? Math.round(buyer.amount * 100) : null,
-              startedAt: new Date().toISOString(),
-            });
+            // Subscription nur anlegen, wenn der Customer-Upsert geklappt hat —
+            // sonst entstehen verwaiste Subscriptions ohne zugehoerigen Kunden.
+            if (customer) {
+              await upsertSubscription({
+                customerEmail: buyer.email,
+                productSlug: mapping.traderiqProductSlug,
+                ablefyProductId: buyer.productId,
+                planLabel: mapping.planLabel,
+                ablefyOrderId: buyer.orderId ?? buyer.paymentId,
+                status: lifecycleStatus,
+                amountCents: buyer.amount != null ? Math.round(buyer.amount * 100) : null,
+                startedAt: new Date().toISOString(),
+              });
+            }
           }
         } catch (err) {
           // Auto-Anlage ist Bonus — wenn DB hakt, ist das Pending-Buyer-Event
