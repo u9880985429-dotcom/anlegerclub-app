@@ -268,13 +268,22 @@ export async function listSubsByCustomerEmails(emails: string[]): Promise<Custom
   const supabase = getSupabaseAdmin();
   if (!supabase || emails.length === 0) return [];
   const normalized = emails.map((e) => e.trim().toLowerCase());
-  const { data, error } = await supabase
-    .from("customer_subscriptions")
-    .select("*")
-    .in("customer_email", normalized);
-  if (error) {
-    console.error("[customers-store] listSubsByCustomerEmails:", error.message);
-    return [];
+  // In Choerten abfragen: ein einziges .in() mit hunderten/tausenden E-Mails
+  // erzeugt einen riesigen Query-String (Gefahr HTTP 414) und laesst Subs
+  // still verschwinden. 200 pro Abfrage ist sicher.
+  const CHUNK = 200;
+  const out: CustomerSubscription[] = [];
+  for (let i = 0; i < normalized.length; i += CHUNK) {
+    const slice = normalized.slice(i, i + CHUNK);
+    const { data, error } = await supabase
+      .from("customer_subscriptions")
+      .select("*")
+      .in("customer_email", slice);
+    if (error) {
+      console.error("[customers-store] listSubsByCustomerEmails:", error.message);
+      continue;
+    }
+    for (const row of (data ?? []) as DbSubRow[]) out.push(rowToSub(row));
   }
-  return ((data ?? []) as DbSubRow[]).map(rowToSub);
+  return out;
 }

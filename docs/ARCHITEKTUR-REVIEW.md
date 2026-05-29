@@ -2,30 +2,35 @@
 
 ## 0. Stand & wie es weitergeht (zuletzt: Mai 2026)
 
-> **Diese Notiz ist fuer die naechste Claude-Sitzung.** Der Inhaber wollte Claude
-> neu starten und danach selbst **„weiter. autonom"** sagen.
+**ERLEDIGT — Stufe 1 + Stufe 2 + medium-risk Bugfixes (committet & gepusht in PR #1).**
+Verifiziert: Typecheck 7/7 + Produktions-Build gruen (Middleware aktiv).
 
-**Stufe 1 ist erledigt, committet und gepusht** (Commit „Stufe 1: Kritische
-Sicherheits- + Korrektheitsfixes"): Auth-Guards auf 6 Ablefy-Routen
-(events/pending-buyers/sync/test/lookup/sync-preview), diagnose-PII-Leck
-geschlossen, `upsertSubscription` robust umgebaut (select-then-update/insert
-statt onConflict → Abos werden jetzt zuverlaessig gespeichert + Kaufdatum
-bleibt bei Storno erhalten), Webhook-Sub nur bei erfolgreichem Customer,
-KPI-/Admin-Zaehlungen korrigiert, NaN-Chart-Guard, `packages/db`+`packages/api`
-`@types/node` ergaenzt → Monorepo typecheckt **7/7 sauber**.
+Umgesetzt:
+- **Sicherheit:** Auth-Guards auf 6 Ablefy-Routen + diagnose-PII-Leck geschlossen;
+  NEU `apps/web/middleware.ts` als zentrales Gate (Ablefy-API nur OWNER/ADMIN,
+  Webhook oeffentlich, /admin nur Mitarbeiter-Rollen).
+- **Datenintegritaet:** `upsertSubscription` robust umgebaut (select-then-update/insert,
+  unabhaengig vom DB-Index; Kaufdatum bleibt bei Storno erhalten); Webhook-Sub nur
+  bei erfolgreichem Customer.
+- **Korrektheit:** Sync-Umsatz nur aus bezahlten Rechnungen; Status-Vorrang
+  (refunded/cancelled gewinnen); Order-Schluessel einheitlich = nur order_id;
+  KPI-/Admin-Zaehlungen korrigiert; MRR aus letztem vollen Monat (ARR = MRR*12);
+  NaN-Chart-Guard.
+- **Tempo:** Sync sammelt + schreibt gebuendelt (kein Timeout durch ~40k
+  Einzel-Writes); `.in()`-Abfragen in Choerten (kein HTTP 414); `maxDuration=300`.
+- **Build/Baseline:** `@types/node` in db+api → Monorepo typecheckt 7/7.
 
-**SOBALD der Inhaber „weiter. autonom" sagt: diese 3 Fragen ERNEUT stellen:**
-1. **Naechster Schritt?** (a) autonom weiter inkl. Stufe 2  (b) nur restliche Bugfixes  (c) stoppen
-2. **Webhook-Secret in Ablefy gesetzt?** Ja → unsignierte Webhooks blockieren · Nein/unklar → Sperre offen lassen
-3. **Hochladen/Push?** (beim letzten Mal mit „Ja" beantwortet — Stufe 1 ist bereits gepusht)
-
-**Dann zu tun (medium-risk, brauchen Sorgfalt — Details in Abschnitt 5+6):**
-- Umsatz im Sync nur fuer bezahlte Rechnungen (`state==='paid'`), Refunds separat.
-- Webhook-ohne-Secret ablehnen (erst wenn Secret gesetzt ist).
-- Order-Key Webhook vs. Sync vereinheitlichen; Status-Prioritaet (refunded/cancelled gewinnen, schwaecheren Status nicht ueberschreiben).
-- MRR/ARR-Berechnung korrigieren (MetricCards).
-- Perf: Sync-Upserts pro Seite batchen (Timeout-Gefahr bei Full-Sync); `EarningsBrowser` virtualisieren.
-- Dann **Stufe 2**: `middleware.ts` als zentrales Sicherheits-Gate (siehe Abschnitt 4).
+**NOCH OFFEN (vom Inhaber bewusst zurueckgestellt / braucht Entscheidung):**
+- **Webhook-Secret** ist in Ablefy (noch) NICHT gesetzt → die Sperre fuer
+  unsignierte Webhooks ist daher NICHT scharf. Stattdessen warnt der Webhook jetzt
+  sichtbar im Event-Log (`webhook.insecure`). **TODO Inhaber:** Secret in Ablefy
+  setzen, dann hier auf "ablehnen" umstellen (`webhook/route.ts`, else-Zweig).
+- **Perf (groesser, nicht angefasst):** `EarningsBrowser` virtualisieren;
+  `listCustomers` paginieren; KPI-Widget-Re-Renders memoizen.
+- **Architektur Stufe 3-7** (Repository-Layer, customers/ablefy/comments/kpi-Module,
+  Datenmodell vereinheitlichen) — siehe Abschnitt 4. Groessere, gestaffelte Arbeit.
+- Kleinkram: `DynamicGridLoader` Produktfilter auf Totals; Sync-Pagination-Heuristik
+  (`<50`); notify-Routen vor Phase-2-Aktivierung absichern; CANCELLED-Bucket KPI.
 
 ---
 

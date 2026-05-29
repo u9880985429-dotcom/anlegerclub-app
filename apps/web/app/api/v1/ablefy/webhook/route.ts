@@ -72,6 +72,17 @@ export async function POST(req: Request) {
       });
       return NextResponse.json({ ok: false, error: "invalid_signature" }, { status: 401 });
     }
+  } else {
+    // Kein Secret konfiguriert → Signatur kann nicht geprueft werden. Wir
+    // akzeptieren den Webhook weiterhin (sonst bricht die Ablefy-Anbindung),
+    // warnen aber sichtbar im Event-Log. TODO: sobald in Ablefy ein
+    // Webhook-Secret gesetzt ist, hier auf "ablehnen" umstellen.
+    appendAblefyEvent({
+      kind: "webhook.insecure",
+      status: "error",
+      summary:
+        "Webhook OHNE Secret akzeptiert — Signatur NICHT geprueft. Bitte in der Ablefy-Konfiguration ein Webhook-Secret setzen, damit gefaelschte Webhooks abgelehnt werden.",
+    });
   }
 
   // Event-Typ → Endpoint + ID fuer den Detail-Lookup ableiten.
