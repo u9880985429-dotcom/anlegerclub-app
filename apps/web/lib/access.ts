@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { findSubscriptionsForUser, type ProductSlug } from "@traderiq/api";
+import { hasMockProductAccess } from "@/modules/customers";
 
 export async function requireSession() {
   const session = await getServerSession(authOptions);
@@ -12,11 +13,7 @@ export async function requireSession() {
 export async function requireProductAccess(slug: ProductSlug) {
   const session = await requireSession();
   const subs = findSubscriptionsForUser(session.user.id);
-  const hasAccess = subs.some(
-    (s) =>
-      (s.productSlug === slug || s.productSlug === "all-access") &&
-      (s.status === "ACTIVE" || s.status === "CANCELLED" || s.status === "PAID"),
-  );
+  const hasAccess = hasMockProductAccess(subs, slug);
   if (!hasAccess) {
     redirect("/dashboard");
   }
@@ -33,11 +30,7 @@ export async function getProductAccess(slug: ProductSlug): Promise<{
 }> {
   const session = await requireSession();
   const subs = findSubscriptionsForUser(session.user.id);
-  const hasAccess = subs.some(
-    (s) =>
-      (s.productSlug === slug || s.productSlug === "all-access") &&
-      (s.status === "ACTIVE" || s.status === "CANCELLED" || s.status === "PAID"),
-  );
+  const hasAccess = hasMockProductAccess(subs, slug);
   return { session, hasAccess };
 }
 

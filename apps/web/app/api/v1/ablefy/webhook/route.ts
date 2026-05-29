@@ -6,7 +6,7 @@ import { buildLookupHint } from "@/lib/ablefy-events";
 import { addPendingBuyer } from "@/lib/ablefy-pending-buyers";
 import { loadAblefyConfigFromDb } from "@/modules/ablefy";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/modules/customers";
+import { upsertCustomer, upsertSubscription, mapAblefyEventToStatus } from "@/modules/customers";
 
 export const dynamic = "force-dynamic";
 
@@ -126,7 +126,7 @@ export async function POST(req: Request) {
   // Wirkt auch auf Storno-/Refund-/Chargeback-Events, damit der Status korrekt
   // sinkt. Login-Faehigkeit kommt erst in Sprint A (Passwort-Setzen-Flow).
   if (eventName && isSupabaseConfigured()) {
-    const lifecycleStatus = mapEventToSubStatus(eventName);
+    const lifecycleStatus = mapAblefyEventToStatus(eventName);
     if (lifecycleStatus !== null) {
       const buyer = extractBuyerInfo(payload);
       if (buyer.email && buyer.productId) {
@@ -171,49 +171,6 @@ export async function POST(req: Request) {
     received: true,
     lookupHint: lookupHint ?? null,
   });
-}
-
-/**
- * Welcher Sub-Status entspricht dem Webhook-Event? Liefert `null` wenn
- * der Event NICHT zu einem Status-Update fuehren soll (z.B. SaaS-Plan-
- * Update, Zugriffsaenderung — die treffen den Sub-Status nicht direkt).
- */
-function mapEventToSubStatus(eventName: string): SubscriptionStatus | null {
-  const e = eventName.toLowerCase();
-  // Aktivierungen / erfolgreiche Zahlungen
-  if (
-    e.includes("abo aktiv") ||
-    e.includes("subscription.activated") ||
-    e.includes("abo reaktiviert") ||
-    e.includes("ratenzahlung abgeschlossen")
-  ) return "active";
-  if (
-    e.includes("zahlung erfolgreich") ||
-    e.includes("payment.succeeded") ||
-    e.includes("payment.success") ||
-    e.includes("payment.completed")
-  ) return "paid";
-  // Pause
-  if (e.includes("abo pausiert") || e.includes("ratenzahlung pausiert")) return "paused";
-  // Stornos
-  if (
-    e.includes("abo storniert") ||
-    e.includes("ratenzahlung storniert") ||
-    e.includes("subscription.cancelled")
-  ) return "cancelled";
-  // Refunds + Chargebacks
-  if (
-    e.includes("erstattung erfolgreich") ||
-    e.includes("refund.succeeded") ||
-    e.includes("raten erstattet") ||
-    e.includes("abo-raten erstattet")
-  ) return "refunded";
-  if (
-    e.includes("chargeback erfolgreich") ||
-    e.includes("rückgefordert") ||
-    e.includes("ruckgefordert")
-  ) return "refunded";
-  return null;
 }
 
 /**

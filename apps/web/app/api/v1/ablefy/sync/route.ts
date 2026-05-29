@@ -4,7 +4,13 @@ import { canManageIntegrations } from "@traderiq/api";
 import { appendAblefyEvent } from "@/lib/ablefy-store";
 import { loadAblefyConfigFromDb } from "@/modules/ablefy";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { upsertCustomer, upsertSubscription, type SubscriptionStatus } from "@/modules/customers";
+import {
+  upsertCustomer,
+  upsertSubscription,
+  mapAblefyInvoiceStateToStatus,
+  pickInvoiceState,
+  type SubscriptionStatus,
+} from "@/modules/customers";
 
 export const dynamic = "force-dynamic";
 // Vollstaendiger Sync kann viele Seiten ziehen — mehr Zeit erlauben (Vercel Pro).
@@ -214,11 +220,6 @@ function pickInvoiceAmount(inv: AblefyInvoice): number {
   return 0;
 }
 
-/** Liefert den normalisierten Status. Ablefy nutzt aktuell `state`. */
-function pickInvoiceState(inv: AblefyInvoice): string {
-  return (inv.state ?? inv.payment_state ?? inv.invoice_state ?? "").toLowerCase();
-}
-
 function aggregateInvoice(agg: AggregatedKpi, inv: AblefyInvoice, isMappedProduct: boolean) {
   // KPI-Aggregat nur fuer Produkte die im Mapping stehen (= Anlegerclub-Produkte).
   // Andere Trader-IQ-Produkte (z.B. FFM Graduate-Mastermind) werden ignoriert,
@@ -327,7 +328,7 @@ function collectForPersist(
 
   const orderKey = deriveOrderKey(inv);
   if (!orderKey) return; // ohne Order-ID nicht dedupierbar -> nicht persistieren
-  const status = mapInvoiceStateToSubStatus(inv);
+  const status = mapAblefyInvoiceStateToStatus(inv);
   const startedAt = inv.created_at ?? inv.date ?? null;
   const amountCents = Math.round(pickInvoiceAmount(inv) * 100);
   const prevS = subs.get(orderKey);
@@ -430,13 +431,4 @@ function pickPayerId(inv: AblefyInvoice): string | null {
     if (typeof c === "string" && c.trim().length > 0) return c.trim();
   }
   return null;
-}
-
-function mapInvoiceStateToSubStatus(inv: AblefyInvoice): SubscriptionStatus {
-  const state = pickInvoiceState(inv);
-  if (state === "refunded") return "refunded";
-  if (state === "cancelled" || state === "canceled") return "cancelled";
-  if (state === "paid") return "paid";
-  if (state === "unpaid" || state === "open") return "active";
-  return "active";
 }
