@@ -19,6 +19,12 @@ Umgesetzt:
 - **Tempo:** Sync sammelt + schreibt gebuendelt (kein Timeout durch ~40k
   Einzel-Writes); `.in()`-Abfragen in Choerten (kein HTTP 414); `maxDuration=300`.
 - **Build/Baseline:** `@types/node` in db+api → Monorepo typecheckt 7/7.
+- **Saubere Trennung (Stufe 3 KOMPLETT):** Repository-Layer eingezogen — jeder
+  DB-/Prisma-Zugriff liegt jetzt hinter einem Modul (`apps/web/modules/`:
+  customers, comments, ablefy, kpi) mit Typen/Repository/oeffentlicher Tuer.
+  Keine Route/Seite spricht mehr direkt mit Supabase/Prisma (einzige Ausnahme:
+  `diagnose`-Health-Probe, bewusst). Verhalten ueberall unveraendert, verifiziert
+  per Typecheck + Build.
 
 **NOCH OFFEN (vom Inhaber bewusst zurueckgestellt / braucht Entscheidung):**
 - **Webhook-Secret** ist in Ablefy (noch) NICHT gesetzt → die Sperre fuer
@@ -27,8 +33,10 @@ Umgesetzt:
   setzen, dann hier auf "ablehnen" umstellen (`webhook/route.ts`, else-Zweig).
 - **Perf (groesser, nicht angefasst):** `EarningsBrowser` virtualisieren;
   `listCustomers` paginieren; KPI-Widget-Re-Renders memoizen.
-- **Architektur Stufe 3-7** (Repository-Layer, customers/ablefy/comments/kpi-Module,
-  Datenmodell vereinheitlichen) — siehe Abschnitt 4. Groessere, gestaffelte Arbeit.
+- **Architektur Stufe 4-7** (Stufe 3 ist erledigt): customers-Service mit EINER
+  Zugriffs-/Status-Logik (Stufe 4); ablefy-API-Client + duenne Routen (Stufe 5);
+  comments/kpi-Service-Layer (Stufe 6); Datenmodell vereinheitlichen (Stufe 7).
+  Siehe Abschnitt 4. Groessere, gestaffelte Arbeit.
 - Kleinkram: `DynamicGridLoader` Produktfilter auf Totals; Sync-Pagination-Heuristik
   (`<50`); notify-Routen vor Phase-2-Aktivierung absichern; CANCELLED-Bucket KPI.
 
