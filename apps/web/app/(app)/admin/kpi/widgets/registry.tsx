@@ -17,6 +17,7 @@ import {
   ComboBarLineChart, WaterfallChart,
   HistogramChart, ChurnReasonDonut,
 } from "./DataCharts";
+import { RevenueLineChartJs, ProductMixDoughnutChartJs } from "./charts-chartjs";
 import {
   CohortRetentionTable, TopTradesTable, LatestOrdersTable, SalesPerformanceTable,
   SubscriptionStatusBreakdown, DealsLeaderboard,
@@ -33,6 +34,24 @@ export const WIDGET_REGISTRY: WidgetCatalogEntry[] = [
     allowedCols: [3, 4, 6],
     inspiration: "Standard-SaaS-KPI-Card",
     render: (data) => <MrrCard data={data} />,
+  },
+  {
+    id: "chartjs.revenueLine",
+    title: "Umsatz-Verlauf (Chart.js)",
+    description: "Linien-Diagramm des Monatsumsatzes — gerendert mit Chart.js (Zusatz/Test).",
+    category: "Verlauf",
+    defaultCols: 6,
+    allowedCols: [4, 6],
+    render: (data) => <RevenueLineChartJs data={data} />,
+  },
+  {
+    id: "chartjs.productDoughnut",
+    title: "Produkt-Mix (Chart.js)",
+    description: "Donut der Produkt-Verteilung — gerendert mit Chart.js (Zusatz/Test).",
+    category: "Verteilung",
+    defaultCols: 4,
+    allowedCols: [3, 4, 6],
+    render: (data) => <ProductMixDoughnutChartJs data={data} />,
   },
   {
     id: "kpi.arr",
