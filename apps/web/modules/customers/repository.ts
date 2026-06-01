@@ -156,20 +156,21 @@ export async function upsertSubscription(input: UpsertSubscriptionInput): Promis
     updated_at: new Date().toISOString(),
   };
 
-  // Mit Order-ID: "erst nachsehen, dann gezielt schreiben". Das ist robust
-  // unabhaengig vom DB-Unique-Index (kein ON CONFLICT noetig) UND bewahrt das
-  // urspruengliche Kaufdatum bei Folge-Events.
+  // Mit Order-ID: "erst nachsehen, dann gezielt schreiben". Bewahrt das
+  // urspruengliche Kaufdatum bei Folge-Events. Falls bei echter Parallelitaet
+  // (zwei Syncs, oder Sync + Webhook fuer dieselbe order_id) der Insert auf den
+  // partiellen Unique-Index `uq_customer_subs_ablefy_order_id` laeuft, fangen
+  // wir die Unique-Violation (23505) ab und konvergieren auf die existierende
+  // Zeile (Re-Select + Update), statt das Update still zu verwerfen.
   if (input.ablefyOrderId) {
-    const { data: existing } = await supabase
-      .from("customer_subscriptions")
-      .select("id, started_at")
-      .eq("ablefy_order_id", input.ablefyOrderId)
-      .maybeSingle();
+    const orderId = input.ablefyOrderId;
 
-    if (existing) {
-      const existingRow = existing as { id: string; started_at: string | null };
+    // Existierende Zeile (falls vorhanden) gezielt aktualisieren — `started_at`
+    // nur nachtragen, wenn bisher leer und jetzt ein Datum kommt.
+    const updateExisting = async (
+      existingRow: { id: string; started_at: string | null },
+    ): Promise<CustomerSubscription | null> => {
       const patch: Record<string, unknown> = { ...mutable };
-      // started_at nur nachtragen, wenn bisher leer und jetzt ein Datum kommt.
       if (!existingRow.started_at && input.startedAt) {
         patch.started_at = input.startedAt;
       }
@@ -184,18 +185,40 @@ export async function upsertSubscription(input: UpsertSubscriptionInput): Promis
         return null;
       }
       return rowToSub(data as DbSubRow);
+    };
+
+    const { data: existing } = await supabase
+      .from("customer_subscriptions")
+      .select("id, started_at")
+      .eq("ablefy_order_id", orderId)
+      .maybeSingle();
+
+    if (existing) {
+      return updateExisting(existing as { id: string; started_at: string | null });
     }
 
     const { data, error } = await supabase
       .from("customer_subscriptions")
-      .insert({ ...mutable, ablefy_order_id: input.ablefyOrderId, started_at: input.startedAt ?? null })
+      .insert({ ...mutable, ablefy_order_id: orderId, started_at: input.startedAt ?? null })
       .select("*")
       .single();
-    if (error || !data) {
-      console.error("[customers-repo] insertSubscription (with order):", error?.message);
-      return null;
+    if (data) return rowToSub(data as DbSubRow);
+
+    // Unique-Violation (23505): zwischen Select und Insert hat ein paralleler
+    // Schreiber dieselbe order_id angelegt. Statt das Update zu verlieren,
+    // re-selektieren und die mutable-Felder als Update nachziehen.
+    if (error?.code === "23505") {
+      const { data: raced } = await supabase
+        .from("customer_subscriptions")
+        .select("id, started_at")
+        .eq("ablefy_order_id", orderId)
+        .maybeSingle();
+      if (raced) {
+        return updateExisting(raced as { id: string; started_at: string | null });
+      }
     }
-    return rowToSub(data as DbSubRow);
+    console.error("[customers-repo] insertSubscription (with order):", error?.message);
+    return null;
   }
 
   // Ohne Order-ID: Insert (kein dedup moeglich).

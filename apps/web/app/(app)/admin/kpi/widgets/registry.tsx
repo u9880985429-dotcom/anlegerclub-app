@@ -17,11 +17,24 @@ import {
   ComboBarLineChart, WaterfallChart,
   HistogramChart, ChurnReasonDonut,
 } from "./DataCharts";
-import { RevenueLineChartJs, ProductMixDoughnutChartJs } from "./charts-chartjs";
+import dynamic from "next/dynamic";
 import {
   CohortRetentionTable, TopTradesTable, LatestOrdersTable, SalesPerformanceTable,
   SubscriptionStatusBreakdown, DealsLeaderboard,
 } from "./Tables";
+
+// Chart.js-Widgets NUR clientseitig laden (ssr:false). Chart.js ist canvas-/DOM-
+// basiert; wuerde es server-seitig gerendert, kracht es im Prod-Build mit einer
+// Client-Exception ("Application error"). Mit dynamic(ssr:false) laedt das Modul
+// (inkl. 'chart.js/auto') ausschliesslich im Browser.
+const RevenueLineChartJs = dynamic(
+  () => import("./charts-chartjs").then((m) => m.RevenueLineChartJs),
+  { ssr: false },
+);
+const ProductMixDoughnutChartJs = dynamic(
+  () => import("./charts-chartjs").then((m) => m.ProductMixDoughnutChartJs),
+  { ssr: false },
+);
 
 export const WIDGET_REGISTRY: WidgetCatalogEntry[] = [
   // ─── KENNZAHL ────────────────────────────────────────────────────────────

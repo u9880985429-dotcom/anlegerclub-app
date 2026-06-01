@@ -12,6 +12,8 @@ import {
   extractBuyerInfo,
   safeCompare,
 } from "@/modules/ablefy";
+
+type AblefyConfig = Awaited<ReturnType<typeof loadAblefyConfigFromDb>>;
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { upsertCustomer, upsertSubscription, mapAblefyEventToStatus } from "@/modules/customers";
 
@@ -32,10 +34,13 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: Request) {
   // Webhook-Secret laden — primaer aus DB (Phase 2), Fallback Cookie (Phase 1).
+  // Die geladene Konfig wird unten im Lifecycle-Block wiederverwendet (statt
+  // dieselbe Singleton-Row ein zweites Mal zu lesen).
   let webhookSecret = "";
+  let dbCfg: AblefyConfig | null = null;
   if (isSupabaseConfigured()) {
     try {
-      const dbCfg = await loadAblefyConfigFromDb();
+      dbCfg = await loadAblefyConfigFromDb();
       if (dbCfg.webhookSecret) webhookSecret = dbCfg.webhookSecret;
     } catch {
       // DB-Fehler — wir fallen auf Cookie zurueck.
@@ -114,9 +119,12 @@ export async function POST(req: Request) {
     lookupHint,
   });
 
+  // Buyer-Infos einmal ableiten (reine, deterministische Funktion) und in
+  // beiden Bloecken unten wiederverwenden, statt zweimal zu extrahieren.
+  const buyer = eventName ? extractBuyerInfo(payload) : null;
+
   // Pending-Buyer ableiten — bei kauf-/zahlungsrelevanten Events.
-  if (eventName && shouldTrackBuyer(eventName)) {
-    const buyer = extractBuyerInfo(payload);
+  if (eventName && buyer && shouldTrackBuyer(eventName)) {
     addPendingBuyer({
       triggerEvent: eventName,
       email: buyer.email,
@@ -132,14 +140,15 @@ export async function POST(req: Request) {
   // Iter 49: Auto-Customer-Anlage und/oder Status-Update bei lifecycle-events.
   // Wirkt auch auf Storno-/Refund-/Chargeback-Events, damit der Status korrekt
   // sinkt. Login-Faehigkeit kommt erst in Sprint A (Passwort-Setzen-Flow).
-  if (eventName && isSupabaseConfigured()) {
+  if (eventName && buyer && isSupabaseConfigured()) {
     const lifecycleStatus = mapAblefyEventToStatus(eventName);
     if (lifecycleStatus !== null) {
-      const buyer = extractBuyerInfo(payload);
       if (buyer.email && buyer.productId) {
         try {
-          const dbCfg = await loadAblefyConfigFromDb();
-          const mapping = dbCfg.productMapping.find((m) => m.ablefyProductId === buyer.productId);
+          // Oben bereits geladene Konfig wiederverwenden; nur erneut laden, falls
+          // der erste Versuch fehlschlug (dbCfg blieb null).
+          const cfg = dbCfg ?? (await loadAblefyConfigFromDb());
+          const mapping = cfg.productMapping.find((m) => m.ablefyProductId === buyer.productId);
           if (mapping) {
             const customer = await upsertCustomer({
               email: buyer.email,
