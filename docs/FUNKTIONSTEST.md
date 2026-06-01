@@ -46,12 +46,25 @@
    Daten-Abrufe blockieren (wahrscheinliche Ursache „Admin-Paneel geht nicht").
    **Fix:** liest das Cookie jetzt in beiden Varianten, sichert nur Admin-Seiten,
    sperrt nie fälschlich aus.
+3. **🔴 Admin-Backend stürzte ab — NUR in Produktion** (vom Inhaber gemeldet):
+   Der Link „Admin-Backend" führt auf `/admin/kpi`. Die dort eingebauten
+   **Chart.js**-Diagramme (Canvas) wurden server-seitig mitgerendert → im
+   **Produktions-Build** „Application error: a client-side exception", im
+   Dev-Modus unsichtbar (daher zunächst nicht reproduziert). **Fix:** Chart.js-
+   Widgets via `next/dynamic` mit `ssr:false` einbinden → laden ausschließlich
+   im Browser, kein Server-Rendering der Canvas. **In einem echten Produktions-
+   Build (`next build` + `next start`) verifiziert:** Login → Klick „Admin-Backend"
+   → KPI-Dashboard lädt mit beiden Charts, KEIN Crash, keine Konsolenfehler.
+4. **Robustheit (ultrareview)** — Abo-Speicher konvergiert jetzt bei echter
+   Parallelität (Unique-Violation wird abgefangen statt verschluckt); doppeltes
+   Konfig-Laden im Webhook entfernt.
 
 ## ➕ Chart.js ins Admin eingebaut
 
 - Zwei neue Diagramme (`Umsatz-Verlauf (Chart.js)`, `Produkt-Mix (Chart.js)`)
   sind jetzt **fester Teil des KPI-Standard-Dashboards** (direkt neben den
-  SVG-Versionen). Live verifiziert: beide rendern als Canvas, keine Fehler.
+  SVG-Versionen). **Prod-sicher** geladen (`next/dynamic`, `ssr:false`).
+  In Dev UND im Produktions-Build verifiziert: beide rendern als Canvas, keine Fehler.
 
 ## Hinweise für die Produktion (nicht lokal testbar)
 
