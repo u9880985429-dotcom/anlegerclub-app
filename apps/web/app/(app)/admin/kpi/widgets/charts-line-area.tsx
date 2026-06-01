@@ -3,6 +3,21 @@ import { TrendingUp } from "lucide-react";
 import type { WidgetData } from "./types";
 
 /**
+ * Platzhalter, wenn die Datenreihe leer ist (z.B. byMonth = {} bei Echtdaten).
+ * Verhindert Zugriffe wie points[0].x auf leere Arrays -> kein Crash.
+ */
+function EmptyChartCard({ title }: { title: string }) {
+  return (
+    <div className="card-base h-full p-5">
+      <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <TrendingUp className="h-3.5 w-3.5" /> {title}
+      </h3>
+      <p className="mt-6 text-xs text-muted-foreground">Noch keine Daten fuer diesen Zeitraum.</p>
+    </div>
+  );
+}
+
+/**
  * Area-Chart fuer MRR-Verlauf.
  * Inspiriert vom „SESSIONS"-Area-Chart im Excel-KPI-Dashboard.
  */
@@ -26,6 +41,7 @@ export function RevenueAreaChart({ data }: { data: WidgetData }) {
         { label: "Mär 26", value: 9050 },
         { label: "Apr 26", value: 9870 },
       ];
+  if (series.length === 0) return <EmptyChartCard title="Umsatz-Verlauf (letzte 12 Monate)" />;
   const max = Math.max(...series.map((s) => s.value));
   const min = Math.min(...series.map((s) => s.value)) * 0.85;
   const w = 600;
@@ -105,6 +121,7 @@ export function LineRevenueChart({ data }: { data: WidgetData }) {
         { label: "Nov 25", value: 6510 }, { label: "Dez 25", value: 7080 }, { label: "Jan 26", value: 7740 },
         { label: "Feb 26", value: 8390 }, { label: "Mär 26", value: 9050 }, { label: "Apr 26", value: 9870 },
       ];
+  if (series.length === 0) return <EmptyChartCard title="Booked Revenue (Monatslinie)" />;
   const max = Math.max(...series.map((s) => s.value)) * 1.05;
   const min = Math.min(...series.map((s) => s.value)) * 0.95;
   const w = 600;
@@ -163,6 +180,7 @@ export function TargetLineChart({ data }: { data: WidgetData }) {
         { label: "Nov 25", value: 6510 }, { label: "Dez 25", value: 7080 }, { label: "Jan 26", value: 7740 },
         { label: "Feb 26", value: 8390 }, { label: "Mär 26", value: 9050 }, { label: "Apr 26", value: 9870 },
       ];
+  if (series.length === 0) return <EmptyChartCard title="Umsatz vs. Target" />;
   const target = 8000;
   const max = Math.max(...series.map((s) => s.value), target) * 1.1;
   const min = Math.min(...series.map((s) => s.value)) * 0.9;
@@ -235,6 +253,7 @@ export function ComboBarLineChart({ data }: { data: WidgetData }) {
         { label: "Jul", bar: 20, line: 12800 },
         { label: "Aug", bar: 25, line: 14600 },
       ];
+  if (series.length === 0) return <EmptyChartCard title="Bestellungen + Umsatz · Combo" />;
   const barMax = Math.max(...series.map((s) => s.bar));
   const lineMax = Math.max(...series.map((s) => s.line));
   const w = 600;
