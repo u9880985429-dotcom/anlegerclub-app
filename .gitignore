@@ -48,3 +48,4 @@ _logo-dark.png
 
 # bild-uploads fuer claude-sessions (lokal, niemals committen)
 _inputs/
+.claude/launch.json

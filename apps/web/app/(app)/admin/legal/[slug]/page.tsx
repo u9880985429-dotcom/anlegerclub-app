@@ -2,7 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { Scale, Lock } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { requireSession } from "@/lib/access";
-import { LegalDocumentEditor, LEGAL_DOCS, type LegalSlug } from "../LegalDocumentEditor";
+import { LegalDocumentEditor } from "../LegalDocumentEditor";
+import { LEGAL_DOCS, type LegalSlug } from "../legal-docs";
 
 export const dynamic = "force-dynamic";
 
