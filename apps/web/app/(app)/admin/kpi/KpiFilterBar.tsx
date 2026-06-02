@@ -33,6 +33,7 @@ const PRESETS = [
   { value: "today", label: "Heute" },
   { value: "last_7_days", label: "Letzte 7 Tage" },
   { value: "last_30_days", label: "Letzte 30 Tage" },
+  { value: "last_12_months", label: "Letzte 12 Monate" },
   { value: "this_month", label: "Aktueller Monat" },
   { value: "last_month", label: "Letzter Monat" },
   { value: "this_quarter", label: "Aktuelles Quartal" },
@@ -45,7 +46,7 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
   const searchParams = useSearchParams();
 
   const [product, setProduct] = useState(searchParams.get("product") ?? "all");
-  const [preset, setPreset] = useState(searchParams.get("preset") ?? "last_30_days");
+  const [preset, setPreset] = useState(searchParams.get("preset") ?? "last_12_months");
   const [dateFrom, setDateFrom] = useState(searchParams.get("from") ?? "");
   const [dateTo, setDateTo] = useState(searchParams.get("to") ?? "");
   const [agent, setAgent] = useState(searchParams.get("agent") ?? "all");
@@ -69,7 +70,7 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
 
   function reset() {
     setProduct("all");
-    setPreset("last_30_days");
+    setPreset("last_12_months");
     setDateFrom("");
     setDateTo("");
     setAgent("all");
@@ -111,7 +112,7 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
     }
   }
 
-  const hasFilters = product !== "all" || preset !== "last_30_days" || agent !== "all";
+  const hasFilters = product !== "all" || preset !== "last_12_months" || agent !== "all";
 
   // Filter-Aenderung sofort auf URL spiegeln, damit der DynamicGridLoader
   // direkt darauf reagiert. „Filter anwenden"-Button ist redundant geworden,
@@ -119,7 +120,7 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
   useEffect(() => {
     const params = new URLSearchParams();
     if (product !== "all") params.set("product", product);
-    if (preset !== "last_30_days") params.set("preset", preset);
+    if (preset !== "last_12_months") params.set("preset", preset);
     if (preset === "custom") {
       if (dateFrom) params.set("from", dateFrom);
       if (dateTo) params.set("to", dateTo);
@@ -288,6 +289,8 @@ function computeDateRange(preset: string, customFrom: string, customTo: string):
       return { from: iso(new Date(today.getTime() - 7 * 86400000)), to: iso(today) };
     case "last_30_days":
       return { from: iso(new Date(today.getTime() - 30 * 86400000)), to: iso(today) };
+    case "last_12_months":
+      return { from: iso(new Date(today.getFullYear(), today.getMonth() - 11, 1)), to: iso(today) };
     case "this_month":
       return { from: iso(startOfMonth(today)), to: iso(today) };
     case "last_month": {
