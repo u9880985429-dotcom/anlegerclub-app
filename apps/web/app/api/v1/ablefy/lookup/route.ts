@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/access";
+import { canManageIntegrations } from "@traderiq/api";
 import { appendAblefyEvent } from "@/lib/ablefy-store";
+import { createAblefyApiClient } from "@/modules/ablefy";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +32,10 @@ interface LookupBody {
  * abgeleitete KPIs (Active Members, MRR, Refund Rate ...).
  */
 export async function POST(req: Request) {
+  const session = await requireSession();
+  if (!canManageIntegrations(session.user.role)) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
   let body: LookupBody;
   try {
     body = await req.json();
@@ -52,20 +59,12 @@ export async function POST(req: Request) {
 
   const safeEndpoint = endpoint as AllowedEndpoint;
   const safeId = encodeURIComponent(id.trim());
-  const url = new URL(`https://api.myablefy.com/api/${safeEndpoint}/${safeId}`);
-  url.searchParams.set("key", apiKey);
-  url.searchParams.set("secret", apiSecret);
+  const client = createAblefyApiClient({ apiKey, apiSecret });
 
   const eventLabel = eventName ? `${eventName} → ` : "";
   try {
-    const upstream = await fetch(url, { headers: { Accept: "application/json" } });
-    const text = await upstream.text();
-    let parsed: unknown = null;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      parsed = { raw: text.slice(0, 500) };
-    }
+    const upstream = await client.getRaw(`${safeEndpoint}/${safeId}`);
+    const parsed: unknown = upstream.jsonOk ? upstream.json : { raw: upstream.text.slice(0, 500) };
 
     if (!upstream.ok) {
       appendAblefyEvent({

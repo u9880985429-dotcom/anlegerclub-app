@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireSession } from "@/lib/access";
+import { canManageIntegrations } from "@traderiq/api";
 
 /**
  * Phase 1 stub: Phase 2 swaps in Expo / FCM / APNs / VAPID.
@@ -14,6 +16,10 @@ const PayloadSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const session = await requireSession();
+  if (!canManageIntegrations(session.user.role)) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
   let payload: unknown;
   try {
     payload = await req.json();

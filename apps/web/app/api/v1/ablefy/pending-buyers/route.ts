@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/access";
+import { canManageIntegrations } from "@traderiq/api";
 import { listPendingBuyers } from "@/lib/ablefy-pending-buyers";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +13,10 @@ export const dynamic = "force-dynamic";
  * `PendingBuyersCard` im Admin-Dashboard gepollt.
  */
 export async function GET(req: Request) {
+  const session = await requireSession();
+  if (!canManageIntegrations(session.user.role)) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
   const url = new URL(req.url);
   const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get("limit") ?? "50", 10) || 50));
   return NextResponse.json({ ok: true, buyers: listPendingBuyers(limit) });

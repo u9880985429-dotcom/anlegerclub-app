@@ -1,5 +1,5 @@
 import type { Subscription, User, ProductSlug } from "@traderiq/api";
-import { filterKpiRelevantSubs } from "@/lib/kpi-bucket";
+import { filterKpiRelevantSubs } from "./bucket";
 
 /**
  * Anomalie-Detection fuer das KPI-Modul "sonstige Daten".

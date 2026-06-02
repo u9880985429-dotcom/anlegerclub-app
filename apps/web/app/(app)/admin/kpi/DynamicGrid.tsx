@@ -12,6 +12,7 @@ import { findWidget } from "./widgets/registry";
 import type { WidgetData } from "./widgets/types";
 import { WidgetGallery } from "./WidgetGallery";
 import { WidgetSettingsModal } from "./WidgetSettingsModal";
+import { WidgetErrorBoundary } from "./WidgetErrorBoundary";
 
 const COLS_OPTIONS: WidgetSize[] = [3, 4, 6, 8, 12];
 
@@ -217,7 +218,9 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
                     {inst.title}
                   </div>
                 )}
-                {entry.render(data, inst.settings)}
+                <WidgetErrorBoundary widgetId={inst.widgetId}>
+                  {entry.render(data, inst.settings)}
+                </WidgetErrorBoundary>
               </div>
             );
           })}

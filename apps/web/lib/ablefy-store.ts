@@ -9,6 +9,7 @@
 export type AblefyEventKind =
   | "webhook.received"
   | "webhook.rejected"
+  | "webhook.insecure"
   | "sync.started"
   | "sync.completed"
   | "sync.failed"

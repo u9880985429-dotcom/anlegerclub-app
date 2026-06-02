@@ -16,6 +16,9 @@ export async function GET() {
   const session = await requireSession();
   const role = session.user.role;
   const allowed = canManageIntegrations(role);
+  if (!allowed) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -115,20 +118,20 @@ export async function GET() {
     };
   }
 
-  // Sample-Daten: erste customer + erste sub
+  // Sample-Diagnose OHNE PII: nur pruefen/zaehlen, ob der erste Kunde Subs hat.
+  // Es werden KEINE rohen Kundendaten (E-Mail, Name) mehr zurueckgegeben.
   try {
-    const { data: c0 } = await supabase.from("customers").select("*").limit(1).maybeSingle();
+    const { data: c0 } = await supabase.from("customers").select("email").limit(1).maybeSingle();
     if (c0) {
-      const { data: subsForC0 } = await supabase
+      const { count: subCount } = await supabase
         .from("customer_subscriptions")
-        .select("*")
-        .eq("customer_email", (c0 as Record<string, unknown>).email)
-        .limit(5);
-      result.sample_first_customer = c0;
-      result.sample_first_customer_subs = subsForC0 ?? [];
-      result.sample_first_customer_subs_count = (subsForC0 ?? []).length;
+        .select("*", { count: "exact", head: true })
+        .eq("customer_email", (c0 as Record<string, unknown>).email);
+      result.sample_first_customer_present = true;
+      result.sample_first_customer_has_subs = (subCount ?? 0) > 0;
+      result.sample_first_customer_subs_count = subCount ?? 0;
     } else {
-      result.sample_first_customer = null;
+      result.sample_first_customer_present = false;
     }
   } catch (err) {
     result.sample_error = err instanceof Error ? err.message : "unknown";

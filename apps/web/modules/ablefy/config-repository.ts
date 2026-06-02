@@ -1,16 +1,17 @@
-import { getSupabaseAdmin } from "./supabase";
-import { DEFAULT_ABLEFY_CONFIG, type AblefyConfig, type AblefyProductMapping } from "./ablefy-config";
+import { getSupabaseAdmin } from "@/lib/supabase";
+import { DEFAULT_ABLEFY_CONFIG, type AblefyConfig, type AblefyProductMapping } from "@/lib/ablefy-config";
 
 /**
- * Server-side Persistierung der Ablefy-Konfig in der Supabase-Tabelle
- * `public.ablefy_config` (Singleton-Row mit `id = 'singleton'`).
+ * ablefy-Modul · Konfig-REPOSITORY — der EINZIGE Ort mit Supabase-Zugriff fuer
+ * die Ablefy-Konfiguration (Singleton-Row `public.ablefy_config`, id='singleton').
  *
  * Warum Singleton: Phase 1 hat genau eine Anlegerclub-Instanz mit *einer*
  * gemeinsamen Ablefy-Anbindung. Phase 2 (Multi-Tenant) wuerde das auf eine
  * org_id-basierte Tabelle erweitern.
  *
- * Faellt auf den DEFAULT_ABLEFY_CONFIG zurueck, wenn Supabase nicht
- * konfiguriert ist oder die Row noch nicht existiert.
+ * Faellt auf DEFAULT_ABLEFY_CONFIG zurueck, wenn Supabase nicht konfiguriert
+ * ist oder die Row noch nicht existiert. Konsumenten importieren ueber die
+ * Modul-Tuer `@/modules/ablefy`, nicht diese Datei direkt.
  */
 
 interface DbConfigRow {
@@ -46,7 +47,7 @@ export async function loadAblefyConfigFromDb(): Promise<AblefyConfig> {
     .eq("id", "singleton")
     .maybeSingle();
   if (error) {
-    console.error("[ablefy-config-store] load failed:", error.message);
+    console.error("[ablefy-config-repo] load failed:", error.message);
     return DEFAULT_ABLEFY_CONFIG;
   }
   if (!data) return DEFAULT_ABLEFY_CONFIG;
@@ -70,7 +71,7 @@ export async function saveAblefyConfigToDb(cfg: AblefyConfig): Promise<{ ok: boo
       updated_at: new Date().toISOString(),
     });
   if (error) {
-    console.error("[ablefy-config-store] save failed:", error.message);
+    console.error("[ablefy-config-repo] save failed:", error.message);
     return { ok: false, error: error.message };
   }
   return { ok: true };

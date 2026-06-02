@@ -1,52 +1,21 @@
-import { getSupabaseAdmin } from "./supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
+import type {
+  Customer,
+  CustomerStatus,
+  CustomerSubscription,
+  SubscriptionStatus,
+  UpsertCustomerInput,
+  UpsertSubscriptionInput,
+} from "./types";
 
 /**
- * Persistente Customer-CRUD via Supabase. Faellt auf null/[] zurueck,
- * wenn Supabase nicht konfiguriert ist (lokale Entwicklung).
+ * customers-REPOSITORY — der EINZIGE Ort mit Supabase-Zugriff fuer Kunden +
+ * Abos ("der Schalter"). Faellt auf null/[] zurueck, wenn Supabase nicht
+ * konfiguriert ist (lokale Entwicklung).
  *
- * Phase-2-Anfang: Datenmodell fuer echte Ablefy-Kunden, getrennt vom
- * bestehenden Mock-User-System (`packages/api/src/mock/users.ts`).
- * Sobald Sprint A (Login + Auth) fertig ist, ersetzen die Customers
- * die Mock-Daten komplett. Bis dahin laufen beide parallel:
- *   - Mock-Users (Andrei/Max/Babsi/Hendrik) → Login-faehig
- *   - Customers in Supabase → im Admin sichtbar, NOCH NICHT login-faehig
+ * Wichtig: andere Module/Seiten importieren NICHT diese Datei direkt, sondern
+ * die oeffentliche Tuer `@/modules/customers` (index.ts).
  */
-
-export type CustomerStatus = "active" | "blocked" | "deleted";
-export type SubscriptionStatus =
-  | "active"
-  | "paid"
-  | "paused"
-  | "cancelled"
-  | "expired"
-  | "refunded";
-
-export interface Customer {
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  ablefyPayerId: string | null;
-  status: CustomerStatus;
-  notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CustomerSubscription {
-  id: string;
-  customerEmail: string;
-  productSlug: string;
-  ablefyProductId: string | null;
-  planLabel: string | null;
-  ablefyOrderId: string | null;
-  status: SubscriptionStatus;
-  amountCents: number | null;
-  currency: string;
-  startedAt: string | null;
-  currentPeriodEnd: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface DbCustomerRow {
   email: string;
@@ -108,15 +77,6 @@ function rowToSub(row: DbSubRow): CustomerSubscription {
 
 // ─── Customers ────────────────────────────────────────────────────────────
 
-export interface UpsertCustomerInput {
-  email: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  ablefyPayerId?: string | null;
-  status?: CustomerStatus;
-  notes?: string | null;
-}
-
 export async function upsertCustomer(input: UpsertCustomerInput): Promise<Customer | null> {
   const supabase = getSupabaseAdmin();
   if (!supabase) return null;
@@ -139,7 +99,7 @@ export async function upsertCustomer(input: UpsertCustomerInput): Promise<Custom
     .select("*")
     .single();
   if (error || !data) {
-    console.error("[customers-store] upsertCustomer:", error?.message);
+    console.error("[customers-repo] upsertCustomer:", error?.message);
     return null;
   }
   return rowToCustomer(data as DbCustomerRow);
@@ -158,7 +118,7 @@ export async function listCustomers(options: {
   if (options.limit) q = q.limit(options.limit);
   const { data, error } = await q;
   if (error) {
-    console.error("[customers-store] listCustomers:", error.message);
+    console.error("[customers-repo] listCustomers:", error.message);
     return [];
   }
   return ((data ?? []) as DbCustomerRow[]).map(rowToCustomer);
@@ -176,58 +136,99 @@ export async function countCustomers(): Promise<number> {
 
 // ─── Subscriptions ────────────────────────────────────────────────────────
 
-export interface UpsertSubscriptionInput {
-  customerEmail: string;
-  productSlug: string;
-  ablefyProductId?: string | null;
-  planLabel?: string | null;
-  ablefyOrderId?: string | null;
-  status?: SubscriptionStatus;
-  amountCents?: number | null;
-  currency?: string;
-  startedAt?: string | null;
-  currentPeriodEnd?: string | null;
-}
-
 export async function upsertSubscription(input: UpsertSubscriptionInput): Promise<CustomerSubscription | null> {
   const supabase = getSupabaseAdmin();
   if (!supabase) return null;
   const normalizedEmail = input.customerEmail.trim().toLowerCase();
-  // Wenn ablefyOrderId vorhanden ist, on-conflict auf ablefy_order_id —
-  // sonst kann es zu Duplikaten kommen, aber das ist tolerabel im Worst-Case.
-  const baseRow = {
+
+  // Felder, die bei JEDEM Event aktualisiert werden duerfen (Status, Betrag, ...).
+  // `started_at` (= Kaufdatum) und `ablefy_order_id` werden bewusst NICHT hier
+  // gefuehrt, damit Folge-Events (Storno/Refund) das Kaufdatum nicht ueberschreiben.
+  const mutable = {
     customer_email: normalizedEmail,
     product_slug: input.productSlug,
     ablefy_product_id: input.ablefyProductId ?? null,
     plan_label: input.planLabel ?? null,
-    ablefy_order_id: input.ablefyOrderId ?? null,
     status: input.status ?? "active",
     amount_cents: input.amountCents ?? null,
     currency: input.currency ?? "EUR",
-    started_at: input.startedAt ?? null,
     current_period_end: input.currentPeriodEnd ?? null,
     updated_at: new Date().toISOString(),
   };
+
+  // Mit Order-ID: "erst nachsehen, dann gezielt schreiben". Bewahrt das
+  // urspruengliche Kaufdatum bei Folge-Events. Falls bei echter Parallelitaet
+  // (zwei Syncs, oder Sync + Webhook fuer dieselbe order_id) der Insert auf den
+  // partiellen Unique-Index `uq_customer_subs_ablefy_order_id` laeuft, fangen
+  // wir die Unique-Violation (23505) ab und konvergieren auf die existierende
+  // Zeile (Re-Select + Update), statt das Update still zu verwerfen.
   if (input.ablefyOrderId) {
+    const orderId = input.ablefyOrderId;
+
+    // Existierende Zeile (falls vorhanden) gezielt aktualisieren — `started_at`
+    // nur nachtragen, wenn bisher leer und jetzt ein Datum kommt.
+    const updateExisting = async (
+      existingRow: { id: string; started_at: string | null },
+    ): Promise<CustomerSubscription | null> => {
+      const patch: Record<string, unknown> = { ...mutable };
+      if (!existingRow.started_at && input.startedAt) {
+        patch.started_at = input.startedAt;
+      }
+      const { data, error } = await supabase
+        .from("customer_subscriptions")
+        .update(patch)
+        .eq("id", existingRow.id)
+        .select("*")
+        .single();
+      if (error || !data) {
+        console.error("[customers-repo] updateSubscription:", error?.message);
+        return null;
+      }
+      return rowToSub(data as DbSubRow);
+    };
+
+    const { data: existing } = await supabase
+      .from("customer_subscriptions")
+      .select("id, started_at")
+      .eq("ablefy_order_id", orderId)
+      .maybeSingle();
+
+    if (existing) {
+      return updateExisting(existing as { id: string; started_at: string | null });
+    }
+
     const { data, error } = await supabase
       .from("customer_subscriptions")
-      .upsert(baseRow, { onConflict: "ablefy_order_id", ignoreDuplicates: false })
+      .insert({ ...mutable, ablefy_order_id: orderId, started_at: input.startedAt ?? null })
       .select("*")
       .single();
-    if (error || !data) {
-      console.error("[customers-store] upsertSubscription (with order):", error?.message);
-      return null;
+    if (data) return rowToSub(data as DbSubRow);
+
+    // Unique-Violation (23505): zwischen Select und Insert hat ein paralleler
+    // Schreiber dieselbe order_id angelegt. Statt das Update zu verlieren,
+    // re-selektieren und die mutable-Felder als Update nachziehen.
+    if (error?.code === "23505") {
+      const { data: raced } = await supabase
+        .from("customer_subscriptions")
+        .select("id, started_at")
+        .eq("ablefy_order_id", orderId)
+        .maybeSingle();
+      if (raced) {
+        return updateExisting(raced as { id: string; started_at: string | null });
+      }
     }
-    return rowToSub(data as DbSubRow);
+    console.error("[customers-repo] insertSubscription (with order):", error?.message);
+    return null;
   }
+
   // Ohne Order-ID: Insert (kein dedup moeglich).
   const { data, error } = await supabase
     .from("customer_subscriptions")
-    .insert(baseRow)
+    .insert({ ...mutable, ablefy_order_id: null, started_at: input.startedAt ?? null })
     .select("*")
     .single();
   if (error || !data) {
-    console.error("[customers-store] insertSubscription:", error?.message);
+    console.error("[customers-repo] insertSubscription:", error?.message);
     return null;
   }
   return rowToSub(data as DbSubRow);
@@ -237,26 +238,22 @@ export async function listSubsByCustomerEmails(emails: string[]): Promise<Custom
   const supabase = getSupabaseAdmin();
   if (!supabase || emails.length === 0) return [];
   const normalized = emails.map((e) => e.trim().toLowerCase());
-  const { data, error } = await supabase
-    .from("customer_subscriptions")
-    .select("*")
-    .in("customer_email", normalized);
-  if (error) {
-    console.error("[customers-store] listSubsByCustomerEmails:", error.message);
-    return [];
+  // In Choerten abfragen: ein einziges .in() mit hunderten/tausenden E-Mails
+  // erzeugt einen riesigen Query-String (Gefahr HTTP 414) und laesst Subs
+  // still verschwinden. 200 pro Abfrage ist sicher.
+  const CHUNK = 200;
+  const out: CustomerSubscription[] = [];
+  for (let i = 0; i < normalized.length; i += CHUNK) {
+    const slice = normalized.slice(i, i + CHUNK);
+    const { data, error } = await supabase
+      .from("customer_subscriptions")
+      .select("*")
+      .in("customer_email", slice);
+    if (error) {
+      console.error("[customers-repo] listSubsByCustomerEmails:", error.message);
+      continue;
+    }
+    for (const row of (data ?? []) as DbSubRow[]) out.push(rowToSub(row));
   }
-  return ((data ?? []) as DbSubRow[]).map(rowToSub);
-}
-
-export async function listAllCustomerSubscriptions(): Promise<CustomerSubscription[]> {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("customer_subscriptions")
-    .select("*");
-  if (error) {
-    console.error("[customers-store] listAllCustomerSubscriptions:", error.message);
-    return [];
-  }
-  return ((data ?? []) as DbSubRow[]).map(rowToSub);
+  return out;
 }

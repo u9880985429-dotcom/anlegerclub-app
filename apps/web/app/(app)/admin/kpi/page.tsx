@@ -3,6 +3,7 @@ import { Crown } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { requireSession } from "@/lib/access";
 import { allSubscriptions, allUsers } from "@traderiq/api";
+import { filterKpiRelevantSubs } from "@/modules/kpi";
 import { KpiFilterBar } from "./KpiFilterBar";
 import { DynamicGridLoader } from "./DynamicGridLoader";
 
@@ -22,9 +23,12 @@ export default async function KpiDashboardPage() {
     redirect("/admin");
   }
 
-  const activeMembers = allSubscriptions.filter((s) => s.status === "ACTIVE" || s.status === "PAID").length;
-  const pausedMembers = allSubscriptions.filter((s) => s.status === "PAUSED").length;
-  const expiredMembers = allSubscriptions.filter((s) => s.status === "EXPIRED" || s.status === "REFUNDED").length;
+  // Nur KPI-relevante Subs zaehlen: interne/Team-Mitglieder werden ausgefiltert
+  // (konsistent mit PricingOverviewCard + anomaly-detection).
+  const kpiSubs = filterKpiRelevantSubs(allSubscriptions, allUsers);
+  const activeMembers = kpiSubs.filter((s) => s.status === "ACTIVE" || s.status === "PAID").length;
+  const pausedMembers = kpiSubs.filter((s) => s.status === "PAUSED").length;
+  const expiredMembers = kpiSubs.filter((s) => s.status === "EXPIRED" || s.status === "REFUNDED" || s.status === "CANCELLED").length;
   const totalUsers = allUsers.length;
   const avgArpu = 89;
   const newMembersThisMonth = 14;

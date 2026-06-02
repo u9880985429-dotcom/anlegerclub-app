@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSession } from "@/lib/access";
 import { allUsers } from "@traderiq/api";
 import { getPublicDisplayName, getTeamBadge, isTeamRole } from "@traderiq/api";
-import { insertComment, listCommentsByPost } from "@/lib/comments-store";
+import { insertComment, listCommentsByPost } from "@/modules/comments";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { filterText } from "@traderiq/api";
 

@@ -8,7 +8,7 @@ import {
   getTradeById,
   type ProductSlug,
 } from "@traderiq/api";
-import { listCommentsByPost } from "@/lib/comments-store";
+import { listCommentsByPost } from "@/modules/comments";
 import { ACTION_BADGE_CLASS, ACTION_LABELS, formatGermanDate } from "@/lib/format";
 import { VideoPlaceholder } from "@/components/VideoPlaceholder";
 import { CommunityComposer } from "@/components/CommunityComposer";

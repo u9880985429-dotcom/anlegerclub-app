@@ -1,10 +1,15 @@
-import { getSupabaseAdmin } from "./supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import type { Comment } from "@traderiq/api";
+import type { InsertCommentInput } from "./types";
 
 /**
- * Persistente Comment-CRUD via Supabase. Faellt auf leeres Array zurueck,
- * wenn Supabase nicht konfiguriert ist (lokale Entwicklung) — die UI bleibt
- * funktionstuechtig, Comments verschwinden nur bei jedem Reload.
+ * comments-REPOSITORY — der EINZIGE Ort mit Supabase-Zugriff fuer Kommentare.
+ * Faellt auf []/null zurueck, wenn Supabase nicht konfiguriert ist (lokale
+ * Entwicklung) — die UI bleibt funktionstuechtig, Comments verschwinden nur
+ * bei jedem Reload.
+ *
+ * Andere Module/Seiten importieren NICHT diese Datei direkt, sondern die
+ * oeffentliche Tuer `@/modules/comments` (index.ts).
  */
 
 interface DbCommentRow {
@@ -45,20 +50,10 @@ export async function listCommentsByPost(postId: string): Promise<Comment[]> {
     .eq("visible", true)
     .order("created_at", { ascending: true });
   if (error) {
-    console.error("[comments-store] list failed:", error.message);
+    console.error("[comments-repo] list failed:", error.message);
     return [];
   }
   return (data ?? []).map(rowToComment);
-}
-
-export interface InsertCommentInput {
-  postId: string;
-  authorId: string;
-  authorName: string;
-  authorIsTeam: boolean;
-  authorTeamBadge: string | null;
-  bodyMd: string;
-  parentId?: string | null;
 }
 
 export async function insertComment(input: InsertCommentInput): Promise<Comment | null> {
@@ -78,7 +73,7 @@ export async function insertComment(input: InsertCommentInput): Promise<Comment 
     .select("*")
     .single();
   if (error || !data) {
-    console.error("[comments-store] insert failed:", error?.message);
+    console.error("[comments-repo] insert failed:", error?.message);
     return null;
   }
   return rowToComment(data as DbCommentRow);

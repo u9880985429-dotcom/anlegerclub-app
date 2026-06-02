@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireSession } from "@/lib/access";
+import { canManageIntegrations } from "@traderiq/api";
 
 /**
  * Phase 1 stub: validates the payload and forwards to NOTIFY_EMAIL_WEBHOOK_URL
@@ -20,6 +22,10 @@ const PayloadSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const session = await requireSession();
+  if (!canManageIntegrations(session.user.role)) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
   let payload: unknown;
   try {
     payload = await req.json();

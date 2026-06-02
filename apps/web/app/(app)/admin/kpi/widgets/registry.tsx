@@ -17,10 +17,24 @@ import {
   ComboBarLineChart, WaterfallChart,
   HistogramChart, ChurnReasonDonut,
 } from "./DataCharts";
+import dynamic from "next/dynamic";
 import {
   CohortRetentionTable, TopTradesTable, LatestOrdersTable, SalesPerformanceTable,
   SubscriptionStatusBreakdown, DealsLeaderboard,
 } from "./Tables";
+
+// Chart.js-Widgets NUR clientseitig laden (ssr:false). Chart.js ist canvas-/DOM-
+// basiert; wuerde es server-seitig gerendert, kracht es im Prod-Build mit einer
+// Client-Exception ("Application error"). Mit dynamic(ssr:false) laedt das Modul
+// (inkl. 'chart.js/auto') ausschliesslich im Browser.
+const RevenueLineChartJs = dynamic(
+  () => import("./charts-chartjs").then((m) => m.RevenueLineChartJs),
+  { ssr: false },
+);
+const ProductMixDoughnutChartJs = dynamic(
+  () => import("./charts-chartjs").then((m) => m.ProductMixDoughnutChartJs),
+  { ssr: false },
+);
 
 export const WIDGET_REGISTRY: WidgetCatalogEntry[] = [
   // ─── KENNZAHL ────────────────────────────────────────────────────────────
@@ -33,6 +47,24 @@ export const WIDGET_REGISTRY: WidgetCatalogEntry[] = [
     allowedCols: [3, 4, 6],
     inspiration: "Standard-SaaS-KPI-Card",
     render: (data) => <MrrCard data={data} />,
+  },
+  {
+    id: "chartjs.revenueLine",
+    title: "Umsatz-Verlauf (Chart.js)",
+    description: "Linien-Diagramm des Monatsumsatzes — gerendert mit Chart.js (Zusatz/Test).",
+    category: "Verlauf",
+    defaultCols: 6,
+    allowedCols: [4, 6],
+    render: (data) => <RevenueLineChartJs data={data} />,
+  },
+  {
+    id: "chartjs.productDoughnut",
+    title: "Produkt-Mix (Chart.js)",
+    description: "Donut der Produkt-Verteilung — gerendert mit Chart.js (Zusatz/Test).",
+    category: "Verteilung",
+    defaultCols: 4,
+    allowedCols: [3, 4, 6],
+    render: (data) => <ProductMixDoughnutChartJs data={data} />,
   },
   {
     id: "kpi.arr",

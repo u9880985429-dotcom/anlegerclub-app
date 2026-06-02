@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { allSubscriptions, allTrades, allUsers, reports } from "@traderiq/api";
 
 export default function AdminOverview() {
-  const activeMembers = allSubscriptions.filter((s) => s.status === "ACTIVE").length;
+  const activeMembers = allSubscriptions.filter((s) => s.status === "ACTIVE" || s.status === "PAID").length;
   const pausedSubs = allSubscriptions.filter((s) => s.status === "PAUSED");
   const openReports = reports.filter((r) => r.status === "OPEN").length;
 

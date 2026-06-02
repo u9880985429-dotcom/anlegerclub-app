@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { requireSession } from "@/lib/access";
+import { canManageIntegrations } from "@traderiq/api";
+import { createAblefyApiClient } from "@/modules/ablefy";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +14,10 @@ export const dynamic = "force-dynamic";
  * Annahmen mitteilen kann.
  */
 export async function POST(req: Request) {
+  const session = await requireSession();
+  if (!canManageIntegrations(session.user.role)) {
+    return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+  }
   let body: { apiKey?: string; apiSecret?: string };
   try {
     body = await req.json();
@@ -22,23 +29,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "missing_credentials" }, { status: 400 });
   }
 
-  const url = new URL("https://api.myablefy.com/api/invoices");
-  url.searchParams.set("key", apiKey);
-  url.searchParams.set("secret", apiSecret);
-  url.searchParams.set("page", "1");
+  const client = createAblefyApiClient({ apiKey, apiSecret });
 
   try {
-    const upstream = await fetch(url, { headers: { Accept: "application/json" } });
-    const text = await upstream.text();
-    let parsed: unknown = null;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
+    const upstream = await client.getRaw("invoices", { page: "1" });
+    if (!upstream.jsonOk) {
       return NextResponse.json(
-        { ok: false, error: "ablefy_non_json", status: upstream.status, body: text.slice(0, 1000) },
+        { ok: false, error: "ablefy_non_json", status: upstream.status, body: upstream.text.slice(0, 1000) },
         { status: 502 },
       );
     }
+    const parsed: unknown = upstream.json;
     if (!upstream.ok) {
       return NextResponse.json({ ok: false, status: upstream.status, body: parsed }, { status: 502 });
     }

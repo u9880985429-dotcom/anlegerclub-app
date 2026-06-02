@@ -48,6 +48,8 @@ export const DEFAULT_LAYOUT: WidgetInstance[] = [
   { instanceId: "w-revenue-area", widgetId: "chart.revenueArea", cols: 8 },
   { instanceId: "w-churn-donut", widgetId: "chart.churnDonut", cols: 4 },
   { instanceId: "w-product-mix", widgetId: "chart.productMix", cols: 6 },
+  { instanceId: "w-chartjs-revenue", widgetId: "chartjs.revenueLine", cols: 6 },
+  { instanceId: "w-chartjs-product", widgetId: "chartjs.productDoughnut", cols: 6 },
   { instanceId: "w-cohort", widgetId: "table.cohortRetention", cols: 6 },
   { instanceId: "w-funnel", widgetId: "chart.salesFunnel", cols: 12 },
   { instanceId: "w-engagement", widgetId: "table.topTrades", cols: 12 },

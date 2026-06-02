@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { X, Plus, Search, Sparkles } from "lucide-react";
 import { WIDGET_REGISTRY } from "./widgets/registry";
 import type { WidgetCatalogEntry } from "./widgets/types";
@@ -39,6 +39,7 @@ export function WidgetGallery({
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"all" | Category>("all");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const categories = useMemo(
     () => Array.from(new Set(WIDGET_REGISTRY.map((w) => w.category))) as Category[],
@@ -115,7 +116,7 @@ export function WidgetGallery({
           {CATEGORY_DESCRIPTION[category]}
         </div>
 
-        <div className="grid flex-1 gap-3 overflow-y-auto p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div ref={scrollRef} className="grid flex-1 gap-3 overflow-y-auto p-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.length === 0 ? (
             <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
               Kein Widget passt zu deiner Suche.
@@ -126,9 +127,10 @@ export function WidgetGallery({
                 key={w.id}
                 type="button"
                 onClick={() => onAdd(w)}
-                className="group flex flex-col overflow-hidden rounded-md border border-border bg-card text-left transition hover:border-brand hover:shadow-lg"
+                style={{ minHeight: "18rem" }}
+                className="group flex flex-col self-start overflow-hidden rounded-md border border-border bg-card text-left transition hover:border-brand hover:shadow-lg"
               >
-                <WidgetThumbnail entry={w} />
+                <WidgetThumbnail entry={w} scrollRoot={scrollRef} />
                 <div className="flex flex-1 flex-col p-3">
                   <div className="mb-2">
                     <div className="flex items-start justify-between gap-2">
