@@ -22,8 +22,14 @@ function EmptyChartCard({ title }: { title: string }) {
  * Inspiriert vom „SESSIONS"-Area-Chart im Excel-KPI-Dashboard.
  */
 export function RevenueAreaChart({ data }: { data: WidgetData }) {
+  // Laufenden (Teil-)Monat ausklammern — sonst faellt der letzte Punkt auf ~0,
+  // weil der aktuelle Monat gerade erst begonnen hat (sah aus wie -99% Absturz).
+  // Null-Umsatz-Monate (z.B. eine einzelne offene Alt-Rechnung) ebenfalls weglassen.
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const series = data.ablefyAggregate?.byMonth
     ? Object.entries(data.ablefyAggregate.byMonth)
+        .filter(([k, v]) => k !== currentMonthKey && v.revenue > 0)
         .sort(([a], [b]) => a.localeCompare(b))
         .slice(-12)
         .map(([k, v]) => ({ label: k, value: v.revenue }))
