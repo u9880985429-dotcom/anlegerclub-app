@@ -44,7 +44,7 @@ export function DynamicGridLoader({ baseData }: { baseData: Omit<WidgetData, "ab
   const data = useMemo<WidgetData>(() => {
     const filters = {
       product: searchParams.get("product") ?? "all",
-      preset: searchParams.get("preset") ?? "last_30_days",
+      preset: searchParams.get("preset") ?? "last_12_months",
       from: searchParams.get("from"),
       to: searchParams.get("to"),
     };
@@ -129,6 +129,9 @@ function computeMonthRange(preset: string, from: string | null, to: string | nul
     case "last_30_days":
       // ~ aktueller + Vormonat
       return { fromMonth: ym(new Date(now.getFullYear(), now.getMonth() - 1, 1)), toMonth: ym(now) };
+    case "last_12_months":
+      // Standard-Ansicht: aktueller Monat + 11 Vormonate = volle 12-Monats-Historie.
+      return { fromMonth: ym(new Date(now.getFullYear(), now.getMonth() - 11, 1)), toMonth: ym(now) };
     case "last_month": {
       const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       return { fromMonth: ym(lm), toMonth: ym(lm) };
