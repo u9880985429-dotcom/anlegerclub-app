@@ -1,13 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Bell, Users, Sparkles, PlayCircle } from "lucide-react";
+import { ArrowRight, Bell, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { SignalTape } from "@/components/SignalTape";
 
 export default function MarketingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Subtle background tint, traderiq.net inspired — über dem globalen Polygon-Wallpaper */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[1200px] -translate-x-1/2 rounded-full bg-brand/5 blur-3xl" />
-
+    <div className="relative min-h-screen">
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
         <Logo variant="light" size="md" href={null} />
         <Link href="/login" className="btn-secondary">
@@ -15,65 +13,87 @@ export default function MarketingPage() {
         </Link>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:pt-16">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="badge-brand mb-5 inline-block">Mitgliederbereich · Trader IQ Anlegerclub</span>
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
-            Wir bilden <span className="text-brand">Investoren</span> aus.
-          </h1>
-          <p className="mt-6 text-lg text-muted-foreground md:text-xl">
-            Trades, Marktanalysen, Videos und Community – an einem Ort. Push-Benachrichtigungen, sobald die Redaktion handelt.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/login" className="btn-brand inline-flex items-center gap-2 px-6 py-3 text-base">
-              Mitgliederbereich öffnen
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href="/info" className="btn-secondary inline-flex items-center gap-2 px-6 py-3 text-base">
-              <PlayCircle className="h-4 w-4 text-brand" />
-              Mehr erfahren
-            </Link>
+      <main className="relative z-10 mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:pt-12">
+        {/* Hero als Bento: Claim links, Signatur-Element (Signal-Tape) rechts. */}
+        <section className="grid items-stretch gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="card-elevated flex flex-col justify-center p-7 sm:p-9">
+            <span className="badge-brand mb-5 w-fit">Mitgliederbereich · Trader IQ Anlegerclub</span>
+            <h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-navy-900 md:text-5xl">
+              Wir bilden <span className="text-brand">Investoren</span> aus.
+            </h1>
+            <p className="mt-5 max-w-md text-lg text-muted-foreground">
+              Trades, Marktanalysen, Videos und Community an einem Ort. Du bekommst eine Nachricht,
+              sobald die Redaktion handelt.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link href="/login" className="btn-brand inline-flex items-center gap-2 px-6 py-3 text-base">
+                Mitgliederbereich öffnen
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/info" className="btn-secondary px-6 py-3 text-base">
+                Mehr erfahren
+              </Link>
+            </div>
           </div>
-        </div>
 
-        {/* Feature grid */}
-        <section className="mt-20 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <Feature
-            icon={Sparkles}
-            title="Trade-Signale live"
-            body="Jeder neue Kauf, jeder Stop-Move, jeder Take-Profit – im Format TT.MM.JJJJ + Aktion."
-          />
-          <Feature
-            icon={Bell}
-            title="Push & Mail"
-            body="Du verpasst nie wieder ein Signal. Push und Mail nach deinen Vorlieben."
-          />
-          <Feature
-            icon={Users}
-            title="Community bei jedem Depot"
-            body="Diskutiere zu jedem Signal mit anderen Mitgliedern und der Redaktion."
-          />
-          <Feature
-            icon={ShieldCheck}
-            title="EU-Hosting & DSGVO"
-            body="Deine Daten in Frankfurt. Kein Tracking, keine Drittanbieter-Cookies."
-          />
+          {/* Signatur: ruhiges, dunkles Signal-Tape — der eine wiedererkennbare Block. */}
+          <SignalTape />
         </section>
 
-        {/* Vorschau-Hinweis */}
-        <div className="mx-auto mt-16 max-w-2xl rounded-xl border border-dashed border-brand/40 bg-brand/5 p-6 text-sm">
-          <div className="mb-3 flex items-center gap-2 font-semibold text-brand">
-            <Sparkles className="h-4 w-4" />
-            Vorschau
+        {/* Sekundaer-Bento — bewusst ungleich gross: breiter Ablauf + schmaler Vertrauensblock. */}
+        <section className="mt-5 grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+          {/* Breiter Block: echter Ablauf in drei Schritten (Reihenfolge traegt Bedeutung). */}
+          <div className="card-base p-7 sm:p-8">
+            <h2 className="font-display text-xl font-bold tracking-tight text-navy-900">
+              So läuft ein Signal bei dir an
+            </h2>
+            <ol className="mt-6 grid gap-6 sm:grid-cols-3">
+              <Step
+                no="01"
+                title="Redaktion handelt"
+                body="Ein neuer Kauf, ein angepasster Stop oder ein Gewinn wird im Depot eingetragen."
+              />
+              <Step
+                no="02"
+                title="Du wirst benachrichtigt"
+                body="Push aufs Handy und Mail — je nachdem, was dir lieber ist. Du verpasst nichts."
+              />
+              <Step
+                no="03"
+                title="Du fragst nach"
+                body="Unter jedem Signal kannst du mit der Redaktion und anderen Mitgliedern reden."
+              />
+            </ol>
           </div>
-          <p className="text-muted-foreground">
-            Diese Vorschau zeigt Beispieldaten. Klicke auf{" "}
-            <Link href="/login" className="font-medium text-brand underline">
-              Anmelden
-            </Link>
-            , um den Mitgliederbereich zu öffnen.
-          </p>
-        </div>
+
+          {/* Schmaler Block: ein einziges, ruhiges Vertrauensargument. */}
+          <div className="card-base flex flex-col gap-4 p-7 sm:p-8">
+            <div className="flex items-center gap-2.5">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-navy-900 text-white">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
+              <h2 className="font-display text-base font-bold tracking-tight text-navy-900">
+                Daten in Deutschland
+              </h2>
+            </div>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Gehostet in Frankfurt, nach DSGVO. Kein Tracking, keine Drittanbieter-Cookies. Deine
+              Anmeldung läuft über deine Ablefy-Mailadresse.
+            </p>
+            <div className="mt-auto flex items-center gap-2 border-t border-border pt-4 text-sm text-muted-foreground">
+              <Bell className="h-4 w-4 text-brand" />
+              <span>Benachrichtigungen stellst du selbst ein.</span>
+            </div>
+          </div>
+        </section>
+
+        <p className="mx-auto mt-6 max-w-xl text-center text-xs text-muted-foreground">
+          Die Signale oben sind Beispiele.{" "}
+          <Link href="/login" className="font-medium text-brand underline underline-offset-2">
+            Melde dich an
+          </Link>
+          , um deinen Mitgliederbereich zu öffnen.
+        </p>
       </main>
 
       <footer className="relative z-10 border-t border-border py-6 text-center text-xs text-muted-foreground">
@@ -85,22 +105,12 @@ export default function MarketingPage() {
   );
 }
 
-function Feature({
-  icon: Icon,
-  title,
-  body,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  body: string;
-}) {
+function Step({ no, title, body }: { no: string; title: string; body: string }) {
   return (
-    <div className="card-base p-5">
-      <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand/15">
-        <Icon className="h-5 w-5 text-brand" />
-      </div>
-      <h3 className="font-semibold">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-    </div>
+    <li className="relative">
+      <span className="font-mono text-sm font-semibold tabular-nums text-brand">{no}</span>
+      <h3 className="mt-2 font-semibold text-navy-900">{title}</h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{body}</p>
+    </li>
   );
 }

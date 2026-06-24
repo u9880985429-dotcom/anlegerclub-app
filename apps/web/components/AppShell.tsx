@@ -207,7 +207,8 @@ export function AppShell({ children, user }: AppShellProps) {
       <button
         onClick={() => signOut({ callbackUrl: "/login" })}
         title="Abmelden"
-        className="rounded-md p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
+        data-nav-touch-target
+        className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground"
       >
         <LogOut className="h-4 w-4" />
       </button>
@@ -221,7 +222,7 @@ export function AppShell({ children, user }: AppShellProps) {
         <div className="flex h-16 flex-shrink-0 items-center border-b border-border px-5">
           <Logo variant="light" size="sm" />
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3 text-sm">{navigationContent}</nav>
+        <nav data-nav-touch className="flex-1 space-y-1 overflow-y-auto p-3 text-sm">{navigationContent}</nav>
         <div className="flex-shrink-0 border-t border-border bg-card p-3">{userFooter}</div>
       </aside>
 
@@ -234,6 +235,7 @@ export function AppShell({ children, user }: AppShellProps) {
             type="button"
             onClick={() => setMobileOpen(true)}
             aria-label="Menü öffnen"
+            data-nav-touch-target
             className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             <Menu className="h-6 w-6" />
@@ -266,12 +268,14 @@ export function AppShell({ children, user }: AppShellProps) {
                 type="button"
                 onClick={() => setMobileOpen(false)}
                 aria-label="Menü schließen"
+                data-nav-touch-target
                 className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
             <nav
+              data-nav-touch
               className="flex-1 space-y-1 overflow-y-auto p-3 text-sm"
               onClick={(e) => {
                 // Auto-close beim Klick auf einen Link
@@ -388,7 +392,7 @@ function DepotMenu({ slug, icon: Icon, label, sections, isOpenByDefault, pathnam
                 <Link
                   href={`/depot/${slug}?tab=${s.tab}` as never}
                   className={cn(
-                    "relative block rounded-md px-3 py-2 text-xs transition",
+                    "relative flex items-center rounded-md px-3 py-2 text-xs transition",
                     isActive
                       ? "bg-brand/10 font-semibold text-brand"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground",

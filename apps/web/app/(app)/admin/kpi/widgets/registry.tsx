@@ -1,27 +1,114 @@
 "use client";
-import type { WidgetCatalogEntry } from "./types";
-import {
-  MrrCard, ArrCard, ActiveMembersCard, ChurnRateCard, ArpuCard, LtvCard,
-  GrossMarginCard, PaymentIssuesCard, RevenueTotalCard, RefundRateCard,
-  VisitorsBreakdownCard, MrrSparkline, ChurnGauge, ConversionGauge, MonthlyGoalsProgress,
-  ChurnZoneGauge, ConversionZoneGauge, RevenueBigNumber, MrrThermometer,
-  PromotionsAreaCard, CompetitorsAreaCard, GrowthTrioCard, GoalAchievementRing,
-  MembersQuadrantCard, ProductTrendList, FeatureUsageProgress,
-  SubscriptionStatusStrip, YoYHistoryList,
-} from "./MetricCards";
-import {
-  RevenueAreaChart, LineRevenueChart, VerticalBarChart, HorizontalBarsChart,
-  GroupedBarChart, ChurnDonut, ProductMixPie, SalesFunnelChart, FunnelStepsChart,
-  YoYCompareBars, TargetLineChart, DonutWithCenterStat, TopProductBars, MiniDonutRow,
-  StackedVerticalBarsChart, StackedHorizontalBarsChart, BubbleScatterChart,
-  ComboBarLineChart, WaterfallChart,
-  HistogramChart, ChurnReasonDonut,
-} from "./DataCharts";
+import type { WidgetCatalogEntry, WidgetData } from "./types";
 import dynamic from "next/dynamic";
-import {
-  CohortRetentionTable, TopTradesTable, LatestOrdersTable, SalesPerformanceTable,
-  SubscriptionStatusBreakdown, DealsLeaderboard,
-} from "./Tables";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LAZY-LOADING DER WIDGET-REGISTRY
+//
+// Frueher wurden hier ALLE ~50 Widget-Komponenten EAGER importiert (aus
+// MetricCards/DataCharts/Tables bzw. den darunterliegenden Split-Dateien). Das
+// zog den kompletten Chart-/Card-Code in das Client-Bundle des KPI-Dashboards —
+// selbst Widgets, die der User nie platziert.
+//
+// Jetzt wird jede Render-Funktion via next/dynamic (ssr:false) geladen. Effekt:
+//   • Nur tatsaechlich platzierte (bzw. in der Gallery sichtbar gescrollte)
+//     Widgets laden ihren Code nach -> kleineres Initial-Bundle.
+//   • Code-Splitting pro QUELL-Modul: die import()-Pfade zeigen direkt auf die
+//     Split-Dateien (charts-line-area, charts-bars, metric-cards-* …), nicht auf
+//     die Re-Export-Barrels (./MetricCards, ./DataCharts). Das vermeidet zudem
+//     den Barrel-Import-Overhead (Webpack/Turbopack koennen pro Datei splitten).
+//   • ssr:false, weil die SVG-/Canvas-Charts ausschliesslich im Browser sinnvoll
+//     sind (Chart.js wuerde server-seitig sogar crashen, siehe charts-chartjs).
+//
+// Typsicherheit: Es gibt genau zwei Komponenten-Formen:
+//   - DataWidget: ({ data }: { data: WidgetData }) => ReactNode  (Mehrheit)
+//   - VoidWidget: () => ReactNode                                (parameterlos)
+// Die import()-Pfade MUESSEN statische String-Literale sein, damit der Bundler
+// splitten kann — deshalb je eine dynamic()-Deklaration pro Komponente.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type DataWidget = (props: { data: WidgetData }) => React.ReactNode;
+type VoidWidget = () => React.ReactNode;
+
+// Kleine Helfer halten die dynamic()-Deklarationen kurz UND typisiert. Der
+// import()-Callback bleibt ein statisches String-Literal (Bundler-Anforderung),
+// nur der `.then(pick)` waehlt den benannten Export aus. Der Loader-Rueckgabewert
+// ist bewusst lose (Promise<unknown>) — next/dynamic akzeptiert sowohl die nackte
+// Komponente als auch `{ default }`; die Helfer casten das Ergebnis auf den
+// exakten Komponenten-Typ, damit die WidgetCatalogEntry-render-Funktionen passen.
+const dyn = (loader: () => Promise<unknown>): DataWidget =>
+  dynamic(loader as never, { ssr: false }) as unknown as DataWidget;
+const dynVoid = (loader: () => Promise<unknown>): VoidWidget =>
+  dynamic(loader as never, { ssr: false }) as unknown as VoidWidget;
+
+// ─── metric-cards-simple ─────────────────────────────────────────────────────
+const MrrCard = dyn(() => import("./metric-cards-simple").then((m) => m.MrrCard));
+const ArrCard = dyn(() => import("./metric-cards-simple").then((m) => m.ArrCard));
+const ActiveMembersCard = dyn(() => import("./metric-cards-simple").then((m) => m.ActiveMembersCard));
+const ChurnRateCard = dyn(() => import("./metric-cards-simple").then((m) => m.ChurnRateCard));
+const ArpuCard = dyn(() => import("./metric-cards-simple").then((m) => m.ArpuCard));
+const LtvCard = dyn(() => import("./metric-cards-simple").then((m) => m.LtvCard));
+const GrossMarginCard = dynVoid(() => import("./metric-cards-simple").then((m) => m.GrossMarginCard));
+const PaymentIssuesCard = dyn(() => import("./metric-cards-simple").then((m) => m.PaymentIssuesCard));
+const RevenueTotalCard = dyn(() => import("./metric-cards-simple").then((m) => m.RevenueTotalCard));
+const RefundRateCard = dyn(() => import("./metric-cards-simple").then((m) => m.RefundRateCard));
+const VisitorsBreakdownCard = dyn(() => import("./metric-cards-simple").then((m) => m.VisitorsBreakdownCard));
+
+// ─── metric-cards-visual ─────────────────────────────────────────────────────
+const MrrSparkline = dyn(() => import("./metric-cards-visual").then((m) => m.MrrSparkline));
+const ChurnGauge = dyn(() => import("./metric-cards-visual").then((m) => m.ChurnGauge));
+const ConversionGauge = dynVoid(() => import("./metric-cards-visual").then((m) => m.ConversionGauge));
+const MonthlyGoalsProgress = dyn(() => import("./metric-cards-visual").then((m) => m.MonthlyGoalsProgress));
+const ChurnZoneGauge = dyn(() => import("./metric-cards-visual").then((m) => m.ChurnZoneGauge));
+const ConversionZoneGauge = dynVoid(() => import("./metric-cards-visual").then((m) => m.ConversionZoneGauge));
+const RevenueBigNumber = dyn(() => import("./metric-cards-visual").then((m) => m.RevenueBigNumber));
+const MrrThermometer = dyn(() => import("./metric-cards-visual").then((m) => m.MrrThermometer));
+const PromotionsAreaCard = dyn(() => import("./metric-cards-visual").then((m) => m.PromotionsAreaCard));
+const CompetitorsAreaCard = dyn(() => import("./metric-cards-visual").then((m) => m.CompetitorsAreaCard));
+const GrowthTrioCard = dyn(() => import("./metric-cards-visual").then((m) => m.GrowthTrioCard));
+const GoalAchievementRing = dyn(() => import("./metric-cards-visual").then((m) => m.GoalAchievementRing));
+const MembersQuadrantCard = dyn(() => import("./metric-cards-visual").then((m) => m.MembersQuadrantCard));
+const ProductTrendList = dyn(() => import("./metric-cards-visual").then((m) => m.ProductTrendList));
+const FeatureUsageProgress = dyn(() => import("./metric-cards-visual").then((m) => m.FeatureUsageProgress));
+const SubscriptionStatusStrip = dyn(() => import("./metric-cards-visual").then((m) => m.SubscriptionStatusStrip));
+const YoYHistoryList = dyn(() => import("./metric-cards-visual").then((m) => m.YoYHistoryList));
+
+// ─── charts-line-area ────────────────────────────────────────────────────────
+const RevenueAreaChart = dyn(() => import("./charts-line-area").then((m) => m.RevenueAreaChart));
+const LineRevenueChart = dyn(() => import("./charts-line-area").then((m) => m.LineRevenueChart));
+const TargetLineChart = dyn(() => import("./charts-line-area").then((m) => m.TargetLineChart));
+const ComboBarLineChart = dyn(() => import("./charts-line-area").then((m) => m.ComboBarLineChart));
+
+// ─── charts-bars ─────────────────────────────────────────────────────────────
+const VerticalBarChart = dyn(() => import("./charts-bars").then((m) => m.VerticalBarChart));
+const HorizontalBarsChart = dyn(() => import("./charts-bars").then((m) => m.HorizontalBarsChart));
+const GroupedBarChart = dyn(() => import("./charts-bars").then((m) => m.GroupedBarChart));
+const YoYCompareBars = dyn(() => import("./charts-bars").then((m) => m.YoYCompareBars));
+const TopProductBars = dyn(() => import("./charts-bars").then((m) => m.TopProductBars));
+const StackedVerticalBarsChart = dyn(() => import("./charts-bars").then((m) => m.StackedVerticalBarsChart));
+const StackedHorizontalBarsChart = dyn(() => import("./charts-bars").then((m) => m.StackedHorizontalBarsChart));
+const WaterfallChart = dyn(() => import("./charts-bars").then((m) => m.WaterfallChart));
+const HistogramChart = dyn(() => import("./charts-bars").then((m) => m.HistogramChart));
+
+// ─── charts-pie-donut ────────────────────────────────────────────────────────
+const ChurnDonut = dyn(() => import("./charts-pie-donut").then((m) => m.ChurnDonut));
+const ProductMixPie = dyn(() => import("./charts-pie-donut").then((m) => m.ProductMixPie));
+const DonutWithCenterStat = dyn(() => import("./charts-pie-donut").then((m) => m.DonutWithCenterStat));
+const MiniDonutRow = dyn(() => import("./charts-pie-donut").then((m) => m.MiniDonutRow));
+const ChurnReasonDonut = dyn(() => import("./charts-pie-donut").then((m) => m.ChurnReasonDonut));
+
+// ─── charts-funnel-scatter ───────────────────────────────────────────────────
+const SalesFunnelChart = dyn(() => import("./charts-funnel-scatter").then((m) => m.SalesFunnelChart));
+const FunnelStepsChart = dyn(() => import("./charts-funnel-scatter").then((m) => m.FunnelStepsChart));
+const BubbleScatterChart = dyn(() => import("./charts-funnel-scatter").then((m) => m.BubbleScatterChart));
+
+// ─── Tables ──────────────────────────────────────────────────────────────────
+const CohortRetentionTable = dynVoid(() => import("./Tables").then((m) => m.CohortRetentionTable));
+const TopTradesTable = dynVoid(() => import("./Tables").then((m) => m.TopTradesTable));
+const LatestOrdersTable = dyn(() => import("./Tables").then((m) => m.LatestOrdersTable));
+const SalesPerformanceTable = dynVoid(() => import("./Tables").then((m) => m.SalesPerformanceTable));
+const SubscriptionStatusBreakdown = dyn(() => import("./Tables").then((m) => m.SubscriptionStatusBreakdown));
+const DealsLeaderboard = dynVoid(() => import("./Tables").then((m) => m.DealsLeaderboard));
 
 // Chart.js-Widgets NUR clientseitig laden (ssr:false). Chart.js ist canvas-/DOM-
 // basiert; wuerde es server-seitig gerendert, kracht es im Prod-Build mit einer

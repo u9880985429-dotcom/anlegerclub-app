@@ -122,6 +122,22 @@
   }
 }
 
+/* Touch-Flaechen >=44px fuer die Hauptnavigation (Sidebar/Drawer).
+   Nur auf Touch-Geraeten (pointer: coarse) — Desktop-Layout (Maus = pointer:fine)
+   bleibt unveraendert. Gezielt auf [data-nav-touch]-Container begrenzt, damit
+   kein globales min-height andere Layouts bricht. */
+@media (pointer: coarse) {
+  [data-nav-touch] a,
+  [data-nav-touch] button {
+    min-height: 44px;
+  }
+  /* Icon-Buttons (Burger/Schliessen/Abmelden) zusaetzlich in der Breite. */
+  [data-nav-touch-target] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 /* Hide scrollbars on mobile bottom nav */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
