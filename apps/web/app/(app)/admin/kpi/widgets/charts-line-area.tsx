@@ -77,12 +77,12 @@ export function RevenueAreaChart({ data }: { data: WidgetData }) {
           <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             <TrendingUp className="h-3.5 w-3.5" /> Umsatz-Verlauf (letzte 12 Monate)
           </h3>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Monatlicher Umsatz in €</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Monatlicher Umsatz in €</p>
         </div>
         <div className="flex items-start gap-2">
           <div className="text-right">
             <div className="text-xl font-extrabold">{last.value.toLocaleString("de-DE")} €</div>
-            <div className="text-[11px] text-profit">+{growth.toFixed(1).replace(".", ",")} % seit Start</div>
+            <div className="text-xs text-profit">+{growth.toFixed(1).replace(".", ",")} % seit Start</div>
           </div>
         </div>
       </div>
@@ -212,7 +212,7 @@ export function TargetLineChart({ data }: { data: WidgetData }) {
       <div className="mb-3 flex items-start justify-between">
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Umsatz vs. Target</h3>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">{aboveCount} von {points.length} Monaten ueber Target</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{aboveCount} von {points.length} Monaten ueber Target</p>
         </div>
         <div className="text-right">
           <div className="text-xs text-muted-foreground">Target</div>
@@ -302,7 +302,7 @@ export function ComboBarLineChart({ data }: { data: WidgetData }) {
           <circle key={i} cx={p.x} cy={p.y} r="4" fill="white" stroke="#0ea5e9" strokeWidth="2" />
         ))}
       </svg>
-      <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#cbd5e1]" /> Bestellungen (Anzahl)</span>
         <span className="inline-flex items-center gap-1"><span className="h-0.5 w-3 bg-[#0ea5e9]" /> Umsatz (€)</span>
       </div>

@@ -153,7 +153,7 @@ export function CookieManager() {
           />
         </label>
         {saved && (
-          <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-[11px] text-profit">
+          <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-xs text-profit">
             <CheckCircle2 className="h-3 w-3" /> Gespeichert
           </span>
         )}
@@ -208,7 +208,7 @@ export function CookieManager() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+            <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
               <tr className="border-b border-border bg-muted/40">
                 <th className="px-3 py-2">Name</th>
                 <th className="px-3 py-2">Domain</th>
@@ -227,7 +227,7 @@ export function CookieManager() {
                   </td>
                   <td className="px-3 py-2 font-mono text-muted-foreground">{c.domain}</td>
                   <td className="px-3 py-2">
-                    <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${CATEGORY_COLOR[c.category]}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold ${CATEGORY_COLOR[c.category]}`}>
                       {CATEGORY_LABEL[c.category]}
                     </span>
                   </td>
@@ -239,7 +239,7 @@ export function CookieManager() {
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                         <AlertCircle className="h-3 w-3" /> System
                       </span>
                     )}

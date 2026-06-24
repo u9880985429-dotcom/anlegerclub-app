@@ -130,7 +130,7 @@ export function LogsTabs() {
             >
               <Icon className="h-3.5 w-3.5" />
               {t.label}
-              <span className={`ml-1 rounded-full px-1.5 py-px text-[10px] ${isActive ? "bg-brand/15 text-brand" : "bg-muted text-muted-foreground"}`}>
+              <span className={`ml-1 rounded-full px-1.5 py-px text-xs ${isActive ? "bg-brand/15 text-brand" : "bg-muted text-muted-foreground"}`}>
                 {t.rows.length}
               </span>
             </button>
@@ -169,7 +169,7 @@ export function LogsTabs() {
       {/* Tabelle */}
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border bg-muted/10">
               <th className="px-3 py-2 whitespace-nowrap">Zeitstempel</th>
               <th className="px-3 py-2">Status</th>
@@ -191,15 +191,15 @@ export function LogsTabs() {
                 const Icon = meta.icon;
                 return (
                   <tr key={r.id} className="hover:bg-accent/40">
-                    <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground whitespace-nowrap">{r.ts}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-muted-foreground whitespace-nowrap">{r.ts}</td>
                     <td className="px-3 py-2">
-                      <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold ${meta.cls}`}>
+                      <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${meta.cls}`}>
                         <Icon className="h-3 w-3" /> {meta.label}
                       </span>
                     </td>
                     <td className="px-3 py-2 font-medium">{r.primary}</td>
                     <td className="px-3 py-2 text-muted-foreground">{r.secondary}</td>
-                    <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">{r.meta}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{r.meta}</td>
                   </tr>
                 );
               })
@@ -208,7 +208,7 @@ export function LogsTabs() {
         </table>
       </div>
 
-      <div className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+      <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
         {filtered.length} von {tab.rows.length} Eintraegen
       </div>
     </div>

@@ -172,7 +172,7 @@ export function FontManager() {
       {/* Tabelle */}
       <div className="card-base overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border bg-muted/40">
               <th className="px-3 py-2 w-16">ID</th>
               <th className="px-3 py-2">Name</th>
@@ -200,7 +200,7 @@ export function FontManager() {
                       <Type className="h-3.5 w-3.5 text-muted-foreground" />
                       {f.name}
                       {f.dataUrl && (
-                        <span className="rounded-md bg-profit/15 px-1 py-0.5 text-[9px] font-semibold text-profit">UPLOAD</span>
+                        <span className="rounded-md bg-profit/15 px-1 py-0.5 text-xs font-semibold text-profit">UPLOAD</span>
                       )}
                     </div>
                   </td>
@@ -208,7 +208,7 @@ export function FontManager() {
                   <td className="px-3 py-2">{f.style}</td>
                   <td className="px-3 py-2">{f.display}</td>
                   <td className="px-3 py-2 text-muted-foreground">{f.fallback}</td>
-                  <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">
+                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
                     {new Date(f.createdAt).toLocaleString("de-DE")}
                   </td>
                   <td className="px-3 py-2 text-right">
@@ -252,7 +252,7 @@ function EditModal({ entry, onClose, onSave }: { entry: FontEntry; onClose: () =
             <p className="mt-1 text-xs text-muted-foreground">
               Du kannst beliebige Web-Schriftarten hochladen, sie werden der Schriftartenliste hinzugefuegt. Fuer maximale Browserunterstuetzung lade WOFF2, TTF, OTF hoch.
             </p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               <strong>Lizenzpflicht:</strong> Das Hochladen ohne gueltige Lizenz ist unzulaessig.
             </p>
           </div>
@@ -306,7 +306,7 @@ function EditModal({ entry, onClose, onSave }: { entry: FontEntry; onClose: () =
 
         {draft.dataUrl && (
           <div className="mt-5 rounded-md border border-dashed border-border p-4">
-            <p className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">Live-Vorschau</p>
+            <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Live-Vorschau</p>
             <p
               className="text-2xl"
               style={{
@@ -340,7 +340,7 @@ function PreviewModal({ entry, onClose }: { entry: FontEntry; onClose: () => voi
             <p className="text-xs text-muted-foreground">
               Weight {entry.weight} · {entry.style} · Fallback: {entry.fallback}
               {!entry.dataUrl && (
-                <span className="ml-2 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                <span className="ml-2 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
                   Kein Upload — Vorschau verwendet Fallback
                 </span>
               )}

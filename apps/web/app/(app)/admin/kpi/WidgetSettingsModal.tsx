@@ -87,8 +87,8 @@ export function WidgetSettingsModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="card-base flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in">
+      <div className="card-base flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden animate-fade-in">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-border p-4">
           <div>
@@ -97,7 +97,7 @@ export function WidgetSettingsModal({
             </h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
               <strong>{catalogEntry.title}</strong>{" "}
-              <span className={`ml-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase ${CATEGORY_BADGE[catalogEntry.category]}`}>
+              <span className={`ml-1 rounded-md px-1.5 py-0.5 text-xs font-semibold uppercase ${CATEGORY_BADGE[catalogEntry.category]}`}>
                 {catalogEntry.category}
               </span>
             </p>
@@ -150,7 +150,7 @@ export function WidgetSettingsModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Leer lassen → Standard-Titel „{catalogEntry.title}". Wird im Widget-Header angezeigt.
                 </p>
               </Field>
@@ -178,12 +178,12 @@ export function WidgetSettingsModal({
                     );
                   })}
                 </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Erlaubt fuer diesen Widget-Typ: {catalogEntry.allowedCols.join(", ")} von 12. Standard: {catalogEntry.defaultCols}.
                 </p>
               </Field>
 
-              <div className="rounded-md border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+              <div className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
                 <strong className="text-foreground">Beschreibung:</strong> {catalogEntry.description}
                 {catalogEntry.inspiration && (
                   <>
@@ -226,7 +226,7 @@ export function WidgetSettingsModal({
                 </div>
                 <button
                   onClick={() => setCategory("all")}
-                  className={`rounded-md px-2 py-1 text-[11px] font-semibold transition ${
+                  className={`rounded-md px-2 py-1 text-xs font-semibold transition ${
                     category === "all" ? "bg-brand text-white" : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
                   }`}
                 >
@@ -236,7 +236,7 @@ export function WidgetSettingsModal({
                   <button
                     key={c}
                     onClick={() => setCategory(c)}
-                    className={`rounded-md px-2 py-1 text-[11px] font-semibold transition ${
+                    className={`rounded-md px-2 py-1 text-xs font-semibold transition ${
                       category === c ? "bg-brand text-white" : `${CATEGORY_BADGE[c]} hover:opacity-80`
                     }`}
                   >
@@ -261,11 +261,11 @@ export function WidgetSettingsModal({
                       <div className="flex-1 p-3">
                         <div className="mb-1 flex items-center justify-between gap-2">
                           <h4 className="text-xs font-semibold leading-tight">{w.title}</h4>
-                          <span className={`flex-shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase ${CATEGORY_BADGE[w.category]}`}>
+                          <span className={`flex-shrink-0 rounded-md px-1.5 py-0.5 text-xs font-semibold uppercase ${CATEGORY_BADGE[w.category]}`}>
                             {w.category}
                           </span>
                         </div>
-                        <p className="line-clamp-2 text-[10px] text-muted-foreground">{w.description}</p>
+                        <p className="line-clamp-2 text-xs text-muted-foreground">{w.description}</p>
                       </div>
                     </button>
                   ))
@@ -321,7 +321,7 @@ function DataSourceTab({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border border-brand/20 bg-brand/5 p-3 text-[11px]">
+      <div className="rounded-md border border-brand/20 bg-brand/5 p-3 text-xs">
         <strong className="text-brand">Datenquelle</strong> bestimmt, woher die Werte fuer dieses Widget geladen werden. Phase 1: Auswahl wird gespeichert + im Widget-Header angezeigt. Phase 2: der DynamicGridLoader ruft den ausgewaehlten Endpoint mit den aktuellen Filtern auf.
       </div>
 
@@ -363,12 +363,12 @@ function DataSourceTab({
         <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
           <Field label="Custom Endpoint-URL (HTTPS)">
             <input
-              className="input-base font-mono text-[11px]"
+              className="input-base font-mono text-xs"
               placeholder="https://api.example.com/kpi/...."
               value={customEndpoint}
               onChange={(e) => setCustomEndpoint(e.target.value)}
             />
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               JSON muss Top-Level-Felder wie <code>byMonth</code>, <code>byProduct</code>, <code>totalRevenue</code> liefern.
             </p>
           </Field>
@@ -384,7 +384,7 @@ function DataSourceTab({
       )}
 
       {selected && selected.id !== "custom" && (
-        <div className="rounded-md border border-dashed border-border bg-muted/10 p-3 text-[11px]">
+        <div className="rounded-md border border-dashed border-border bg-muted/10 p-3 text-xs">
           <div className="mb-1 inline-flex items-center gap-1 font-semibold">
             <ExternalLink className="h-3 w-3" />
             Aktuelle Auswahl: {selected.label}
@@ -436,7 +436,7 @@ function DataSourceCard({
           </span>
           <h5 className="text-sm font-semibold">{source.label}</h5>
         </div>
-        <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase ${
+        <span className={`rounded-md px-1.5 py-0.5 text-xs font-semibold uppercase ${
           source.provider === "ablefy" ? "bg-orange-500/15 text-orange-700" :
           source.provider === "internal" ? "bg-emerald-500/15 text-emerald-700" :
           "bg-purple-500/15 text-purple-700"
@@ -444,8 +444,8 @@ function DataSourceCard({
           {source.provider}
         </span>
       </div>
-      <p className="mb-1.5 text-[11px] text-muted-foreground">{source.description}</p>
-      <div className="flex flex-wrap items-center gap-2 text-[10px]">
+      <p className="mb-1.5 text-xs text-muted-foreground">{source.description}</p>
+      <div className="flex flex-wrap items-center gap-2 text-xs">
         <code className="font-mono text-muted-foreground">{source.method} {source.endpoint}</code>
         <span className="text-muted-foreground/60">·</span>
         <span className="text-muted-foreground">Speist: {source.feeds.join(", ")}</span>

@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                   <div className="text-sm font-semibold">{n.title}</div>
                   <div className="line-clamp-1 text-xs text-muted-foreground">{n.body}</div>
                 </div>
-                <span className="flex-shrink-0 text-[10px] text-muted-foreground">{formatRelative(n.createdAt)}</span>
+                <span className="flex-shrink-0 text-xs text-muted-foreground">{formatRelative(n.createdAt)}</span>
               </Link>
             ))}
           </div>

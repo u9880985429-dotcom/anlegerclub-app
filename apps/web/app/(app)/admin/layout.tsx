@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
       <aside className="card-base h-fit p-3 lg:sticky lg:top-6">
         <AdminSidebar isOwnerAdmin={isOwnerAdmin} />
-        <div className="mt-5 rounded-md border border-dashed border-border p-2 text-[10px] leading-snug text-muted-foreground">
+        <div className="mt-5 rounded-md border border-dashed border-border p-2 text-xs leading-snug text-muted-foreground">
           💡 Trade-Signale, Auswertungen, Aktie im Fokus, Marktupdates, Lexikon und Videos werden im jeweiligen Depot via <strong>Bearbeitungsmodus</strong> gepflegt.
         </div>
       </aside>

@@ -130,7 +130,7 @@ export function BubbleScatterChart({ data }: { data: WidgetData }) {
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Trade-Engagement · Scatter
         </h3>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">X = Kommentare · Y = Views · Bubble-Groesse = Reaktionen</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">X = Kommentare · Y = Views · Bubble-Groesse = Reaktionen</p>
       </div>
       <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full">
         {/* Achsen */}

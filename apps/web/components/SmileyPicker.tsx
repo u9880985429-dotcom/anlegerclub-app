@@ -22,7 +22,7 @@ export function SmileyPicker({ onPick }: SmileyPickerProps) {
       </button>
       {open && (
         <div className="absolute bottom-full left-0 z-30 mb-2 w-72 rounded-lg border border-border bg-popover p-2 shadow-lg">
-          <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Erlaubte Reaktionen
           </div>
           <div className="grid grid-cols-10 gap-1">

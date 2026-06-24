@@ -164,13 +164,13 @@ export default async function AdminUsersPage({
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{c.email}</td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px]" title="Echter Kunde aus Ablefy. Login-Flow kommt in Sprint A.">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs" title="Echter Kunde aus Ablefy. Login-Flow kommt in Sprint A.">
                       <Database className="h-3 w-3" /> Ablefy
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs">
                     {productLabel}
-                    {planLabel && <div className="text-[10px] text-muted-foreground">{planLabel}</div>}
+                    {planLabel && <div className="text-xs text-muted-foreground">{planLabel}</div>}
                   </td>
                   <td className="px-4 py-3">
                     {activeSub ? (

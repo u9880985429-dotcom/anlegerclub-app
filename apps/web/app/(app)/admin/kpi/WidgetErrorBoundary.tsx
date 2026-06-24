@@ -35,10 +35,10 @@ export class WidgetErrorBoundary extends React.Component<
       return (
         <div className="card-base h-full border-loss/30 bg-loss/5 p-5">
           <div className="text-xs font-semibold text-loss">Widget konnte nicht geladen werden</div>
-          <div className="mt-1 break-words text-[11px] text-muted-foreground">
+          <div className="mt-1 break-words text-xs text-muted-foreground">
             {this.props.widgetId ? <code>{this.props.widgetId}</code> : null}
           </div>
-          <div className="mt-2 text-[11px] text-muted-foreground">
+          <div className="mt-2 text-xs text-muted-foreground">
             Die uebrige Seite funktioniert normal. (Details in der Browser-Konsole.)
           </div>
         </div>

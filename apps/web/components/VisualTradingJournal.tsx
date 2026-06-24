@@ -47,7 +47,7 @@ export function VisualTradingJournal({ data, equity, openPositions, positionGrou
             {t.label}
           </button>
         ))}
-        <div className="ml-auto pr-3 text-[10px] text-muted-foreground">
+        <div className="ml-auto pr-3 text-xs text-muted-foreground">
           Quelle: <a href={VTJ.affiliateUrl} target="_blank" rel="noreferrer" className="font-semibold text-brand hover:underline">Visual Trading Journal</a> · {VTJ.affiliateNote}
         </div>
       </div>
@@ -193,7 +193,7 @@ function CashflowTable({ rows }: { rows: EquityMonth[] }) {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="px-3 py-2">Monat</th>
               <th className="px-3 py-2 text-right">Depotwert</th>
@@ -259,7 +259,7 @@ function OpenPositionsTable({ rows }: { rows: OpenPositionRow[] }) {
       </div>
       <div className="card-base overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="px-3 py-2">Ticker</th>
               <th className="px-3 py-2">Name</th>
@@ -280,7 +280,7 @@ function OpenPositionsTable({ rows }: { rows: OpenPositionRow[] }) {
                 <td className="px-3 py-2">{r.company}</td>
                 <td className="px-3 py-2"><span className="badge-base">{r.type}</span></td>
                 <td className="px-3 py-2">
-                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${RISK_COLOR[r.riskBucket]}`}>{r.riskBucket}</span>
+                  <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${RISK_COLOR[r.riskBucket]}`}>{r.riskBucket}</span>
                 </td>
                 <td className="px-3 py-2 text-right font-mono">{r.shares}</td>
                 <td className="px-3 py-2 text-right font-mono">{usd(r.avgPrice)}</td>
@@ -358,7 +358,7 @@ function PositionDetail({ group }: { group: PositionGroup }) {
         </span>
       </div>
 
-      <div className="mb-3 flex flex-wrap gap-2 text-[11px]">
+      <div className="mb-3 flex flex-wrap gap-2 text-xs">
         <span className="rounded-md bg-emerald-500/15 px-2 py-1 font-mono font-semibold text-emerald-700">+ {group.openCallPercent}% offene Calls</span>
         <span className="rounded-md bg-amber-500/15 px-2 py-1 font-mono font-semibold text-amber-700">{group.openPutPercent}% offene Puts</span>
         <span className="rounded-md bg-sky-500/15 px-2 py-1 font-mono font-semibold text-sky-700">{group.closedPercent}% geschlossen</span>
@@ -367,8 +367,8 @@ function PositionDetail({ group }: { group: PositionGroup }) {
       </div>
 
       <div className="card-base overflow-x-auto">
-        <table className="w-full text-[11px]">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+        <table className="w-full text-xs">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="px-3 py-2">Symbol</th>
               <th className="px-3 py-2">Datum</th>
@@ -388,10 +388,10 @@ function PositionDetail({ group }: { group: PositionGroup }) {
                 <td className="px-3 py-2 font-mono font-bold text-brand">{r.ticker}</td>
                 <td className="px-3 py-2 font-mono text-muted-foreground">{r.date}</td>
                 <td className="px-3 py-2">
-                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${ACTION_BG[r.action] ?? "bg-muted"}`}>{r.action}</span>
+                  <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${ACTION_BG[r.action] ?? "bg-muted"}`}>{r.action}</span>
                 </td>
                 <td className="px-3 py-2">
-                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${TYPE_BG[r.type] ?? "bg-muted"}`}>{r.type}</span>
+                  <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${TYPE_BG[r.type] ?? "bg-muted"}`}>{r.type}</span>
                 </td>
                 <td className="px-3 py-2 text-right font-mono">{r.shares}</td>
                 <td className={`px-3 py-2 text-right font-mono ${r.cashflowPerShare >= 0 ? "text-profit" : "text-loss"}`}>
@@ -406,7 +406,7 @@ function PositionDetail({ group }: { group: PositionGroup }) {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-[11px] text-muted-foreground">
+      <p className="mt-2 text-xs text-muted-foreground">
         Daten aus unserem Excel-Trade-Journal („Anlegerclub Trade Journals.xlsx", Arbeitsblatt APA).
         Phase 2: Live-Anbindung an das Visual Trading Journal — keine manuelle Pflege mehr.
       </p>

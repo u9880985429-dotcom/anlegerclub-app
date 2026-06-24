@@ -104,7 +104,7 @@ export function PricingOverviewCard() {
         <>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+              <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr className="border-b border-border bg-muted/40">
                   <th className="px-3 py-2">Depot · Variante</th>
                   <th className="px-3 py-2 text-right">Mitglieder</th>
@@ -118,7 +118,7 @@ export function PricingOverviewCard() {
                     <td className="px-3 py-2">
                       <div className="font-medium">{PRODUCT_LABELS[r.slug] ?? r.slug}</div>
                       {r.planLabel && (
-                        <div className="text-[10px] text-muted-foreground">{r.planLabel}</div>
+                        <div className="text-xs text-muted-foreground">{r.planLabel}</div>
                       )}
                     </td>
                     <td className="px-3 py-2 text-right font-mono">
@@ -126,7 +126,7 @@ export function PricingOverviewCard() {
                         <Users className="h-3 w-3 text-muted-foreground" /> {r.count}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-[11px] text-muted-foreground">{r.pricing.description}</td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">{r.pricing.description}</td>
                     <td className="px-3 py-2 text-right font-mono">
                       {r.expected12mo.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                     </td>
@@ -135,7 +135,7 @@ export function PricingOverviewCard() {
               </tbody>
               <tfoot className="bg-muted/20">
                 <tr>
-                  <td className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Summe</td>
+                  <td className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Summe</td>
                   <td className="px-3 py-2 text-right font-mono font-semibold">{totalCount}</td>
                   <td />
                   <td className="px-3 py-2 text-right font-mono font-semibold text-profit">
@@ -145,7 +145,7 @@ export function PricingOverviewCard() {
               </tfoot>
             </table>
           </div>
-          <p className="mt-3 text-[11px] text-muted-foreground">
+          <p className="mt-3 text-xs text-muted-foreground">
             Hinweis: Trial-Phasen werden korrekt eingerechnet. Beispiel „6 Mon. Testzeitraum": 1 € einmalig + 6 × 97 € (Monate 7–12) = 583 € pro Mitglied.
           </p>
         </>

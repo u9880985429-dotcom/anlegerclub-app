@@ -62,7 +62,7 @@ export function UserActionsMenu({ userId, role, currentStatus, actorRole }: User
       </button>
       {open && (
         <div className="absolute right-0 z-30 mt-2 w-80 rounded-lg border border-border bg-popover p-2 shadow-lg">
-          <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Aktuell: {currentRole} · {currentStatus}
           </div>
 
@@ -101,7 +101,7 @@ export function UserActionsMenu({ userId, role, currentStatus, actorRole }: User
                       </span>
                       <span>
                         <span className="font-semibold">{r.label}</span>
-                        <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{r.rights}</span>
+                        <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{r.rights}</span>
                       </span>
                     </button>
                   );

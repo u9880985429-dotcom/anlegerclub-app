@@ -78,7 +78,7 @@ export default async function KpiSonstigeDatenPage() {
         ) : (
           <div className="card-base overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+              <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr className="border-b border-border bg-muted/40">
                   <th className="px-3 py-2">Person</th>
                   <th className="px-3 py-2">Match</th>
@@ -93,10 +93,10 @@ export default async function KpiSonstigeDatenPage() {
                     <tr key={sw.key} className="align-top">
                       <td className="px-3 py-2">
                         <div className="font-medium">{sw.fullName}</div>
-                        <div className="text-[10px] text-muted-foreground">{sw.email}</div>
+                        <div className="text-xs text-muted-foreground">{sw.email}</div>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px]">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs">
                           <MatchIcon className="h-3 w-3" /> {MATCH_LABEL[sw.matchStrategy]}
                         </span>
                       </td>
@@ -111,8 +111,8 @@ export default async function KpiSonstigeDatenPage() {
                           {sw.subs.map((s) => (
                             <li key={s.id} className="flex flex-wrap items-center gap-1.5">
                               <span className="font-medium">{PRODUCT_LABELS[s.productSlug] ?? s.productSlug}</span>
-                              <span className={`badge-base ${STATUS_CLASS[s.status] ?? ""} text-[10px]`}>{s.status}</span>
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className={`badge-base ${STATUS_CLASS[s.status] ?? ""} text-xs`}>{s.status}</span>
+                              <span className="text-xs text-muted-foreground">
                                 Order: <span className="font-mono">{s.ablefyOrderId ?? "—"}</span>
                                 {s.ablefyProductId && <> · Product-ID: <span className="font-mono">{s.ablefyProductId}</span></>}
                                 {" · "}
@@ -148,7 +148,7 @@ export default async function KpiSonstigeDatenPage() {
         ) : (
           <div className="card-base overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+              <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr className="border-b border-border bg-muted/40">
                   <th className="px-3 py-2">Person</th>
                   <th className="px-3 py-2">Match</th>
@@ -164,10 +164,10 @@ export default async function KpiSonstigeDatenPage() {
                     <tr key={re.key} className="align-top">
                       <td className="px-3 py-2">
                         <div className="font-medium">{re.fullName}</div>
-                        <div className="text-[10px] text-muted-foreground">{re.email}</div>
+                        <div className="text-xs text-muted-foreground">{re.email}</div>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px]">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs">
                           <MatchIcon className="h-3 w-3" /> {MATCH_LABEL[re.matchStrategy]}
                         </span>
                       </td>
@@ -176,8 +176,8 @@ export default async function KpiSonstigeDatenPage() {
                         <ul className="space-y-1">
                           {re.oldSubs.map((s) => (
                             <li key={s.id} className="flex flex-wrap items-center gap-1.5">
-                              <span className={`badge-base ${STATUS_CLASS[s.status] ?? ""} text-[10px]`}>{s.status}</span>
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className={`badge-base ${STATUS_CLASS[s.status] ?? ""} text-xs`}>{s.status}</span>
+                              <span className="text-xs text-muted-foreground">
                                 Order: <span className="font-mono">{s.ablefyOrderId ?? "—"}</span>
                                 {" · bis "}
                                 {s.currentPeriodEnd ? formatGermanDate(s.currentPeriodEnd) : formatGermanDate(s.startedAt)}
@@ -190,8 +190,8 @@ export default async function KpiSonstigeDatenPage() {
                         <ul className="space-y-1">
                           {re.newSubs.map((s) => (
                             <li key={s.id} className="flex flex-wrap items-center gap-1.5">
-                              <span className={`badge-base ${STATUS_CLASS[s.status] ?? ""} text-[10px]`}>{s.status}</span>
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className={`badge-base ${STATUS_CLASS[s.status] ?? ""} text-xs`}>{s.status}</span>
+                              <span className="text-xs text-muted-foreground">
                                 Order: <span className="font-mono">{s.ablefyOrderId ?? "—"}</span>
                                 {" · seit "}
                                 {formatGermanDate(s.startedAt)}

@@ -106,9 +106,9 @@ export function ApiKeysSection() {
             <summary className="cursor-pointer font-semibold inline-flex items-center gap-1.5">
               <Terminal className="h-3.5 w-3.5" /> So testest du den Key (curl)
             </summary>
-            <pre className="mt-2 overflow-x-auto rounded bg-muted/50 p-2 font-mono text-[11px]">{`curl -H "X-API-Key: ${revealKey.full}" \\
+            <pre className="mt-2 overflow-x-auto rounded bg-muted/50 p-2 font-mono text-xs">{`curl -H "X-API-Key: ${revealKey.full}" \\
   https://anlegerclub-app-web.vercel.app/api/v1/ping`}</pre>
-            <div className="mt-1 text-[10px] text-muted-foreground">
+            <div className="mt-1 text-xs text-muted-foreground">
               Endpoints: <code>/api/v1/ping</code>, <code>/api/v1/users</code>, <code>/api/v1/trades</code>, <code>/api/v1/subscriptions</code>
             </div>
           </details>
@@ -168,7 +168,7 @@ export function ApiKeysSection() {
             <div className={`mb-1 text-xs font-semibold ${testResult.ok ? "text-profit" : "text-destructive"}`}>
               {testResult.ok ? "✓ API antwortet sauber" : "✗ Fehler beim Test"}
             </div>
-            <pre className="overflow-x-auto rounded bg-muted/40 p-2 font-mono text-[10px]">{testResult.body}</pre>
+            <pre className="overflow-x-auto rounded bg-muted/40 p-2 font-mono text-xs">{testResult.body}</pre>
           </div>
         )}
       </div>
@@ -220,7 +220,7 @@ function ApiKeyForm({
                 className="accent-brand"
               />
               <span>{s.label}</span>
-              <code className="ml-auto font-mono text-[10px] text-muted-foreground">{s.value}</code>
+              <code className="ml-auto font-mono text-xs text-muted-foreground">{s.value}</code>
             </label>
           ))}
         </div>

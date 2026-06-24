@@ -397,18 +397,18 @@ export function PluginsSection() {
                       <Puzzle className="h-4 w-4 text-brand" />
                       <h3 className="font-semibold">{p.name}</h3>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                       <span className={`rounded-md px-1.5 py-0.5 font-semibold ${CAT_BADGE[p.category]}`}>{p.category}</span>
                       <span>·</span>
                       <span>von {p.vendor}</span>
                     </div>
                   </div>
                   {s.enabled ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-[10px] font-semibold text-profit">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-xs font-semibold text-profit">
                       <Check className="h-3 w-3" /> Aktiv
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
                       Pausiert
                     </span>
                   )}
@@ -416,7 +416,7 @@ export function PluginsSection() {
                 <p className="text-xs text-muted-foreground">{p.description}</p>
 
                 {!cfgComplete && p.configFields.length > 0 && (
-                  <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                  <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-700">
                     Konfiguration unvollstaendig
                   </div>
                 )}
@@ -469,7 +469,7 @@ export function PluginsSection() {
             <div className="flex flex-wrap gap-1.5 border-b border-border bg-muted/20 p-3">
               <button
                 onClick={() => setPickerCategory("all")}
-                className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
                   pickerCategory === "all" ? "bg-brand text-white" : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
               >
@@ -479,7 +479,7 @@ export function PluginsSection() {
                 <button
                   key={cat}
                   onClick={() => setPickerCategory(cat)}
-                  className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
                     pickerCategory === cat ? "bg-brand text-white" : `${CAT_BADGE[cat]} hover:opacity-80`
                   }`}
                 >
@@ -501,19 +501,19 @@ export function PluginsSection() {
                         <Puzzle className="h-3.5 w-3.5 text-brand" />
                         <h4 className="text-sm font-semibold">{p.name}</h4>
                       </div>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
+                      <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
                         <span className={`rounded-md px-1.5 py-0.5 font-semibold ${CAT_BADGE[p.category]}`}>{p.category}</span>
                         <span>·</span>
                         <span>{p.vendor}</span>
                       </div>
                     </div>
-                    <p className="mb-2 line-clamp-3 text-[11px] text-muted-foreground">{p.description}</p>
+                    <p className="mb-2 line-clamp-3 text-xs text-muted-foreground">{p.description}</p>
                     <div className="flex items-center gap-1.5">
                       <button onClick={() => install(p)} className="btn-brand inline-flex items-center gap-1 text-xs">
                         <Plus className="h-3 w-3" /> Installieren
                       </button>
                       {p.url && (
-                        <a href={p.url} target="_blank" rel="noreferrer" className="btn-ghost inline-flex items-center gap-1 text-[10px]">
+                        <a href={p.url} target="_blank" rel="noreferrer" className="btn-ghost inline-flex items-center gap-1 text-xs">
                           Doku <ExternalLink className="h-2.5 w-2.5" />
                         </a>
                       )}
@@ -599,7 +599,7 @@ function ConfigModal({
                 <div className="relative">
                   <input
                     type={isSecret && !visible ? "password" : f.type === "url" ? "url" : "text"}
-                    className="input-base pr-9 font-mono text-[11px]"
+                    className="input-base pr-9 font-mono text-xs"
                     placeholder={f.placeholder}
                     value={draft[f.key] ?? ""}
                     onChange={(e) => update(f.key, e.target.value)}
@@ -617,7 +617,7 @@ function ConfigModal({
                     </button>
                   )}
                 </div>
-                {f.hint && <span className="mt-1 block text-[10px] text-muted-foreground">{f.hint}</span>}
+                {f.hint && <span className="mt-1 block text-xs text-muted-foreground">{f.hint}</span>}
               </label>
             );
           })}
@@ -625,12 +625,12 @@ function ConfigModal({
 
         <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
           {testOk === true && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-[11px] text-profit">
+            <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-xs text-profit">
               <CheckCircle2 className="h-3 w-3" /> Verbindungstest erfolgreich (Demo)
             </span>
           )}
           {testOk === false && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-loss/15 px-2 py-0.5 text-[11px] text-loss">
+            <span className="inline-flex items-center gap-1 rounded-md bg-loss/15 px-2 py-0.5 text-xs text-loss">
               Pflichtfelder fehlen
             </span>
           )}

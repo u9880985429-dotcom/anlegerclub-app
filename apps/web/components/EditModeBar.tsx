@@ -114,7 +114,7 @@ export function EditModeBar({ role, scope }: EditModeBarProps) {
 
       {editing && sections.length > 0 && (
         <div className="mt-3 space-y-1.5">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Hinzugefügte Sektionen (Demo)</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Hinzugefügte Sektionen (Demo)</div>
           {sections.map((s) => (
             <div key={s.id} className={`flex items-center justify-between rounded-md border border-border bg-card px-3 py-1.5 text-xs ${s.hidden ? "opacity-50" : ""}`}>
               <span>

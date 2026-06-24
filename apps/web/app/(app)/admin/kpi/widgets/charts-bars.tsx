@@ -83,7 +83,7 @@ export function HorizontalBarsChart({ data }: { data: WidgetData }) {
               <span className="font-medium">{r.label}</span>
               <span className="font-mono text-muted-foreground">
                 <span className="text-foreground">{r.now.toLocaleString("de-DE")}</span>{" "}
-                <span className="text-[10px]">vs {r.prev.toLocaleString("de-DE")}</span>
+                <span className="text-xs">vs {r.prev.toLocaleString("de-DE")}</span>
               </span>
             </div>
             <div className="space-y-1">
@@ -97,7 +97,7 @@ export function HorizontalBarsChart({ data }: { data: WidgetData }) {
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-brand" /> Aktueller Zeitraum</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-brand/40" /> Vergleichszeitraum</span>
       </div>
@@ -155,7 +155,7 @@ export function GroupedBarChart({ data }: { data: WidgetData }) {
           );
         })}
       </svg>
-      <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: "#7c3aed" }} /> Jetzt</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: "#c4b5fd" }} /> Vorperiode</span>
       </div>
@@ -207,7 +207,7 @@ export function YoYCompareBars({ data }: { data: WidgetData }) {
           );
         })}
       </svg>
-      <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#cbd5e1]" /> Vorjahr</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#0ea5e9]" /> Aktuell</span>
         <span className="ml-auto font-mono">YoY: <strong className="text-profit">+{(((current.reduce((s, v) => s + v, 0) / prior.reduce((s, v) => s + v, 0)) - 1) * 100).toFixed(1).replace(".", ",")} %</strong></span>
@@ -255,7 +255,7 @@ export function TopProductBars({ data }: { data: WidgetData }) {
           const pct = (r.value / max) * 100;
           return (
             <div key={r.label} className="flex items-center gap-3">
-              <span className="w-6 flex-shrink-0 text-center font-mono text-[11px] text-muted-foreground">{i + 1}</span>
+              <span className="w-6 flex-shrink-0 text-center font-mono text-xs text-muted-foreground">{i + 1}</span>
               <span className="w-24 flex-shrink-0 text-xs font-medium">{r.label}</span>
               <div className="h-5 flex-1 overflow-hidden rounded-md bg-muted">
                 <div className="h-full rounded-md bg-gradient-to-r from-brand to-brand/70" style={{ width: `${pct}%` }} />
@@ -328,7 +328,7 @@ export function StackedVerticalBarsChart({ data }: { data: WidgetData }) {
           );
         })}
       </svg>
-      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.paid }} /> Paid</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.refunded }} /> Refunded</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.open }} /> Open</span>
@@ -377,7 +377,7 @@ export function StackedHorizontalBarsChart({ data }: { data: WidgetData }) {
           );
         })}
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.paid }} /> Aktiv (Paid)</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.refund }} /> Refunded</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm" style={{ background: colors.open }} /> Offen</span>
@@ -556,7 +556,7 @@ export function HistogramChart({ data }: { data: WidgetData }) {
           );
         })}
       </svg>
-      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#10b981]" /> Bester Tag</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#0ea5e9]" /> Heute</span>
         <span className="inline-flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-[#cbd5e1]" /> Übrige Tage</span>

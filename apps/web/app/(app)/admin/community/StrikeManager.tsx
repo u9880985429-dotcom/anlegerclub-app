@@ -88,7 +88,7 @@ export function StrikeManager() {
           {strikes.slice(0, 6).map((s) => (
             <div key={s.id} className="p-4">
               <div className="mb-1 flex flex-wrap items-center gap-2 text-xs">
-                <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${SEVERITY_BADGE_CLASS[s.severity]}`}>
+                <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${SEVERITY_BADGE_CLASS[s.severity]}`}>
                   {SEVERITY_LABELS[s.severity]}
                 </span>
                 <span className="font-semibold">{s.userName}</span>
@@ -98,7 +98,7 @@ export function StrikeManager() {
                 <span className="text-muted-foreground">{formatRelative(s.createdAt)}</span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{s.excerpt}</p>
-              <div className="mt-1 text-[10px] text-muted-foreground">Vergeben durch: <strong className="text-foreground">{s.issuedByName}</strong></div>
+              <div className="mt-1 text-xs text-muted-foreground">Vergeben durch: <strong className="text-foreground">{s.issuedByName}</strong></div>
             </div>
           ))}
         </div>
@@ -125,12 +125,12 @@ function UserStrikeRow({ summary }: { summary: ReturnType<typeof summarizeStrike
         <div className="flex items-center gap-2">
           <span className="font-semibold">{summary.userName}</span>
           {summary.isBanned && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+            <span className="inline-flex items-center gap-1 rounded-md bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-700">
               <ShieldOff className="h-3 w-3" /> Gesperrt
             </span>
           )}
           {summary.isMuted && !summary.isBanned && (
-            <span className="rounded-md bg-orange-500/15 px-2 py-0.5 text-[10px] font-semibold text-orange-700">Mute aktiv</span>
+            <span className="rounded-md bg-orange-500/15 px-2 py-0.5 text-xs font-semibold text-orange-700">Mute aktiv</span>
           )}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -139,7 +139,7 @@ function UserStrikeRow({ summary }: { summary: ReturnType<typeof summarizeStrike
           <span>Letzter Verstoß: {summary.lastStrikeAt ? formatRelative(summary.lastStrikeAt) : "—"}</span>
         </div>
         {recommendation && (
-          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-1 text-[11px] text-amber-800">
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-1 text-xs text-amber-800">
             <AlertTriangle className="h-3 w-3" /> {recommendation}
           </div>
         )}
@@ -148,13 +148,13 @@ function UserStrikeRow({ summary }: { summary: ReturnType<typeof summarizeStrike
           <ul className="mt-2 space-y-1.5">
             {summary.history.map((h) => (
               <li key={h.id} className="flex items-start gap-2 rounded-md border border-border bg-muted/20 p-2">
-                <span className={`flex-shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${SEVERITY_BADGE_CLASS[h.severity]}`}>
+                <span className={`flex-shrink-0 rounded-md px-1.5 py-0.5 text-xs font-semibold ${SEVERITY_BADGE_CLASS[h.severity]}`}>
                   {SEVERITY_LABELS[h.severity]}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="text-foreground">{h.reason}</div>
                   <div className="line-clamp-2">{h.excerpt}</div>
-                  <div className="mt-0.5 text-[10px]">{formatRelative(h.createdAt)} · {h.issuedByName}</div>
+                  <div className="mt-0.5 text-xs">{formatRelative(h.createdAt)} · {h.issuedByName}</div>
                 </div>
               </li>
             ))}

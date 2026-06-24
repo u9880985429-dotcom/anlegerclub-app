@@ -140,7 +140,7 @@ export function PasswordChangeForm() {
         <span className="mb-1 flex items-center justify-between">
           <span className="font-semibold">Neues Passwort</span>
           {newPw && (
-            <span className="text-[10px] text-muted-foreground">Stärke: <strong className="text-foreground">{strength.label}</strong></span>
+            <span className="text-xs text-muted-foreground">Stärke: <strong className="text-foreground">{strength.label}</strong></span>
           )}
         </span>
         <div className="relative">
@@ -186,12 +186,12 @@ export function PasswordChangeForm() {
           autoComplete="new-password"
         />
         {confirmPw && newPw && confirmPw !== newPw && (
-          <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-loss">
+          <span className="mt-1 inline-flex items-center gap-1 text-xs text-loss">
             <AlertCircle className="h-3 w-3" /> Passwörter stimmen nicht überein
           </span>
         )}
         {confirmPw && newPw && confirmPw === newPw && (
-          <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-profit">
+          <span className="mt-1 inline-flex items-center gap-1 text-xs text-profit">
             <CheckCircle2 className="h-3 w-3" /> Passwörter stimmen überein
           </span>
         )}
@@ -229,7 +229,7 @@ export function PasswordChangeForm() {
         </button>
       </div>
 
-      <p className="mt-3 text-[11px] text-muted-foreground">
+      <p className="mt-3 text-xs text-muted-foreground">
         Phase 1: Demo-Modus — keine echte Speicherung. Phase 2: Argon2id-Hash + Invalidierung anderer Sessions.
       </p>
     </form>

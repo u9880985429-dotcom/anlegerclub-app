@@ -44,7 +44,7 @@ export function CommunityFeed({ slug }: CommunityFeedProps) {
                 </div>
                 <span className="font-medium text-foreground">{p.authorName}</span>
                 {p.authorIsTeam && p.authorTeamBadge && (
-                  <span className="inline-flex items-center rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+                  <span className="inline-flex items-center rounded-md bg-brand/10 px-1.5 py-0.5 text-xs font-semibold text-brand">
                     {p.authorTeamBadge}
                   </span>
                 )}
@@ -53,12 +53,12 @@ export function CommunityFeed({ slug }: CommunityFeedProps) {
               </div>
               <div className="flex flex-shrink-0 items-center gap-2">
                 {p.pinned && (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-brand">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-brand/15 px-2 py-0.5 text-xs font-semibold uppercase text-brand">
                     <Pin className="h-3 w-3" /> angepinnt
                   </span>
                 )}
                 {!p.visible && (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-semibold uppercase text-amber-700">
                     <EyeOff className="h-3 w-3" /> versteckt
                   </span>
                 )}

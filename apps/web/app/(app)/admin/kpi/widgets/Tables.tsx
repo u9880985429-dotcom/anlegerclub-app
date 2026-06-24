@@ -26,7 +26,7 @@ export function CohortRetentionTable() {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="px-2 py-1.5">Cohort</th>
               <th className="px-2 py-1.5 text-right">Start</th>
@@ -64,7 +64,7 @@ export function CohortRetentionTable() {
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-[11px] text-muted-foreground">% der urspruenglichen Kohorte, die nach N Monaten noch aktiv ist.</p>
+      <p className="mt-3 text-xs text-muted-foreground">% der urspruenglichen Kohorte, die nach N Monaten noch aktiv ist.</p>
     </div>
   );
 }
@@ -85,7 +85,7 @@ export function TopTradesTable() {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="px-3 py-2">Datum</th>
               <th className="px-3 py-2">Titel</th>
@@ -133,7 +133,7 @@ export function LatestOrdersTable({ data }: { data: WidgetData }) {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="px-3 py-2">Datum</th>
               <th className="px-3 py-2">Kunde</th>
@@ -146,11 +146,11 @@ export function LatestOrdersTable({ data }: { data: WidgetData }) {
             {orders.map((o, i) => (
               <tr key={i} className="hover:bg-accent/40">
                 <td className="px-3 py-2 font-mono">{o.date}</td>
-                <td className="px-3 py-2 font-mono text-[11px]">{o.customer}</td>
+                <td className="px-3 py-2 font-mono text-xs">{o.customer}</td>
                 <td className="px-3 py-2">{o.product}</td>
                 <td className="px-3 py-2 text-right font-mono">{o.amount.toFixed(2).replace(".", ",")} €</td>
                 <td className="px-3 py-2">
-                  <span className={`inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                  <span className={`inline-flex rounded-md px-1.5 py-0.5 text-xs font-semibold ${
                     o.status === "paid" ? "bg-profit/15 text-profit" :
                     o.status === "open" ? "bg-amber-500/15 text-amber-700" :
                     "bg-loss/15 text-loss"
@@ -181,7 +181,7 @@ export function SalesPerformanceTable() {
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border">
               <th className="px-3 py-2">Mitarbeiter</th>
               <th className="px-3 py-2">Rolle</th>
@@ -292,9 +292,9 @@ export function DealsLeaderboard() {
           const pct = (r.revenue / max) * 100;
           return (
             <div key={r.name} className="flex items-center gap-3">
-              <span className="w-5 flex-shrink-0 text-center font-mono text-[11px] text-muted-foreground">{i + 1}</span>
+              <span className="w-5 flex-shrink-0 text-center font-mono text-xs text-muted-foreground">{i + 1}</span>
               <div
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
                 style={{ background: r.color }}
               >
                 {r.initials}
@@ -304,7 +304,7 @@ export function DealsLeaderboard() {
                   <span className="truncate text-xs font-semibold">{r.name}</span>
                   <span className="font-mono text-xs">
                     <strong>{r.revenue.toLocaleString("de-DE")} €</strong>
-                    <span className="ml-1 text-[10px] text-muted-foreground">· {r.deals} Deals</span>
+                    <span className="ml-1 text-xs text-muted-foreground">· {r.deals} Deals</span>
                   </span>
                 </div>
                 <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">

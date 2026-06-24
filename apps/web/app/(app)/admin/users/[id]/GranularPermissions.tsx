@@ -98,7 +98,7 @@ export function GranularPermissions({ userId, userName }: { userId: string; user
                   <div className="min-w-0">
                     <div className="text-sm font-medium">{a.label}</div>
                     <div className="text-xs text-muted-foreground">{a.description}</div>
-                    <code className="mt-0.5 block font-mono text-[10px] text-muted-foreground">{a.key}</code>
+                    <code className="mt-0.5 block font-mono text-xs text-muted-foreground">{a.key}</code>
                   </div>
                 </div>
                 <button

@@ -24,7 +24,7 @@ function WebinarCard({ className }: { className?: string }) {
     >
       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-brand/20 blur-2xl" />
       <div className="relative">
-        <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-brand/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-brand">
+        <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-brand/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand">
           <BookOpen className="h-3 w-3" /> 5-Tage-Webinar · kostenlos
         </div>
         <h3 className="mt-2 text-lg font-bold leading-snug">Geheimnisse der Stillhalter</h3>
@@ -50,7 +50,7 @@ function StrategyCard({ className }: { className?: string }) {
     >
       <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-500/20 blur-2xl" />
       <div className="relative">
-        <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+        <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-700">
           <Calendar className="h-3 w-3" /> Kostenfrei · 1:1
         </div>
         <h3 className="mt-2 text-lg font-bold leading-snug">Persönliches Strategiegespräch</h3>

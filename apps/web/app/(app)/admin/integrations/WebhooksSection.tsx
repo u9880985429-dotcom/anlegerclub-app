@@ -140,7 +140,7 @@ export function WebhooksSection() {
         </div>
       )}
 
-      <div className="rounded-md border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+      <div className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
         <AlertCircle className="mr-1 inline h-3 w-3" />
         Hinweis: Eingehende Webhooks <strong>von Ablefy</strong> werden nicht hier konfiguriert, sondern unter <a href="/admin/integrations/ablefy" className="text-brand hover:underline">Ablefy-Integration</a>. Dieser Bereich ist fuer ausgehende Webhooks (z.B. an Zapier, n8n, eigene Backends).
       </div>

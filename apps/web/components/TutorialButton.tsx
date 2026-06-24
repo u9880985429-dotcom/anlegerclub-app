@@ -157,13 +157,13 @@ export function TutorialButton({ activeDepot, userId, compact }: TutorialButtonP
               </button>
             </div>
             {!autoshow && (
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <BellOff className="h-3 w-3" />
                 Pop-up deaktiviert. Du kannst das Tutorial jederzeit hier oder in den Einstellungen wieder einschalten.
               </div>
             )}
             {autoshow && (
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Bell className="h-3 w-3" />
                 Pop-up aktiv. Beim ersten Besuch jedes Depots öffnet sich das Tutorial automatisch.
               </div>
@@ -174,7 +174,7 @@ export function TutorialButton({ activeDepot, userId, compact }: TutorialButtonP
             <button
               type="button"
               onClick={dismissForever}
-              className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition hover:bg-accent hover:text-foreground"
             >
               <EyeOff className="h-3 w-3" /> Nicht mehr anzeigen
             </button>

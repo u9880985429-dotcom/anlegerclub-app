@@ -116,7 +116,7 @@ export function LockedProductPitch({ slug }: LockedProductPitchProps) {
             </a>
           </div>
 
-          <p className="mt-3 text-[11px] text-muted-foreground">
+          <p className="mt-3 text-xs text-muted-foreground">
             Kauf läuft sicher über unseren Partner Ablefy. Du kannst jederzeit kündigen.
           </p>
         </div>
@@ -214,7 +214,7 @@ function BlurredPreview({
         </div>
         <h4 className="font-semibold">{title}</h4>
         <p className="mt-1 text-sm text-muted-foreground">{body}</p>
-        <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           <Lock className="h-3 w-3" />
           Erst nach Freischaltung
         </div>

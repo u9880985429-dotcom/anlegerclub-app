@@ -104,7 +104,7 @@ export function AdminSidebar({ isOwnerAdmin }: { isOwnerAdmin: boolean }) {
       </div>
       {section.subgroups?.map((sub) => (
         <div key={sub.title} className="mt-3">
-          <div className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {sub.title}
           </div>
           <div className="space-y-0.5">

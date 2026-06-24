@@ -58,7 +58,7 @@ export function RoleDropdown({ initial, userId, actorRole }: RoleDropdownProps) 
         className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs hover:border-brand/40"
       >
         {role}
-        {role !== initial && <span className="text-[9px] text-amber-700">(geändert)</span>}
+        {role !== initial && <span className="text-xs text-amber-700">(geändert)</span>}
         <ChevronDown className="h-3 w-3 text-muted-foreground" />
       </button>
       {open && (
