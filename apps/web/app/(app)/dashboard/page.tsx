@@ -199,13 +199,15 @@ function StatLink({
   return (
     <Link
       href={href as never}
-      className="card-base group block p-5 transition hover:border-brand/40"
+      className={`group block p-5 transition ${accent ? "card-elevated hover:border-brand/50" : "card-base hover:border-brand/40"}`}
     >
-      <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md ${accent ? "bg-brand/15 text-brand" : "bg-muted text-muted-foreground"}`}>
-        <Icon className="h-4 w-4" />
+      {/* Zahl ist der Held (Display-Schrift, tabellarische Ziffern); das Icon nur
+          dezenter Akzent oben rechts statt dekorativer Box-im-Box-Kachel. */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="font-display text-3xl font-bold leading-none tabular-nums">{value}</div>
+        <Icon className={`h-4 w-4 flex-shrink-0 ${accent ? "text-brand" : "text-muted-foreground"}`} />
       </div>
-      <div className="text-2xl font-bold">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="mt-2.5 text-xs text-muted-foreground">{label}</div>
       <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand opacity-0 transition group-hover:opacity-100">
         Öffnen <ArrowRight className="h-3 w-3" />
       </div>

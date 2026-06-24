@@ -4,6 +4,8 @@ const nextConfig = {
   transpilePackages: ["@traderiq/api", "@traderiq/db", "@traderiq/ui"],
   experimental: {
     typedRoutes: false,
+    // Tree-shaked Icon-Importe statt Barrel-Import — spuerbar kleineres Client-Bundle.
+    optimizePackageImports: ["lucide-react"],
   },
 };
 
