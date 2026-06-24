@@ -135,7 +135,7 @@ export function EditModeBar({ role, scope }: EditModeBarProps) {
       )}
 
       {savedAt && (
-        <div className="mt-2 text-xs text-profit">✓ Gespeichert um {savedAt} (Demo · Phase 2: persistiert in DB).</div>
+        <div className="mt-2 text-xs text-profit">✓ Gespeichert um {savedAt} (Vorschau).</div>
       )}
     </div>
   );

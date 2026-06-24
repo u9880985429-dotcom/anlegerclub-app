@@ -49,7 +49,7 @@ export default async function PostDetailPage({ params }: { params: { slug: strin
               <span className="font-mono">{r.count}</span>
             </button>
           ))}
-          <button className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:text-brand" title="Weitere Reaktion (Phase 2)">+ Reagieren</button>
+          <button className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:text-brand" title="Weitere Reaktionen folgen in Kürze">+ Reagieren</button>
         </div>
       </article>
 

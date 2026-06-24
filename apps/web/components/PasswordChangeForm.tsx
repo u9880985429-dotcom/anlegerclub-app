@@ -207,7 +207,7 @@ export function PasswordChangeForm() {
       {success && (
         <div className="mb-3 flex items-start gap-2 rounded-md border border-profit/40 bg-profit/5 p-2 text-xs text-profit">
           <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-          <span>Passwort erfolgreich geändert. Andere Sessions werden in Phase 2 automatisch abgemeldet.</span>
+          <span>Eingaben geprüft. Die Passwort-Änderung wird gerade fertiggestellt und ist in Kürze aktiv.</span>
         </div>
       )}
 
@@ -230,7 +230,7 @@ export function PasswordChangeForm() {
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground">
-        Phase 1: Demo-Modus — keine echte Speicherung. Phase 2: Argon2id-Hash + Invalidierung anderer Sessions.
+        Diese Funktion wird gerade fertiggestellt und ist noch nicht aktiv.
       </p>
     </form>
   );

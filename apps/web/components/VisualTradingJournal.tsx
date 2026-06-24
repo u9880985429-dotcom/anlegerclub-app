@@ -58,7 +58,7 @@ export function VisualTradingJournal({ data, equity, openPositions, positionGrou
         {tab === "offen" && <OpenPositionsTable rows={openPositions} />}
         {tab === "geschlossen" && (
           <div className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
-            Demo-Platzhalter: Vollständige Liste geschlossener Positionen folgt nach VTJ-API-Anbindung (Phase 2).
+            Die vollständige Liste geschlossener Positionen folgt in Kürze.
             Tipp: <button onClick={() => setTab("apa")} className="font-semibold text-brand hover:underline">APA-Beispiel</button> zeigt eine vollständige Trade-Historie eines Underlyings.
           </div>
         )}
@@ -408,7 +408,7 @@ function PositionDetail({ group }: { group: PositionGroup }) {
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
         Daten aus unserem Excel-Trade-Journal („Anlegerclub Trade Journals.xlsx", Arbeitsblatt APA).
-        Phase 2: Live-Anbindung an das Visual Trading Journal — keine manuelle Pflege mehr.
+        Die direkte Anbindung an das Visual Trading Journal folgt in Kürze.
       </p>
     </div>
   );
