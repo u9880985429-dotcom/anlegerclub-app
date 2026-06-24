@@ -11,7 +11,7 @@ export const DEPOT_LABEL = {
 } as const;
 
 export const STARTER_TAB_LABELS: Record<string, string> = {
-  welcome: "Welcome",
+  welcome: "Start",
   strategie: "Strategie & Performance",
   aktiensparplan: "Trade Signale Aktiensparplan",
   dax: "Trade Signale DAX-Millionär",
@@ -23,7 +23,7 @@ export const STARTER_TAB_LABELS: Record<string, string> = {
 };
 
 export const TREND_TAB_LABELS: Record<string, string> = {
-  welcome: "Welcome",
+  welcome: "Start",
   start: "Strategie und Performance",
   signale: "Trade-Signale",
   auswertungen: "Depotauswertungen",
@@ -35,13 +35,13 @@ export const TREND_TAB_LABELS: Record<string, string> = {
 export const STILLHALTER_TAB_LABELS = TREND_TAB_LABELS;
 
 export const COCKPIT_TAB_LABELS: Record<string, string> = {
-  welcome: "Welcome",
+  welcome: "Start",
   perspektiven: "Perspektiven",
   tag: "Tagesblick",
   woche: "Wochenblick",
   monat: "Monatsblick",
-  earnings: "Anstehende Earnings",
-  calendar: "Calendar",
+  earnings: "Anstehende Quartalszahlen",
+  calendar: "Kalender",
   lexikon: "Lexikon",
   community: "Community",
   archiv: "Archiv",

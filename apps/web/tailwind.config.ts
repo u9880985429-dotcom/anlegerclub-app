@@ -29,8 +29,25 @@ const config: Config = {
           800: "#933707",
           900: "#71290a",
         },
-        profit: "#10b981",
-        loss: "#ef4444",
+        // Gewinn/Verlust — gedaempfter + WCAG-AA-tauglich als Text auf Weiss
+        // (vorher die hellen Tailwind-Defaults #10b981/#ef4444, beide unter AA).
+        profit: "#047857",
+        loss: "#b91c1c",
+        // Marken-Navy als echte Flaechen-/Ink-Farbe (vorher nur neutrales shadcn-Grau).
+        navy: {
+          DEFAULT: "#101830",
+          50: "#f4f6fb",
+          100: "#e6eaf3",
+          200: "#c6cee0",
+          300: "#9aa6c4",
+          400: "#6675a0",
+          500: "#3f4f7d",
+          600: "#2a3760",
+          700: "#1d294a",
+          800: "#141d36",
+          900: "#101830",
+          950: "#0a1022",
+        },
         // Semantic tokens (consumed via CSS variables)
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -60,6 +77,12 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+        display: ["var(--font-display)", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        // Mehrstufiger, weicher Schatten fuer hervorgehobene "card-elevated"-Flaechen
+        // — erzeugt Tiefe/Hierarchie statt 192x identischer flacher Karten.
+        elevated: "0 1px 2px rgba(16,24,48,0.04), 0 8px 24px -8px rgba(16,24,48,0.12)",
       },
       borderRadius: {
         lg: "var(--radius)",

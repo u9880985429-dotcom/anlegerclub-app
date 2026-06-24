@@ -44,7 +44,7 @@ export default async function FokusDetailPage({ params }: { params: { id: string
             duration={stock.videoDuration ?? "8:00"}
             seed={stock.id}
           />
-          <p className="mt-2 text-xs text-muted-foreground">Inhalte sind nicht herunterladbar – Wasserzeichen + DRM ab Phase 3 (Mux).</p>
+          <p className="mt-2 text-xs text-muted-foreground">Diese Inhalte sind geschützt und nicht herunterladbar.</p>
         </div>
 
         <div className="prose-tiq mt-6 max-w-none whitespace-pre-line text-sm leading-relaxed text-foreground">

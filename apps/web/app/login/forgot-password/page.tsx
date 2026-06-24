@@ -86,9 +86,7 @@ export default function ForgotPasswordPage() {
               </form>
 
               <p className="mt-6 text-center text-xs text-muted-foreground">
-                Phase 1: Demo-Modus — es wird keine echte Mail verschickt.
-                <br />
-                Phase 2: signierter Reset-Token, gültig 30 Min, einmalig.
+                Der Link zum Zurücksetzen ist 30 Minuten gültig und kann nur einmal verwendet werden.
               </p>
             </>
           ) : (

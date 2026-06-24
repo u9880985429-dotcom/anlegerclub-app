@@ -20,6 +20,7 @@ export {
   upsertCustomer,
   listCustomers,
   countCustomers,
+  getMemberCounts,
   upsertSubscription,
   listSubsByCustomerEmails,
 } from "./repository";

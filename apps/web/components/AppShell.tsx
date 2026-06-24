@@ -54,7 +54,7 @@ const PRODUCT_LABEL: Record<Exclude<ProductSlug, "all-access">, string> = {
 
 const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; label: string }[]> = {
   starter: [
-    { tab: "welcome", label: "Welcome" },
+    { tab: "welcome", label: "Start" },
     { tab: "strategie", label: "Strategie & Performance" },
     { tab: "aktiensparplan", label: "Trade Signale Aktiensparplan" },
     { tab: "dax", label: "Trade Signale DAX-Millionär" },
@@ -65,7 +65,7 @@ const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; 
     { tab: "archiv", label: "Archiv" },
   ],
   trend: [
-    { tab: "welcome", label: "Welcome" },
+    { tab: "welcome", label: "Start" },
     { tab: "start", label: "Strategie und Performance" },
     { tab: "signale", label: "Trade-Signale" },
     { tab: "auswertungen", label: "Depotauswertungen" },
@@ -74,7 +74,7 @@ const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; 
     { tab: "archiv", label: "Archiv" },
   ],
   stillhalter: [
-    { tab: "welcome", label: "Welcome" },
+    { tab: "welcome", label: "Start" },
     { tab: "start", label: "Strategie und Performance" },
     { tab: "signale", label: "Trade-Signale" },
     { tab: "auswertungen", label: "Depotauswertungen" },
@@ -83,13 +83,13 @@ const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; 
     { tab: "archiv", label: "Archiv" },
   ],
   cockpit: [
-    { tab: "welcome", label: "Welcome" },
+    { tab: "welcome", label: "Start" },
     { tab: "perspektiven", label: "Perspektiven" },
     { tab: "tag", label: "Tagesblick" },
     { tab: "woche", label: "Wochenblick" },
     { tab: "monat", label: "Monatsblick" },
-    { tab: "earnings", label: "Anstehende Earnings" },
-    { tab: "calendar", label: "Calendar" },
+    { tab: "earnings", label: "Anstehende Quartalszahlen" },
+    { tab: "calendar", label: "Kalender" },
     { tab: "lexikon", label: "Lexikon" },
     { tab: "community", label: "Community" },
     { tab: "archiv", label: "Archiv" },
@@ -97,6 +97,15 @@ const DEPOT_SECTIONS: Record<Exclude<ProductSlug, "all-access">, { tab: string; 
 };
 
 const ALL_DEPOTS: Exclude<ProductSlug, "all-access">[] = ["starter", "trend", "stillhalter", "cockpit"];
+
+// Rolle als deutscher Klartext statt rohem Code (OWNER -> Inhaber).
+const ROLE_LABELS_DE: Record<string, string> = {
+  OWNER: "Inhaber",
+  ADMIN: "Administrator",
+  STAFF: "Team",
+  SALES: "Vertrieb",
+  MEMBER: "Mitglied",
+};
 
 export function AppShell({ children, user }: AppShellProps) {
   const pathname = usePathname();
@@ -193,7 +202,7 @@ export function AppShell({ children, user }: AppShellProps) {
       />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold">{user.firstName} {user.lastName}</div>
-        <div className="truncate text-xs text-muted-foreground">{user.role}</div>
+        <div className="truncate text-xs text-muted-foreground">{ROLE_LABELS_DE[user.role] ?? user.role}</div>
       </div>
       <button
         onClick={() => signOut({ callbackUrl: "/login" })}

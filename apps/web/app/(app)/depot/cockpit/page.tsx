@@ -81,12 +81,11 @@ export default async function CockpitPage({
             </div>
             <article className="card-base relative overflow-hidden p-5 lg:col-span-3">
               <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand">
-                <Sparkles className="h-3 w-3" /> Phase 3
+                <Sparkles className="h-3 w-3" /> Tipp
               </div>
-              <h3 className="mb-2 font-semibold">Marktanalyse PDF (Gamma-AI)</h3>
+              <h3 className="mb-2 font-semibold">Marktanalysen als PDF</h3>
               <p className="text-sm text-muted-foreground">
-                Künftig: KI-gestützte tiefe Marktanalysen als PDF-Download – generiert von Gamma-AI auf Basis der Trader-IQ-Daten.
-                Aktuell sind die Reports unter „Perspektiven", „Tagesblick", „Wochenblick", „Monatsblick" und „Calendar" als druck-/PDF-fähige Dokumente verfügbar.
+                Die ausführlichen Marktanalysen findest du unter „Perspektiven", „Tagesblick", „Wochenblick", „Monatsblick" und „Calendar" – jeweils als Dokument zum Lesen, Drucken und als PDF.
               </p>
             </article>
           </div>
@@ -142,7 +141,7 @@ export default async function CockpitPage({
                 </tbody>
               </table>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">Vollständiger Kalender mit Konsens, Vorperiode + Push-Reminder ab Phase 2.</p>
+            <p className="mt-4 text-xs text-muted-foreground">Der vollständige Kalender mit Konsens und Vorperiode folgt in Kürze.</p>
           </div>
         </TabsContent>
 

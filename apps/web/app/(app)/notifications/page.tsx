@@ -61,8 +61,8 @@ export default async function NotificationsPage() {
       )}
 
       <div className="mt-6 rounded-md border border-dashed border-border p-4 text-xs text-muted-foreground">
-        Phase 2: echte Push (Expo / FCM / APNs / VAPID) und Mail (Webhook → Zapier/n8n/Brevo).
-        Aktuell zeigt diese Inbox die Mock-History für Demo-Zwecke.
+        Hier sammeln wir deine Benachrichtigungen per Push und E-Mail an einem Ort.
+        Diese Übersicht zeigt aktuell Beispiele.
       </div>
     </>
   );

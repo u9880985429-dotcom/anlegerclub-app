@@ -77,7 +77,7 @@ export default async function TradeDetailPage({
 
         <div className="mt-6">
           <VideoPlaceholder title={`Erklärvideo zu ${trade.tickers.join(", ")}`} duration="3:42" seed={trade.id} />
-          <p className="mt-2 text-xs text-muted-foreground">Inhalte sind nicht herunterladbar – Wasserzeichen + DRM ab Phase 3 (Mux).</p>
+          <p className="mt-2 text-xs text-muted-foreground">Diese Inhalte sind geschützt und nicht herunterladbar.</p>
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-2">

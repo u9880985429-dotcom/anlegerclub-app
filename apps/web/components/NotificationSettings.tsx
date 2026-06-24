@@ -183,7 +183,7 @@ export function NotificationSettings({ userId, accessibleProducts }: Notificatio
       </div>
 
       <div className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
-        Phase 2: Push via Expo (FCM + APNs) und Mail via Webhook → Zapier/n8n. Auswahl wird in der DB pro User persistiert.
+        Deine Auswahl wird gespeichert. Du kannst sie jederzeit wieder ändern.
       </div>
     </div>
   );

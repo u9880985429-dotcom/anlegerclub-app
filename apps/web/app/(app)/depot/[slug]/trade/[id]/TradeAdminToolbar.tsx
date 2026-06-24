@@ -68,7 +68,7 @@ export function TradeAdminToolbar({ tradeId, initialVisible, initialTitle, initi
             className="input-base h-32 resize-y font-mono text-xs"
           />
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Phase 2: Speichern triggert PATCH + Audit-Log + optional Push/Mail-Webhook.</span>
+            <span className="text-[11px] text-muted-foreground">Änderungen werden gespeichert und sind danach für Mitglieder sichtbar.</span>
             <button onClick={save} className="btn-brand inline-flex items-center gap-1">
               <Save className="h-3.5 w-3.5" /> Speichern
             </button>
@@ -77,7 +77,7 @@ export function TradeAdminToolbar({ tradeId, initialVisible, initialTitle, initi
       )}
 
       {savedAt && (
-        <div className="mt-2 text-xs text-profit">✓ Gespeichert um {savedAt} (Mock).</div>
+        <div className="mt-2 text-xs text-profit">✓ Gespeichert um {savedAt}.</div>
       )}
 
       {!visible && (
