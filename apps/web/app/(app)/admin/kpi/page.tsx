@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { requireSession } from "@/lib/access";
 import { allSubscriptions, allUsers } from "@traderiq/api";
 import { filterKpiRelevantSubs } from "@/modules/kpi";
+import { getMemberCounts } from "@/modules/customers";
 import { KpiFilterBar } from "./KpiFilterBar";
 import { DynamicGridLoader } from "./DynamicGridLoader";
 
@@ -26,9 +27,18 @@ export default async function KpiDashboardPage() {
   // Nur KPI-relevante Subs zaehlen: interne/Team-Mitglieder werden ausgefiltert
   // (konsistent mit PricingOverviewCard + anomaly-detection).
   const kpiSubs = filterKpiRelevantSubs(allSubscriptions, allUsers);
-  const activeMembers = kpiSubs.filter((s) => s.status === "ACTIVE" || s.status === "PAID").length;
-  const pausedMembers = kpiSubs.filter((s) => s.status === "PAUSED").length;
-  const expiredMembers = kpiSubs.filter((s) => s.status === "EXPIRED" || s.status === "REFUNDED" || s.status === "CANCELLED").length;
+  // Echte Mitgliederzahlen aus den synchronisierten Ablefy-Kundendaten (Supabase).
+  // Faellt auf die Mock-Zahlen zurueck, wenn Supabase nicht konfiguriert ist (lokale Entwicklung).
+  const realMembers = await getMemberCounts();
+  const activeMembers = realMembers
+    ? realMembers.active
+    : kpiSubs.filter((s) => s.status === "ACTIVE" || s.status === "PAID").length;
+  const pausedMembers = realMembers
+    ? realMembers.paused
+    : kpiSubs.filter((s) => s.status === "PAUSED").length;
+  const expiredMembers = realMembers
+    ? realMembers.expired
+    : kpiSubs.filter((s) => s.status === "EXPIRED" || s.status === "REFUNDED" || s.status === "CANCELLED").length;
   const totalUsers = allUsers.length;
   const avgArpu = 89;
   const newMembersThisMonth = 14;

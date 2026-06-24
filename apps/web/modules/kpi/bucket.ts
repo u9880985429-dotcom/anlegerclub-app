@@ -1,5 +1,5 @@
 import type { ProductSlug, Subscription, User } from "@traderiq/api";
-import type { AblefyProductMapping } from "@/lib/ablefy-config";
+import type { AblefyProductMapping } from "@/modules/ablefy";
 
 /**
  * KPI-Aggregations-Regel (zementiert hier in einer Stelle):

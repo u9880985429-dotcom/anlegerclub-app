@@ -8,6 +8,11 @@
 
 export { loadAblefyConfigFromDb, saveAblefyConfigToDb } from "./config-repository";
 
+// Geteilter Domaenen-Typ ueber die Modul-Tuer (statt dass andere Module direkt
+// `@/lib/ablefy-config` importieren). So haengt z.B. das kpi-Modul nur an der
+// ablefy-Tuer, nicht an lib-Interna. Die Datei wandert in der IT-Runde ins Modul.
+export type { AblefyProductMapping } from "@/lib/ablefy-config";
+
 export { createAblefyApiClient } from "./api-client";
 export type { AblefyApiClient, AblefyApiClientConfig, AblefyRawResponse } from "./api-client";
 

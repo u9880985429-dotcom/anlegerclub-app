@@ -257,3 +257,47 @@ export async function listSubsByCustomerEmails(emails: string[]): Promise<Custom
   }
   return out;
 }
+
+/**
+ * Zaehlt echte Mitglieder aus den synchronisierten Ablefy-Kundendaten —
+ * pro Kunde (E-Mail) zaehlt der STAERKSTE Status genau einmal (ein Kunde mit
+ * mehreren Abos wird nicht doppelt gezaehlt). aktiv/paid schlaegt pausiert
+ * schlaegt beendet (expired/cancelled/refunded).
+ *
+ * Liefert `null`, wenn Supabase nicht konfiguriert ist (lokale Entwicklung) —
+ * der Aufrufer faellt dann auf die Mock-Zahlen zurueck. Paginiert ueber das
+ * PostgREST-1000-Zeilen-Limit hinweg, damit auch >1000 Subs korrekt zaehlen.
+ */
+export async function getMemberCounts(): Promise<{ active: number; paused: number; expired: number } | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return null;
+  const PAGE = 1000;
+  const rank: Record<string, number> = {
+    active: 3, paid: 3, paused: 2, expired: 1, cancelled: 1, refunded: 1,
+  };
+  const best = new Map<string, number>();
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from("customer_subscriptions")
+      .select("customer_email, status")
+      .range(from, from + PAGE - 1);
+    if (error) {
+      console.error("[customers-repo] getMemberCounts:", error.message);
+      return null;
+    }
+    const rows = (data ?? []) as { customer_email: string; status: string }[];
+    for (const row of rows) {
+      const r = rank[row.status] ?? 0;
+      const prev = best.get(row.customer_email) ?? 0;
+      if (r > prev) best.set(row.customer_email, r);
+    }
+    if (rows.length < PAGE) break;
+  }
+  let active = 0, paused = 0, expired = 0;
+  for (const r of best.values()) {
+    if (r === 3) active++;
+    else if (r === 2) paused++;
+    else if (r === 1) expired++;
+  }
+  return { active, paused, expired };
+}
