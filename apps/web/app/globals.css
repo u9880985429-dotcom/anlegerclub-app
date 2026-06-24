@@ -6,11 +6,11 @@
   /* Light theme = default (matches traderiq.net) */
   :root {
     --background: 0 0% 100%;
-    --foreground: 222 18% 11%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222 18% 11%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 18% 11%;
+    --popover-foreground: 222 47% 11%;
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 40%;
     --accent: 220 14% 96%;
@@ -64,6 +64,23 @@
     background-color: hsl(var(--background));
     background-image: none;
   }
+
+  /* Ueberschriften in der Display-Schrift (Space Grotesk) — klare, eigene
+     Persoenlichkeit statt Inter-Default. */
+  h1, h2, h3, h4 {
+    font-family: var(--font-display), Inter, ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
+  /* Finanzzahlen sauber untereinander (gleiche Ziffernbreite). */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Sichtbarer Fokus-Rahmen ueberall — wichtig fuer Tastatur-Bedienung (25-85). */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 @layer components {
@@ -78,6 +95,11 @@
   }
   .card-base {
     @apply rounded-lg border border-border bg-card text-card-foreground shadow-sm;
+  }
+  /* Hervorgehobene Karte (Hero/Primaerflaeche) — weicher, mehrstufiger Schatten +
+     groesserer Radius erzeugt Tiefe/Hierarchie statt 192x gleicher flacher Karte. */
+  .card-elevated {
+    @apply rounded-xl border border-border bg-card text-card-foreground shadow-elevated;
   }
   .input-base {
     @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
@@ -112,4 +134,16 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* "Weniger Bewegung" respektieren (Vestibular-Empfindlichkeit, v.a. aeltere
+   Nutzer / Systemeinstellung) — neutralisiert Transforms/Animationen, behaelt
+   aber Opacity-Wechsel dezent. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

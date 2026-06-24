@@ -1,10 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+// Display-Schrift fuer Ueberschriften + Kennzahlen — gibt der App eine eigene
+// Persoenlichkeit statt des Inter-Defaults (der typische "KI-Baukasten"-Look).
+const display = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Trader IQ Anlegerclub",
@@ -45,7 +53,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" className="" suppressHydrationWarning>
+    <html lang="de" className={`${inter.variable} ${display.variable}`} suppressHydrationWarning>
       <head>
         {/* Apple Mobile Web App – damit "Zum Homescreen" als echte App startet */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
