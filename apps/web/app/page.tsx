@@ -60,18 +60,18 @@ export default function MarketingPage() {
           />
         </section>
 
-        {/* Demo logins hint */}
+        {/* Vorschau-Hinweis */}
         <div className="mx-auto mt-16 max-w-2xl rounded-xl border border-dashed border-brand/40 bg-brand/5 p-6 text-sm">
           <div className="mb-3 flex items-center gap-2 font-semibold text-brand">
             <Sparkles className="h-4 w-4" />
-            Demo-Zugänge
+            Vorschau
           </div>
           <p className="text-muted-foreground">
-            Diese Vorschau läuft mit Mock-Daten. Klicke auf{" "}
+            Diese Vorschau zeigt Beispieldaten. Klicke auf{" "}
             <Link href="/login" className="font-medium text-brand underline">
               Anmelden
-            </Link>{" "}
-            – dort findest du 4 Demo-Accounts (active / paused / expired / staff).
+            </Link>
+            , um den Mitgliederbereich zu öffnen.
           </p>
         </div>
       </main>

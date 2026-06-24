@@ -35,7 +35,7 @@ export const ACTION_LABELS: Record<string, string> = {
   NEUER_KAUF: "Neuer Kauf",
   NEUER_VERKAUF: "Neuer Verkauf",
   ANPASSUNG_STOP: "Anpassung Stop",
-  TAKE_PROFIT: "Take Profit",
+  TAKE_PROFIT: "Gewinn mitnehmen",
   NEUER_TRADE: "Neuer Trade",
   GEFUELLT: "Gefüllt",
   TEUER_TRADE: "Teurer Trade",

@@ -12,6 +12,23 @@ import { PRODUCT_LABELS } from "@/lib/copy/login-status";
 
 export const dynamic = "force-dynamic";
 
+// Rohe Enums in deutsche Klartext-Labels — ein Laie soll keine Grossbuchstaben-Codes lesen muessen.
+const ROLE_LABELS: Record<string, string> = {
+  OWNER: "Inhaber",
+  ADMIN: "Administrator",
+  STAFF: "Team",
+  SALES: "Vertrieb",
+  MEMBER: "Mitglied",
+};
+const SUB_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: "Aktiv",
+  PAID: "Bezahlt",
+  PAUSED: "Pausiert",
+  EXPIRED: "Abgelaufen",
+  CANCELLED: "Gekündigt",
+  REFUNDED: "Erstattet",
+};
+
 export default async function SettingsPage() {
   const session = await requireSession();
   const subs = findSubscriptionsForUser(session.user.id);
@@ -34,10 +51,10 @@ export default async function SettingsPage() {
           <Field label="Vorname" value={session.user.firstName} />
           <Field label="Nachname" value={session.user.lastName} />
           <Field label="E-Mail" value={session.user.email} />
-          <Field label="Rolle" value={session.user.role} />
+          <Field label="Rolle" value={ROLE_LABELS[session.user.role] ?? session.user.role} />
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Stamm-Profildaten werden in Phase 2 mit Ablefy synchronisiert. Profilbild bleibt User-eigen.
+          Deine Stammdaten verwaltest du bei Ablefy. Dein Profilbild bleibt hier bei dir.
         </p>
       </Section>
 
@@ -76,7 +93,7 @@ export default async function SettingsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={statusBadge}>{s.status}</span>
+                  <span className={statusBadge}>{SUB_STATUS_LABELS[s.status] ?? s.status}</span>
                   <a
                     href="https://myablefy.com/payer/orders"
                     target="_blank"
@@ -91,7 +108,7 @@ export default async function SettingsPage() {
           })}
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Kündigung läuft ausschließlich über Ablefy (Phase 2: Deeplink direkt zur Subscription).
+          Deine Kündigung läuft über Ablefy.
         </p>
       </Section>
 
@@ -102,8 +119,8 @@ export default async function SettingsPage() {
 
       <Section title="Rechtliches">
         <div className="space-y-2 text-sm">
-          <Row icon={Shield} title="AGB" subtitle="Texte vom Kunden geliefert (Spec §15)" />
-          <Row icon={Shield} title="Datenschutzerklärung" subtitle="EU-Hosting (Vercel Frankfurt)" />
+          <Row icon={Shield} title="AGB" subtitle="Unsere Allgemeinen Geschäftsbedingungen" />
+          <Row icon={Shield} title="Datenschutzerklärung" subtitle="Deine Daten werden in der EU gespeichert (Frankfurt)" />
           <Row icon={Shield} title="Impressum" />
           <Row icon={Shield} title={'Disclaimer „keine Anlageberatung“'} subtitle="Hinweis bei jedem Onboarding" />
         </div>

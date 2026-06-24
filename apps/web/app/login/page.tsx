@@ -87,15 +87,15 @@ function LoginInner() {
             </button>
           </form>
 
-          <div className="mt-4 flex items-center justify-between text-xs">
+          <div className="mt-4 text-xs">
             <Link href="/login/forgot-password" className="text-brand hover:underline">
               Passwort vergessen?
             </Link>
-            <span className="text-muted-foreground">Phase 2: + SMS-OTP</span>
           </div>
         </div>
 
-        {/* Demo-Login Helper Card */}
+        {/* Demo-Login-Helfer — nur in der Entwicklungsumgebung sichtbar, nie in Produktion */}
+        {process.env.NODE_ENV !== "production" && (
         <div className="mt-6 w-full max-w-md rounded-lg border border-dashed border-brand/40 bg-brand/5 p-5 text-sm">
           <div className="mb-3 font-semibold text-brand">📋 Phase-1-Demo-Logins</div>
           <p className="mb-3 text-xs text-muted-foreground">
@@ -109,6 +109,7 @@ function LoginInner() {
             <DemoBtn email="hendrik@traderiq.net" label="Hendrik (Kundensicht · all-access)" onClick={fillDemo} />
           </div>
         </div>
+        )}
       </div>
     </div>
   );
