@@ -147,7 +147,7 @@ export function TeamInvite() {
           </label>
         </div>
 
-        <div className="rounded-md border border-dashed border-border bg-muted/30 p-3 text-[11px] text-muted-foreground">
+        <div className="rounded-md border border-dashed border-border bg-muted/30 p-3 text-xs text-muted-foreground">
           <strong className="text-foreground">{TEAM_ROLES.find((r) => r.value === role)?.label}-Rechte:</strong>{" "}
           {TEAM_ROLES.find((r) => r.value === role)?.description}
         </div>
@@ -182,14 +182,14 @@ export function TeamInvite() {
                 className="input-base h-44 resize-y font-mono text-xs"
               />
             </label>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Wenn leer: Standard-Vorlage wird verwendet (mit Vorname + Rolle + Aktivierungs-Link).
             </p>
           </div>
         </details>
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             Phase 2: Direktversand via Outlook (info@traderiq.net) statt Mailto.
           </span>
           <button type="submit" className="btn-brand inline-flex items-center gap-2">

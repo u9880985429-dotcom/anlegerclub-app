@@ -113,7 +113,7 @@ export function AttachmentInput({
         <ImagePlus className="h-4 w-4" />
         {!compact && <span className="hidden sm:inline">Foto / Screenshot</span>}
         {attachments.length > 0 && (
-          <span className="rounded bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+          <span className="rounded bg-brand/15 px-1.5 py-0.5 text-xs font-bold text-brand">
             {attachments.length}{max >= 50 ? "" : `/${max}`}
           </span>
         )}

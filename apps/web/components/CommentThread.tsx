@@ -216,7 +216,7 @@ function CommentNode({
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
         {depth > 0 && <CornerDownRight className="h-3 w-3 text-brand" />}
         <div
-          className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${
+          className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
             comment.authorIsTeam ? "bg-brand text-white" : "bg-muted"
           }`}
         >
@@ -228,7 +228,7 @@ function CommentNode({
         </div>
         <span className="font-semibold">{comment.authorName}</span>
         {comment.authorIsTeam && comment.authorTeamBadge && (
-          <span className="inline-flex items-center rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+          <span className="inline-flex items-center rounded-md bg-brand/10 px-1.5 py-0.5 text-xs font-semibold text-brand">
             {comment.authorTeamBadge}
           </span>
         )}
@@ -238,7 +238,7 @@ function CommentNode({
           <span className="text-muted-foreground italic">· bearbeitet</span>
         )}
         {comment.hidden && (
-          <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+          <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
             versteckt
           </span>
         )}

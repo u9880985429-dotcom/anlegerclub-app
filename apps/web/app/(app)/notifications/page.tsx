@@ -50,10 +50,10 @@ export default async function NotificationsPage() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="text-sm font-semibold">{n.title}</span>
-                  <span className="badge-base text-[10px]">{TYPE_LABEL[n.type] ?? n.type}</span>
+                  <span className="badge-base text-xs">{TYPE_LABEL[n.type] ?? n.type}</span>
                 </div>
                 <p className="mt-0.5 text-sm text-muted-foreground">{n.body}</p>
-                <span className="mt-1 block text-[11px] text-muted-foreground">{formatGermanDateTime(n.createdAt)} · {formatRelative(n.createdAt)}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">{formatGermanDateTime(n.createdAt)} · {formatRelative(n.createdAt)}</span>
               </div>
             </Link>
           ))}

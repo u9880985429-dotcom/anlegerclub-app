@@ -49,7 +49,7 @@ export default function CockpitDocPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Footer */}
-        <footer className="mt-12 border-t border-border pt-4 text-[10px] text-muted-foreground">
+        <footer className="mt-12 border-t border-border pt-4 text-xs text-muted-foreground">
           © {new Date().getFullYear()} Trader IQ Anlegerclub · info@traderiq.net · https://traderiq.net<br />
           Inhalte stellen keine Anlageberatung dar. Handeln auf eigenes Risiko.
         </footer>

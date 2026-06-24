@@ -59,7 +59,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
               <strong className="text-foreground">Interne Notiz:</strong> {user.notes}
             </div>
           )}
-          <p className="mt-4 text-[11px] text-muted-foreground">
+          <p className="mt-4 text-xs text-muted-foreground">
             Phase 2: Daten werden live aus Ablefy synchronisiert. Änderungen an Stamm­daten bitte direkt in Ablefy vornehmen.
           </p>
         </article>

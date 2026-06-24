@@ -133,7 +133,7 @@ const IVPanel = memo(function IVPanel({ value, priceHistory }: { value: number; 
   }, [value, priceHistory]);
   return (
     <div>
-      <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Implizite Volatilität</div>
+      <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">Implizite Volatilität</div>
       <div className="flex h-72 w-full items-end gap-[2px]">
         {series.map((v, i) => (
           <span
@@ -144,7 +144,7 @@ const IVPanel = memo(function IVPanel({ value, priceHistory }: { value: number; 
         ))}
       </div>
       {/* Datums-Ticks unter der IV-Bar */}
-      <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+      <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
         {xTicks.map((t, i) => (
           <span key={i} className="font-mono">{t.label}</span>
         ))}
@@ -238,7 +238,7 @@ const CandlestickChart = memo(function CandlestickChart({ values }: { values: nu
 
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+      <div className="mb-1 flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
         <span>Kursverlauf seit letzten Earnings · {candles.length} Handelstage</span>
         <span className="font-mono normal-case tracking-normal">{candles[0]?.o.toFixed(2)} → {candles[candles.length - 1]?.c.toFixed(2)} USD</span>
       </div>

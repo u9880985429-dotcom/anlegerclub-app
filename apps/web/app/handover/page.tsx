@@ -579,7 +579,7 @@ export default function HandoverPage() {
         </Section>
 
         {/* Footer */}
-        <footer className="mt-12 border-t border-border pt-4 text-[10px] text-muted-foreground print:break-inside-avoid">
+        <footer className="mt-12 border-t border-border pt-4 text-xs text-muted-foreground print:break-inside-avoid">
           © {new Date().getFullYear()} Trader IQ Anlegerclub · info@traderiq.net · https://traderiq.net
           <br />
           Übergabe-Dokument · erstellt am 27.04.2026 · alle Aufwände sind Schätzungen, keine garantierten Werte.

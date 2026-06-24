@@ -142,7 +142,7 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
             <Filter className="h-3.5 w-3.5" /> Filter & Datenquelle
           </h2>
           {usingLiveData ? (
-            <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-[10px] font-semibold text-profit">
+            <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-xs font-semibold text-profit">
               <Database className="h-3 w-3" /> Live-Daten aus Ablefy
               {lastSyncAt && (
                 <span className="ml-1 font-normal text-profit/80">
@@ -151,7 +151,7 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
               )}
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+            <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-700">
               <Sparkles className="h-3 w-3" /> Demo-Daten — fuer Echtdaten Sync ausloesen
             </span>
           )}
@@ -222,14 +222,14 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
               <X className="h-3.5 w-3.5" /> Filter zuruecksetzen
             </button>
           )}
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             <Filter className="mr-1 inline h-3 w-3" />
             Filter wirken sofort auf alle Charts (clientseitig auf das letzte Aggregat angewendet).
           </span>
         </div>
 
         {hasFilters && !usingLiveData && (
-          <div className="mt-3 inline-flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-[11px] text-amber-700">
+          <div className="mt-3 inline-flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-amber-700">
             <Sparkles className="mt-0.5 h-3 w-3 flex-shrink-0" />
             <span>
               <strong>Demo-Daten reagieren nicht auf Filter</strong> — fuer Live-Filterung erst „Aus Ablefy synchronisieren" druecken, danach reagieren alle Charts auf jede Filter-Aenderung.
@@ -242,7 +242,7 @@ export function KpiFilterBar({ salesAgents }: { salesAgents: SalesAgent[] }) {
         )}
 
         {aggregate && (
-          <div className="mt-4 grid gap-2 rounded-md border border-profit/30 bg-profit/5 p-3 text-[11px] sm:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-4 grid gap-2 rounded-md border border-profit/30 bg-profit/5 p-3 text-xs sm:grid-cols-3 lg:grid-cols-6">
             <Stat label="Rechnungen" value={aggregate.invoicesFetched.toLocaleString("de-DE")} />
             <Stat label="Bezahlt" value={aggregate.paid.toLocaleString("de-DE")} />
             <Stat label="Offen" value={aggregate.open.toLocaleString("de-DE")} />
@@ -270,7 +270,7 @@ function Field({ label, icon: Icon, children }: { label: string; icon: React.Com
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className={`font-mono font-semibold ${accent ? "text-profit" : ""}`}>{value}</div>
     </div>
   );

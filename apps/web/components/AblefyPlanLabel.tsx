@@ -28,7 +28,7 @@ export function AblefyPlanLabel({ ablefyProductId, className }: { ablefyProductI
   if (!ablefyProductId || !label) return null;
 
   return (
-    <span className={className ?? "ml-2 inline-flex items-center rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-medium text-brand"}>
+    <span className={className ?? "ml-2 inline-flex items-center rounded-md bg-brand/10 px-1.5 py-0.5 text-xs font-medium text-brand"}>
       {label}
     </span>
   );

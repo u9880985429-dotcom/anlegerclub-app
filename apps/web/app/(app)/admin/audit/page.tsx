@@ -39,7 +39,7 @@ export default function AdminAuditPage() {
               <tr key={a.id} className="hover:bg-accent/40">
                 <td className="px-4 py-3 font-mono text-xs">{formatGermanDateTime(a.createdAt)}</td>
                 <td className="px-4 py-3">{a.actorName}</td>
-                <td className="px-4 py-3"><span className="badge-brand font-mono text-[10px]">{a.action}</span></td>
+                <td className="px-4 py-3"><span className="badge-brand font-mono text-xs">{a.action}</span></td>
                 <td className="px-4 py-3 text-xs">{a.entity}</td>
                 <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{a.entityId}</td>
               </tr>

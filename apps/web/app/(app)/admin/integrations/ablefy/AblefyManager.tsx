@@ -484,7 +484,7 @@ export function AblefyManager() {
           </div>
         </div>
         {diagnoseResult !== null && (
-          <pre className="mt-3 max-h-80 overflow-auto rounded-md border border-border bg-background p-3 text-[10px] leading-tight">
+          <pre className="mt-3 max-h-80 overflow-auto rounded-md border border-border bg-background p-3 text-xs leading-tight">
             {JSON.stringify(diagnoseResult, null, 2)}
           </pre>
         )}
@@ -502,7 +502,7 @@ export function AblefyManager() {
           <Field label="API-Key" required>
             <input
               type="text"
-              className="input-base font-mono text-[11px]"
+              className="input-base font-mono text-xs"
               placeholder="z.B. live_pk_..."
               value={cfg.apiKey}
               onChange={(e) => update("apiKey", e.target.value)}
@@ -514,7 +514,7 @@ export function AblefyManager() {
             <div className="relative">
               <input
                 type={showSecret ? "text" : "password"}
-                className="input-base pr-9 font-mono text-[11px]"
+                className="input-base pr-9 font-mono text-xs"
                 placeholder="••••••••••"
                 value={cfg.apiSecret}
                 onChange={(e) => update("apiSecret", e.target.value)}
@@ -538,7 +538,7 @@ export function AblefyManager() {
             Verbindung testen (/api/me)
           </button>
           {testResult && (
-            <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] ${testResult.ok ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
+            <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs ${testResult.ok ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
               {testResult.ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
               {testResult.msg}
             </span>
@@ -562,7 +562,7 @@ export function AblefyManager() {
           <div className="relative">
             <input
               readOnly
-              className="input-base pr-10 font-mono text-[11px]"
+              className="input-base pr-10 font-mono text-xs"
               value={webhookUrl}
               onClick={(e) => (e.target as HTMLInputElement).select()}
             />
@@ -582,7 +582,7 @@ export function AblefyManager() {
             <div className="relative flex-1">
               <input
                 type={showWebhookSecret ? "text" : "password"}
-                className="input-base pr-9 font-mono text-[11px]"
+                className="input-base pr-9 font-mono text-xs"
                 placeholder="Generiere ein zufaelliges Secret (mind. 32 Hex-Zeichen)"
                 value={cfg.webhookSecret}
                 onChange={(e) => update("webhookSecret", e.target.value)}
@@ -607,7 +607,7 @@ export function AblefyManager() {
               </button>
             )}
           </div>
-          <span className="mt-1 block text-[11px] text-muted-foreground">
+          <span className="mt-1 block text-xs text-muted-foreground">
             Hinterleg dasselbe Secret in Ablefy (falls vom Webhook-Setup unterstuetzt) bzw. lass es leer fuer ungesicherte Webhooks im Test. Empfehlung: NIEMALS produktiv ohne Secret.
           </span>
         </Field>
@@ -615,7 +615,7 @@ export function AblefyManager() {
         {/* Test-Webhook-Simulator — funktioniert auch ohne echte Ablefy-Verbindung */}
         <div className="mt-4 rounded-md border border-dashed border-border bg-muted/30 p-3">
           <div className="mb-2 text-xs font-semibold">Test-Webhook simulieren</div>
-          <p className="mb-2 text-[11px] text-muted-foreground">
+          <p className="mb-2 text-xs text-muted-foreground">
             Sendet einen lokalen POST an <code className="font-mono">/api/v1/ablefy/webhook</code> mit einem realistischen Mock-Payload. Im Live-Event-Log unten siehst du das Ergebnis. Ideal um die Pipeline (Empfang → LookupHint → Auto-Lookup) zu testen, ohne dass Ablefy live einen Brief schicken muss.
           </p>
           <div className="flex flex-wrap items-center gap-2">
@@ -634,7 +634,7 @@ export function AblefyManager() {
               Senden
             </button>
             {simulatorResult && (
-              <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] ${simulatorResult.ok ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
+              <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs ${simulatorResult.ok ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
                 {simulatorResult.ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
                 {simulatorResult.msg}
               </span>
@@ -673,7 +673,7 @@ export function AblefyManager() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+              <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr className="border-b border-border bg-muted/40">
                   <th className="px-3 py-2">Ablefy-Product-ID</th>
                   <th className="px-3 py-2">TraderIQ-Depot</th>
@@ -686,7 +686,7 @@ export function AblefyManager() {
                   <tr key={i}>
                     <td className="px-3 py-2">
                       <input
-                        className="input-base font-mono text-[11px]"
+                        className="input-base font-mono text-xs"
                         placeholder="z.B. 12345"
                         value={m.ablefyProductId}
                         onChange={(e) => updateProductMapping(i, { ablefyProductId: e.target.value })}
@@ -755,7 +755,7 @@ export function AblefyManager() {
 
         <div className="mt-4 rounded-md border border-dashed border-border bg-muted/30 p-3">
           <div className="mb-2 text-xs font-semibold">Debug: Rohdaten der ersten 3 Rechnungen zeigen</div>
-          <p className="mb-2 text-[11px] text-muted-foreground">
+          <p className="mb-2 text-xs text-muted-foreground">
             Falls der Sync 0,00 € zeigt, liegt das meist an Feldnamen, die ich anders annehme. Klick hier, um die echten Felder einer Ablefy-Rechnung zu sehen — den JSON-Output bitte mir schicken, dann fixe ich das Mapping.
           </p>
           <button
@@ -769,7 +769,7 @@ export function AblefyManager() {
           {previewResult && (
             <div className="mt-3">
               {previewResult.ok ? (
-                <pre className="max-h-96 overflow-auto rounded-md border border-border bg-background p-3 text-[10px] leading-tight">
+                <pre className="max-h-96 overflow-auto rounded-md border border-border bg-background p-3 text-xs leading-tight">
                   {JSON.stringify(previewResult.data, null, 2)}
                 </pre>
               ) : (
@@ -804,9 +804,9 @@ export function AblefyManager() {
         <div className="mb-3 flex items-center justify-between">
           <h3 className="inline-flex items-center gap-2 text-sm font-semibold">
             <Activity className="h-4 w-4 text-brand" /> Live-Events
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{events.length}</span>
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{events.length}</span>
             {cfg.enabled && cfg.apiKey && cfg.apiSecret && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-profit/10 px-1.5 py-0.5 text-[10px] text-profit" title="Webhook-Events werden automatisch durch /api/v1/ablefy/lookup mit Detail-Daten angereichert.">
+              <span className="inline-flex items-center gap-1 rounded-full bg-profit/10 px-1.5 py-0.5 text-xs text-profit" title="Webhook-Events werden automatisch durch /api/v1/ablefy/lookup mit Detail-Daten angereichert.">
                 <RefreshCw className="h-2.5 w-2.5" /> Auto-Lookup aktiv
                 {autoLookupCount > 0 && <span className="font-mono">· {autoLookupCount}</span>}
               </span>
@@ -823,8 +823,8 @@ export function AblefyManager() {
         ) : (
           <div className="space-y-1">
             {events.map((ev) => (
-              <div key={ev.id} className="flex items-start gap-2 rounded-md border border-border bg-muted/10 px-2 py-1.5 text-[11px]">
-                <span className={`inline-flex h-4 items-center rounded-md px-1.5 text-[9px] font-semibold ${
+              <div key={ev.id} className="flex items-start gap-2 rounded-md border border-border bg-muted/10 px-2 py-1.5 text-xs">
+                <span className={`inline-flex h-4 items-center rounded-md px-1.5 text-xs font-semibold ${
                   ev.status === "ok" ? "bg-profit/15 text-profit" :
                   ev.status === "warn" ? "bg-amber-500/15 text-amber-700" :
                   "bg-loss/15 text-loss"

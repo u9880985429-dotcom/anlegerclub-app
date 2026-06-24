@@ -130,7 +130,7 @@ export function LegalDocumentEditor({ slug }: { slug: LegalSlug }) {
               </div>
               <div className="min-w-0">
                 <div className="truncate text-sm font-semibold">{doc.fileName}</div>
-                <div className="text-[11px] text-muted-foreground">
+                <div className="text-xs text-muted-foreground">
                   {(doc.fileSize / 1024).toFixed(1)} KB · hochgeladen {new Date(doc.updatedAt).toLocaleString("de-DE")}
                 </div>
               </div>
@@ -172,7 +172,7 @@ export function LegalDocumentEditor({ slug }: { slug: LegalSlug }) {
         />
 
         {uploadError && (
-          <div className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-loss/15 px-2 py-1 text-[11px] text-loss">
+          <div className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-loss/15 px-2 py-1 text-xs text-loss">
             <AlertTriangle className="h-3 w-3" /> {uploadError}
           </div>
         )}
@@ -216,7 +216,7 @@ export function LegalDocumentEditor({ slug }: { slug: LegalSlug }) {
         )}
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             {doc.text ? (
               <>
                 {doc.text.length.toLocaleString("de-DE")} Zeichen ·{" "}
@@ -234,7 +234,7 @@ export function LegalDocumentEditor({ slug }: { slug: LegalSlug }) {
           </div>
           <div className="flex items-center gap-2">
             {saved && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-[11px] text-profit">
+              <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-2 py-0.5 text-xs text-profit">
                 <CheckCircle2 className="h-3 w-3" /> Gespeichert
               </span>
             )}

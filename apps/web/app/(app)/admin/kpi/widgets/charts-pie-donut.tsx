@@ -34,7 +34,7 @@ export function ChurnDonut({ data }: { data: WidgetData }) {
             <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-loss" /> Churn (30d)</span>
             <span className="font-mono font-semibold">{rate.toFixed(1).replace(".", ",")} %</span>
           </div>
-          <div className="border-t border-border pt-2 text-[11px] text-muted-foreground">
+          <div className="border-t border-border pt-2 text-xs text-muted-foreground">
             Ziel: &lt; 5 % · {rate < 5 ? <span className="font-semibold text-profit">unter Ziel</span> : <span className="font-semibold text-loss">ueber Ziel</span>}
           </div>
         </div>
@@ -190,7 +190,7 @@ export function DonutWithCenterStat({ data }: { data: WidgetData }) {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="text-2xl font-extrabold">{centerLabel} €</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Gesamt</div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Gesamt</div>
           </div>
         </div>
         <ul className="flex-1 space-y-1.5 text-xs">
@@ -282,8 +282,8 @@ export function MiniDonutRow({ data }: { data: WidgetData }) {
                   </span>
                 </div>
               </div>
-              <div className="mt-1 text-[11px] font-semibold">{e.label}</div>
-              <div className="font-mono text-[10px] text-muted-foreground">
+              <div className="mt-1 text-xs font-semibold">{e.label}</div>
+              <div className="font-mono text-xs text-muted-foreground">
                 {e.value >= 1000 ? `${(e.value / 1000).toFixed(1)}k` : e.value.toFixed(0)} / {e.goal >= 1000 ? `${(e.goal / 1000).toFixed(0)}k` : e.goal.toFixed(0)}
               </div>
             </div>
@@ -335,7 +335,7 @@ export function ChurnReasonDonut({ data }: { data: WidgetData }) {
             ))}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Total</div>
             <div className="text-3xl font-extrabold">{total}</div>
           </div>
         </div>

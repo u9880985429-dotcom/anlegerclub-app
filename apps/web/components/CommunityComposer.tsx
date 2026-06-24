@@ -207,7 +207,7 @@ export function CommunityComposer({ placeholder = "Was möchtest du teilen?", co
               >
                 <X className="h-3.5 w-3.5" />
               </button>
-              <div className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-2 py-1 text-[10px] text-white">
+              <div className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-2 py-1 text-xs text-white">
                 {a.name}
               </div>
             </div>
@@ -238,13 +238,13 @@ export function CommunityComposer({ placeholder = "Was möchtest du teilen?", co
             <ImagePlus className="h-4 w-4" />
             <span className="hidden sm:inline">Foto / Screenshot</span>
             {attachments.length > 0 && (
-              <span className="rounded bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+              <span className="rounded bg-brand/15 px-1.5 py-0.5 text-xs font-bold text-brand">
                 {attachments.length}/{MAX_ATTACHMENTS}
               </span>
             )}
           </button>
 
-          <span className="hidden text-[11px] text-muted-foreground sm:inline">
+          <span className="hidden text-xs text-muted-foreground sm:inline">
             Werbung wird blockiert · Beleidigungen maskiert · {MAX_ATTACHMENTS >= 50 ? "unbegrenzt Bilder" : `max ${MAX_ATTACHMENTS} Bilder`} (5 MB/Bild)
           </span>
         </div>

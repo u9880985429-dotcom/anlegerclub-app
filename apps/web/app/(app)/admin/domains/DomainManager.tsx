@@ -78,7 +78,7 @@ export function DomainManager() {
       {/* Liste */}
       <div className="card-base overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr className="border-b border-border bg-muted/40">
               <th className="px-3 py-2">Hostname</th>
               <th className="px-3 py-2">Typ</th>
@@ -95,7 +95,7 @@ export function DomainManager() {
                     <Globe className="h-3.5 w-3.5 text-muted-foreground" />
                     <strong>{d.hostname}</strong>
                     {d.isPrimary && (
-                      <span className="rounded-md bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold text-brand">PRIMARY</span>
+                      <span className="rounded-md bg-brand/15 px-1.5 py-0.5 text-xs font-semibold text-brand">PRIMARY</span>
                     )}
                   </div>
                 </td>
@@ -111,15 +111,15 @@ export function DomainManager() {
                 </td>
                 <td className="px-3 py-2">
                   {d.status === "verified" ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-1.5 py-0.5 text-[10px] font-semibold text-profit">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-profit/15 px-1.5 py-0.5 text-xs font-semibold text-profit">
                       <CheckCircle2 className="h-3 w-3" /> Verifiziert
                     </span>
                   ) : d.status === "pending" ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
                       <AlertCircle className="h-3 w-3" /> Ausstehend
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-loss/15 px-1.5 py-0.5 text-[10px] font-semibold text-loss">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-loss/15 px-1.5 py-0.5 text-xs font-semibold text-loss">
                       <AlertCircle className="h-3 w-3" /> Fehlgeschlagen
                     </span>
                   )}
@@ -127,16 +127,16 @@ export function DomainManager() {
                 <td className="px-3 py-2 text-right">
                   <div className="inline-flex items-center gap-1">
                     {!d.isPrimary && (
-                      <button onClick={() => setPrimary(d.id)} className="btn-ghost text-[11px]">
+                      <button onClick={() => setPrimary(d.id)} className="btn-ghost text-xs">
                         Als Primary
                       </button>
                     )}
                     {d.status !== "verified" && (
-                      <button onClick={() => reverify(d.id)} className="btn-ghost text-[11px]">
+                      <button onClick={() => reverify(d.id)} className="btn-ghost text-xs">
                         Erneut pruefen
                       </button>
                     )}
-                    <button onClick={() => remove(d.id)} className="btn-ghost text-[11px] text-destructive" aria-label="Domain entfernen">
+                    <button onClick={() => remove(d.id)} className="btn-ghost text-xs text-destructive" aria-label="Domain entfernen">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -183,7 +183,7 @@ export function DomainManager() {
             </button>
           </div>
         </div>
-        <p className="mt-3 text-[11px] text-muted-foreground">
+        <p className="mt-3 text-xs text-muted-foreground">
           Phase 2: DNS-Verifizierung via TXT-Record (<code>_traderiq-verify</code>) + automatische Cloudflare-/Vercel-Rule-Erstellung. Bei IP-Leerlassen wird ein <code>CNAME</code> auf <code>cname.vercel-dns.com</code> empfohlen.
         </p>
       </div>

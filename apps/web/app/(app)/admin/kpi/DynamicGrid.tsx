@@ -214,7 +214,7 @@ export function DynamicGrid({ data }: { data: WidgetData }) {
                 </div>
                 {/* Custom-Title-Indikator (falls gesetzt) */}
                 {inst.title && (
-                  <div className="absolute left-3 top-3 z-10 rounded-md bg-brand/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand">
+                  <div className="absolute left-3 top-3 z-10 rounded-md bg-brand/15 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand">
                     {inst.title}
                   </div>
                 )}

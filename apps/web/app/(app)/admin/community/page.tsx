@@ -56,14 +56,14 @@ export default function AdminCommunityPage() {
                       <div className="font-mono">„{flagged.masked}"</div>
                       <div className="mt-1 font-semibold text-muted-foreground">Original (intern, nur Mods):</div>
                       <div className="font-mono text-muted-foreground">„{flagged.raw}"</div>
-                      <div className="mt-1 text-[11px] text-muted-foreground">Verfasser: {flagged.authorName}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">Verfasser: {flagged.authorName}</div>
                     </div>
                   ) : (
                     <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
                       {post ? "Post: " : "Kommentar: "}„{post?.title ?? post?.bodyMd ?? comment?.bodyMd ?? "—"}"
                     </p>
                   )}
-                  <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-brand opacity-0 transition group-hover:opacity-100">
+                  <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand opacity-0 transition group-hover:opacity-100">
                     Beitrag im Original ansehen <ExternalLink className="h-3 w-3" />
                   </span>
                 </Link>

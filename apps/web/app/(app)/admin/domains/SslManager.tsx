@@ -121,7 +121,7 @@ export function SslManager() {
       ) : (
         <div className="card-base overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+            <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
               <tr className="border-b border-border bg-muted/40">
                 <th className="px-3 py-2">Hostname</th>
                 <th className="px-3 py-2">Aussteller</th>
@@ -147,7 +147,7 @@ export function SslManager() {
                     <td className="px-3 py-2">
                       {c.notAfter ? (
                         <span
-                          className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                          className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold ${
                             expired
                               ? "bg-loss/15 text-loss"
                               : expiringSoon
@@ -163,11 +163,11 @@ export function SslManager() {
                         "—"
                       )}
                     </td>
-                    <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">
+                    <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
                       {new Date(c.uploadedAt).toLocaleString("de-DE")}
                     </td>
                     <td className="px-3 py-2 text-right">
-                      <button onClick={() => remove(c.id)} className="btn-ghost text-[11px] text-destructive" aria-label="Zertifikat loeschen">
+                      <button onClick={() => remove(c.id)} className="btn-ghost text-xs text-destructive" aria-label="Zertifikat loeschen">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </td>
@@ -201,13 +201,13 @@ export function SslManager() {
               <span className="mb-1 block font-semibold">SSL-Zertifikat (.crt)</span>
               <textarea
                 rows={6}
-                className="input-base font-mono text-[10px] leading-relaxed"
+                className="input-base font-mono text-xs leading-relaxed"
                 placeholder={EXAMPLE_CERT_PLACEHOLDER}
                 value={certPem}
                 onChange={(e) => setCertPem(e.target.value)}
                 spellCheck={false}
               />
-              <span className="mt-1 block text-[11px] text-muted-foreground">
+              <span className="mt-1 block text-xs text-muted-foreground">
                 Bei Sectigo / Let&apos;s Encrypt erhaeltst du i.d.R. mehrere PEM-Bloecke (Server-Cert + Intermediate). Kopier sie alle in dieses Feld.
               </span>
             </label>
@@ -218,7 +218,7 @@ export function SslManager() {
                 <button
                   type="button"
                   onClick={() => setShowKey(!showKey)}
-                  className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                 >
                   {showKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                   {showKey ? "Verbergen" : "Anzeigen"}
@@ -227,7 +227,7 @@ export function SslManager() {
               {showKey ? (
                 <textarea
                   rows={6}
-                  className="input-base font-mono text-[10px] leading-relaxed"
+                  className="input-base font-mono text-xs leading-relaxed"
                   placeholder={EXAMPLE_KEY_PLACEHOLDER}
                   value={keyPem}
                   onChange={(e) => setKeyPem(e.target.value)}
@@ -244,7 +244,7 @@ export function SslManager() {
                   autoComplete="off"
                 />
               )}
-              <span className="mt-1 block text-[11px] text-loss">
+              <span className="mt-1 block text-xs text-loss">
                 ⚠️ Niemals in unverschluesselten Channels (Chat, E-Mail) teilen. Bei Verdacht auf Leaks: Reissue beim CA + Revoke ueber dein Sectigo-/Let&apos;s-Encrypt-Dashboard.
               </span>
             </label>
@@ -252,7 +252,7 @@ export function SslManager() {
             <div className="flex flex-wrap items-center justify-end gap-2">
               {result && (
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] ${
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs ${
                     result.ok ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
                   }`}
                 >

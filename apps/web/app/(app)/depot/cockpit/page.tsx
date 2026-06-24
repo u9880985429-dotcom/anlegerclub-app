@@ -80,7 +80,7 @@ export default async function CockpitPage({
               </p>
             </div>
             <article className="card-base relative overflow-hidden p-5 lg:col-span-3">
-              <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand">
+              <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-brand">
                 <Sparkles className="h-3 w-3" /> Tipp
               </div>
               <h3 className="mb-2 font-semibold">Marktanalysen als PDF</h3>
@@ -175,7 +175,7 @@ export default async function CockpitPage({
                 <article key={u.id} className="card-base p-4">
                   <div className="flex items-center justify-between gap-2">
                     <span className="badge-base">{u.kind}</span>
-                    <span className="text-[10px] text-muted-foreground">{formatGermanDate(u.publishedAt)}</span>
+                    <span className="text-xs text-muted-foreground">{formatGermanDate(u.publishedAt)}</span>
                   </div>
                   <div className="mt-2 text-sm font-semibold">{u.title}</div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{u.bodyMd}</p>
@@ -183,7 +183,7 @@ export default async function CockpitPage({
                     <Link
                       href={`/cockpit/doc/${u.id}` as never}
                       target="_blank"
-                      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-brand transition hover:border-brand/40"
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs font-semibold text-brand transition hover:border-brand/40"
                     >
                       <FileText className="h-3 w-3" /> PDF öffnen
                     </Link>
@@ -191,7 +191,7 @@ export default async function CockpitPage({
                       href={ABLEFY_ARCHIVE_LINK}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground transition hover:border-brand/40 hover:text-foreground"
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs text-muted-foreground transition hover:border-brand/40 hover:text-foreground"
                     >
                       Ablefy <ExternalLink className="h-3 w-3" />
                     </a>
@@ -248,7 +248,7 @@ function UpdateGrid({ items }: { items: typeof marketUpdates }) {
         >
           <div className="mb-2 flex items-center justify-between gap-2 text-xs">
             <span className="text-muted-foreground">{formatGermanDate(u.publishedAt)}</span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">
+            <span className="inline-flex items-center gap-1 rounded-md bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
               <FileText className="h-3 w-3" /> PDF
             </span>
           </div>

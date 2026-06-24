@@ -28,7 +28,7 @@ export function MetricCard({ label, value, delta, deltaSentiment, icon: Icon, ac
           <Icon className="h-4 w-4" />
         </div>
         {delta && (
-          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${deltaSentiment === "up" ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
+          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold ${deltaSentiment === "up" ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
             {deltaSentiment === "up" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
             {delta}
           </span>
@@ -83,7 +83,7 @@ export function MetricListCard({
       <div className="mb-3 flex items-baseline gap-2">
         <span className="text-3xl font-extrabold">{value}</span>
         {delta && (
-          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${deltaSentiment === "up" ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
+          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold ${deltaSentiment === "up" ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"}`}>
             {deltaSentiment === "up" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
             {delta}
           </span>
@@ -207,7 +207,7 @@ export function GaugeCard({
       <div className="mt-1 text-3xl font-extrabold" style={{ color }}>
         {value.toFixed(1).replace(".", ",")}{unit}
       </div>
-      <div className="text-[11px] text-muted-foreground">Ziel: {goal}{unit}</div>
+      <div className="text-xs text-muted-foreground">Ziel: {goal}{unit}</div>
     </div>
   );
 }
@@ -324,7 +324,7 @@ export function ZoneGauge({
       <div className="mt-1 text-3xl font-extrabold" style={{ color }}>
         {value.toFixed(1).replace(".", ",")}{unit}
       </div>
-      <div className="text-[11px] text-muted-foreground">Ziel: {goal}{unit}</div>
+      <div className="text-xs text-muted-foreground">Ziel: {goal}{unit}</div>
     </div>
   );
 }
@@ -379,7 +379,7 @@ export function BigNumberWithSparkline({
         )}
       </div>
       {varianceAbs !== undefined && (
-        <div className="text-[11px]" style={{ color }}>
+        <div className="text-xs" style={{ color }}>
           Variance: {varianceAbs >= 0 ? "+" : ""}{varianceAbs.toLocaleString("de-DE")} {unit}
         </div>
       )}
@@ -423,13 +423,13 @@ export function ThermometerCard({
             className={`absolute bottom-0 left-0 right-0 rounded-full transition-all ${above ? "bg-profit" : "bg-brand"}`}
             style={{ height: `${pct}%` }}
           />
-          <div className="absolute -right-12 top-0 -translate-y-1/2 text-[10px] text-muted-foreground">
+          <div className="absolute -right-12 top-0 -translate-y-1/2 text-xs text-muted-foreground">
             {(goal * 1).toLocaleString("de-DE")} {unit}
           </div>
-          <div className="absolute -right-12 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+          <div className="absolute -right-12 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
             {(goal / 2).toLocaleString("de-DE")} {unit}
           </div>
-          <div className="absolute -right-8 bottom-0 text-[10px] text-muted-foreground">0</div>
+          <div className="absolute -right-8 bottom-0 text-xs text-muted-foreground">0</div>
         </div>
         <div className="flex-1 pl-12">
           <div className="text-3xl font-extrabold">
@@ -445,11 +445,11 @@ export function ThermometerCard({
             </span>
           </div>
           {above ? (
-            <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-profit/15 px-1.5 py-0.5 text-[10px] font-semibold text-profit">
+            <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-profit/15 px-1.5 py-0.5 text-xs font-semibold text-profit">
               ✓ Ziel uebertroffen
             </div>
           ) : (
-            <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+            <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
               {(goal - value).toLocaleString("de-DE")} {unit} bis Ziel
             </div>
           )}
@@ -536,7 +536,7 @@ export function MetricTrioCompact({
             >
               {m.value}
             </div>
-            <div className="mt-2 text-[11px] font-medium text-muted-foreground">{m.label}</div>
+            <div className="mt-2 text-xs font-medium text-muted-foreground">{m.label}</div>
           </div>
         ))}
       </div>
@@ -581,7 +581,7 @@ export function PercentageRingCard({
           <span className="text-2xl font-extrabold" style={{ color }}>{Math.round(pct)}%</span>
         </div>
       </div>
-      {subtitle && <div className="mt-2 text-[11px] text-muted-foreground">{subtitle}</div>}
+      {subtitle && <div className="mt-2 text-xs text-muted-foreground">{subtitle}</div>}
     </div>
   );
 }
@@ -610,7 +610,7 @@ export function MultiQuadrantStatsCard({
               <q.icon className="h-3.5 w-3.5" />
             </div>
             <div className="text-xl font-extrabold">{q.value}</div>
-            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{q.label}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">{q.label}</div>
           </div>
         ))}
       </div>
@@ -639,9 +639,9 @@ export function MiniStatsList({
             <div key={r.label} className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
               <span className="truncate text-xs font-medium">{r.label}</span>
               <span className="flex items-center gap-1.5">
-                {r.value && <span className="font-mono text-[11px] text-muted-foreground">{r.value}</span>}
+                {r.value && <span className="font-mono text-xs text-muted-foreground">{r.value}</span>}
                 <span
-                  className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                  className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold ${
                     positive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
                   }`}
                 >
@@ -712,13 +712,13 @@ export function StatusStripBar({
         {segments.map((s) => {
           const pct = (s.value / total) * 100;
           return (
-            <div key={s.label} className="relative flex items-center justify-center text-[10px] font-bold text-white" style={{ width: `${pct}%`, background: s.color }}>
+            <div key={s.label} className="relative flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pct}%`, background: s.color }}>
               {pct >= 8 && s.value}
             </div>
           );
         })}
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
         {segments.map((s) => {
           const pct = (s.value / total) * 100;
           return (

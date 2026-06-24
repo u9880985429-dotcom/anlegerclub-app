@@ -181,7 +181,7 @@ export function SmtpForm() {
               </button>
               {testResult && (
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] ${
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs ${
                     testResult.ok ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
                   }`}
                 >

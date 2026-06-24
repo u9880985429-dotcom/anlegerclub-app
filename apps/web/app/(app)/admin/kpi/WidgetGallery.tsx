@@ -57,8 +57,8 @@ export function WidgetGallery({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="card-base flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-fade-in">
+      <div className="card-base flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden animate-fade-in">
         <div className="flex items-center justify-between border-b border-border p-4">
           <div>
             <h3 className="inline-flex items-center gap-2 text-lg font-semibold">
@@ -87,7 +87,7 @@ export function WidgetGallery({
           <button
             onClick={() => setCategory("all")}
             title={CATEGORY_DESCRIPTION.all}
-            className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+            className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
               category === "all" ? "bg-brand text-white" : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
             }`}
           >
@@ -100,7 +100,7 @@ export function WidgetGallery({
                 key={c}
                 onClick={() => setCategory(c)}
                 title={CATEGORY_DESCRIPTION[c]}
-                className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
                   category === c ? "bg-brand text-white" : `${CATEGORY_BADGE[c]} hover:opacity-80`
                 }`}
               >
@@ -111,7 +111,7 @@ export function WidgetGallery({
         </div>
 
         {/* Erklaerung der aktuell ausgewaehlten Kategorie */}
-        <div className="border-b border-border bg-muted/10 px-4 py-2 text-[11px] text-muted-foreground">
+        <div className="border-b border-border bg-muted/10 px-4 py-2 text-xs text-muted-foreground">
           <strong className="text-foreground">{category === "all" ? "Alle Widgets" : category}:</strong>{" "}
           {CATEGORY_DESCRIPTION[category]}
         </div>
@@ -135,19 +135,19 @@ export function WidgetGallery({
                   <div className="mb-2">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="text-base font-semibold leading-tight">{w.title}</h4>
-                      <span className={`flex-shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-semibold uppercase ${CATEGORY_BADGE[w.category]}`}>
+                      <span className={`flex-shrink-0 rounded-md px-1.5 py-0.5 text-xs font-semibold uppercase ${CATEGORY_BADGE[w.category]}`}>
                         {w.category}
                       </span>
                     </div>
                     {w.inspiration && (
-                      <div className="mt-1 text-[10px] text-muted-foreground">
+                      <div className="mt-1 text-xs text-muted-foreground">
                         <em>{w.inspiration}</em>
                       </div>
                     )}
                   </div>
                   <p className="flex-1 text-xs text-muted-foreground">{w.description}</p>
                   <div className="mt-3 flex items-center justify-between gap-2">
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {w.defaultCols} / 12 Spalten
                     </span>
                     <span className="inline-flex items-center gap-1 rounded-md bg-brand px-2 py-1 text-xs font-semibold text-white opacity-90 group-hover:opacity-100">

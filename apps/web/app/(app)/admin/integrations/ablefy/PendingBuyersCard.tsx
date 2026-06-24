@@ -50,7 +50,7 @@ export function PendingBuyersCard() {
       <div className="mb-3 flex items-center justify-between">
         <h3 className="inline-flex items-center gap-2 text-sm font-semibold">
           <ShoppingBag className="h-4 w-4 text-brand" /> Pending Buyers (Live)
-          <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{buyers.length}</span>
+          <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{buyers.length}</span>
         </h3>
         <button onClick={fetchBuyers} className="btn-ghost inline-flex items-center gap-1 text-xs">
           <RefreshCw className="h-3 w-3" /> Aktualisieren
@@ -69,7 +69,7 @@ export function PendingBuyersCard() {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
-            <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+            <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
               <tr className="border-b border-border bg-muted/40">
                 <th className="px-3 py-2">Zeit</th>
                 <th className="px-3 py-2">Kunde</th>
@@ -92,7 +92,7 @@ export function PendingBuyersCard() {
                     : "—";
                 return (
                   <tr key={b.id}>
-                    <td className="px-3 py-2 font-mono text-[10px] text-muted-foreground">
+                    <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
                       {new Date(b.ts).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })}
                     </td>
                     <td className="px-3 py-2">
@@ -104,12 +104,12 @@ export function PendingBuyersCard() {
                         <span className="text-muted-foreground">— (keine E-Mail im Payload)</span>
                       )}
                       {(b.firstName || b.lastName) && (
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           {[b.firstName, b.lastName].filter(Boolean).join(" ")}
                         </div>
                       )}
                       {b.orderId && (
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           Order: <span className="font-mono">{b.orderId}</span>
                         </div>
                       )}
@@ -117,10 +117,10 @@ export function PendingBuyersCard() {
                     <td className="px-3 py-2">
                       <div className="font-medium">{productDisplay}</div>
                       {pricing && (
-                        <div className="text-[10px] text-muted-foreground">{pricing.description}</div>
+                        <div className="text-xs text-muted-foreground">{pricing.description}</div>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-[11px] text-muted-foreground">{b.triggerEvent}</td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">{b.triggerEvent}</td>
                     <td className="px-3 py-2 text-right font-mono">
                       {b.amount !== null
                         ? `${b.amount.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
@@ -130,7 +130,7 @@ export function PendingBuyersCard() {
                       <button
                         disabled
                         title="Phase 2: legt automatisch User-Account + sendet Onboarding-Mail."
-                        className="btn-ghost inline-flex items-center gap-1 text-[11px] opacity-60"
+                        className="btn-ghost inline-flex items-center gap-1 text-xs opacity-60"
                       >
                         <Sparkles className="h-3 w-3" /> Account anlegen
                       </button>
