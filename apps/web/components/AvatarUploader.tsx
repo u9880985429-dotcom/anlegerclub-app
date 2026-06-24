@@ -152,7 +152,6 @@ export function AvatarUploader({ userId, name, isTeam }: AvatarUploaderProps) {
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           PNG, JPG oder HEIC bis 4 MB. Wird automatisch auf 512×512 zugeschnitten.
-          Phase 1: lokal im Browser gespeichert. Phase 2: Cloud-Upload mit DSGVO-Konsens.
         </p>
         {error && (
           <p className="mt-2 text-xs text-destructive">⚠️ {error}</p>

@@ -40,11 +40,11 @@ export default async function CommunityPage({ params }: { params: { slug: string
       <div className="card-base mb-6 p-4">
         <textarea
           className="input-base h-20 resize-none"
-          placeholder="Was möchtest du mit der Community teilen? (Bilder, PDF, Excel als Anhang ab Phase 2)"
+          placeholder="Was möchtest du mit der Community teilen?"
           disabled
         />
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">@-Erwähnungen, #Hashtags & Anhänge: Phase 2</span>
+          <span className="text-xs text-muted-foreground">Anhänge, @-Erwähnungen und #Hashtags folgen in Kürze.</span>
           <button className="btn-brand opacity-50" disabled>Beitrag posten</button>
         </div>
       </div>

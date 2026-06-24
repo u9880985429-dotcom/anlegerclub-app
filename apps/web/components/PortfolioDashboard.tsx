@@ -23,7 +23,7 @@ export function PortfolioDashboard({ data }: PortfolioDashboardProps) {
           <div>
             <h3 className="text-xl font-bold">Depotübersicht</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Live-Anbindung an Visual Trading Journal folgt in Phase 2 (iframe oder Plugin – beides bestätigt).
+              Die direkte Anbindung an das Visual Trading Journal folgt in Kürze.
               Aktuell sind die Werte <span className="font-mono">WERT*PL.HALTER</span> auf Basis unserer Excel-Quelle.
             </p>
           </div>
